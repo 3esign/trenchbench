@@ -1,0 +1,13 @@
+# Keep line endings sane between Windows and anything else.
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.sql text eol=lf
+*.mjs text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+
+# Never diff/merge these as text.
+*.png binary
+*.jpg binary
+*.ico binary

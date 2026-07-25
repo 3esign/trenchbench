@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BENCHHOOD — Agent Trading Arena on Robinhood Chain (prototype)</title>
+<style>
+  :root{
+    --surface-1:#171917; --plane:#0b0d0b; --card:#1c1f1c; --card-2:#212421;
+    --ink:#ffffff; --ink-2:#c3c7bf; --muted:#83887f;
+    --grid:#282b28; --baseline:#363a36; --border:rgba(255,255,255,0.10);
+    --good:#0ca30c; --bad:#d03b3b; --warn:#fab219;
+    /* Robinhood-Chain brand accent (chrome only, never a data color) */
+    --brand:#00d21e; --brand-2:#57f06f; --brand-dim:#00d21e1c;
+    /* validated dataviz categorical hues — DATA identity only */
+    --a1:#3987e5; --a2:#d95926; --a3:#199e70; --a4:#c98500;
+    --a5:#d55181; --a6:#8f7bff; --a7:#e0b341; --a8:#e66767;
+    --font:system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--plane);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased}
+  body.maxed main{max-width:100%}
+  body.maxed .tag{display:none}
+  .tnum{font-variant-numeric:tabular-nums}
+  button{font-family:var(--font)}
+  ::selection{background:#00d21e44}
+  header{display:flex;align-items:center;gap:14px;padding:10px 18px;background:var(--surface-1);border-bottom:1px solid var(--border);border-top:2px solid var(--brand);position:sticky;top:0;z-index:20}
+  .logo{font-weight:700;letter-spacing:.14em;font-size:15px}
+  .logo b{color:var(--brand);text-shadow:0 0 12px #00d21e77}
+  .tag{color:var(--muted);font-size:11px;letter-spacing:.05em;text-transform:uppercase}
+  .chainchip{font-size:10px;color:var(--brand-2);border:1px solid #00d21e55;background:var(--brand-dim);padding:2px 8px;border-radius:20px;letter-spacing:.06em;white-space:nowrap}
+  .simbadge{font-size:10px;color:var(--warn);border:1px solid #fab21955;padding:2px 6px;border-radius:20px;letter-spacing:.08em}
+  .tabs{display:flex;gap:4px;margin-left:6px}
+  .tab{background:transparent;border:1px solid transparent;color:var(--ink-2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500}
+  .tab.active{background:var(--card-2);color:var(--ink);border-color:#00d21e55;box-shadow:0 0 0 1px #00d21e22}
+  .status{margin-left:auto;display:flex;align-items:center;gap:12px;color:var(--ink-2);font-size:12px}
+  .status .dotlive{width:8px;height:8px;border-radius:50%;background:var(--brand);display:inline-block;margin-right:5px;box-shadow:0 0 8px var(--brand)}
+  .status .paused{background:var(--warn);box-shadow:0 0 8px #fab219}
+  .btn{background:var(--card-2);border:1px solid var(--border);color:var(--ink);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px}
+  .btn:hover{background:#2a2e2a}
+  .btn.primary{background:#0c5f18;border-color:#00d21e66;color:#eafff0}
+  main{padding:16px;max-width:1440px;margin:0 auto}
+  .grid{display:grid;gap:14px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
+  .card h3{margin:0 0 2px;font-size:12px;font-weight:600;color:var(--ink-2);letter-spacing:.04em;text-transform:uppercase}
+  .card h3 .star{color:var(--brand)}
+  .card .sub{color:var(--muted);font-size:11px;margin-bottom:10px}
+  .hide{display:none!important}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+  .tile{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+  .tile .lbl{color:var(--muted);font-size:11px}
+  .tile .val{font-size:22px;font-weight:600;margin-top:3px}
+  .tile .val.hero{font-size:30px}
+  .delta{font-size:12px;font-weight:600}
+  .up{color:var(--good)} .down{color:var(--bad)}
+  table{width:100%;border-collapse:collapse}
+  .lb th{text-align:left;color:var(--muted);font-weight:500;font-size:11px;padding:6px 8px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.04em}
+  .lb td{padding:8px 8px;border-bottom:1px solid #ffffff08;vertical-align:middle}
+  .lb tr{cursor:pointer}
+  .lb tr:hover td{background:#ffffff06}
+  .lb tr.sel td{background:#00d21e14}
+  .rank{color:var(--muted);width:22px;text-align:right}
+  .adot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:8px;vertical-align:middle}
+  .aname{font-weight:600}
+  .arole{color:var(--muted);font-size:11px}
+  .chip{font-size:9px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:1px 6px;margin-left:6px}
+  .mchip{font-size:9.5px;border:1px solid;border-radius:20px;padding:1px 7px;margin-left:6px;vertical-align:middle;font-weight:600}
+  .tape{max-height:300px;overflow-y:auto;font-size:12.5px}
+  .trow{display:flex;gap:8px;align-items:baseline;padding:5px 2px;border-bottom:1px solid #ffffff08}
+  .trow .t{color:var(--muted);font-size:11px;min-width:52px}
+  .act.buy{color:var(--good);font-weight:600} .act.sell{color:var(--bad);font-weight:600} .act.hold{color:var(--muted)}
+  .trow .why{color:var(--ink-2)}
+  .trow .sym{font-weight:600}
+  .heat{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px}
+  .htile{border-radius:9px;padding:8px 9px;border:1px solid var(--border)}
+  .htile .hs{font-weight:600;font-size:12px}
+  .htile .hp{font-size:11px;opacity:.9}
+  .htile .hc{font-size:11px;font-weight:600}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .col{flex:1 1 0;min-width:0}
+  .legend{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:8px}
+  .legend .li{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-2);cursor:pointer}
+  .legend .li.dim{opacity:.4}
+  .controls{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .ctl{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--muted)}
+  .ctl.inline{flex-direction:row;align-items:center;gap:6px}
+  .ctl input[type=range]{width:140px}
+  select,input[type=text]{background:var(--card-2);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-family:var(--font);font-size:12px}
+  .note{font-size:11.5px;color:var(--muted);line-height:1.5}
+  .seam{border-left:2px solid var(--brand);background:var(--brand-dim);padding:8px 12px;border-radius:0 8px 8px 0;font-size:11.5px;color:var(--ink-2)}
+  .log{max-height:300px;overflow-y:auto;font-size:11.5px}
+  .log .lrow{padding:5px 2px;border-bottom:1px solid #ffffff08}
+  .log .lrow .lr-h{color:var(--muted);font-size:10.5px}
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .modal-bg{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;z-index:50}
+  .modal{background:var(--surface-1);border:1px solid var(--border);border-radius:16px;padding:20px;width:min(640px,92vw);max-height:88vh;overflow:auto}
+  .close{float:right;cursor:pointer;color:var(--muted);font-size:18px;background:none;border:none}
+  .barcomp{display:flex;height:14px;border-radius:6px;overflow:hidden;background:#ffffff0a}
+  .barcomp span{height:100%}
+  .foot{color:var(--muted);font-size:11px;text-align:center;padding:18px}
+  .foot b{color:var(--brand-2)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><b>◆</b> BENCHHOOD</div>
+  <div class="chainchip">◆ Robinhood Chain · 4663</div>
+  <div class="tag">AI trading agents, benchmarked</div>
+  <div class="simbadge" id="simbadge">SIMULATED</div>
+  <div class="tabs">
+    <button class="tab active" data-view="arena">Arena</button>
+    <button class="tab" data-view="control">Control Room</button>
+  </div>
+  <div class="status">
+    <span id="clock"><span class="dotlive" id="livedot"></span><span id="clocktxt">running</span></span>
+    <span id="brainstat">brain: rules</span>
+    <button class="btn" id="maxbtn" title="Maximize / fullscreen">⛶ Maximize</button>
+    <button class="btn primary" id="playbtn">⏸ Stop sim</button>
+  </div>
+</header>
+
+<!-- ==================== ARENA (public "/") ==================== -->
+<main id="view-arena">
+  <div class="card">
+    <h3>Robinhood Chain market — what the agents are reacting to</h3>
+    <div class="sub">20 Robinhood-Chain assets · % change this session · <span style="color:var(--good)">green up</span> / <span style="color:var(--bad)">red down</span></div>
+    <div class="heat" id="heat"></div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1.6fr 1fr;margin-top:14px">
+    <div class="card">
+      <h3>The Race — portfolio value over time</h3>
+      <div class="sub">Every agent starts at $10,000. Click a name to spotlight its line.</div>
+      <div id="racechart"></div>
+      <div class="legend" id="racelegend"></div>
+    </div>
+    <div class="card">
+      <h3>Skill vs. Risk</h3>
+      <div class="sub">Return (up) vs. volatility taken (right). Top-left = skill; bottom-right = reckless. Randy = luck baseline.</div>
+      <div id="scatter"></div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1.6fr 1fr;margin-top:14px">
+    <div class="card">
+      <h3>Agent leaderboard</h3>
+      <div class="sub">Ranked by portfolio value. <span id="sorttoggle" style="cursor:pointer;color:var(--brand-2)">▸ sort by skill</span></div>
+      <table class="lb"><thead><tr>
+        <th class="rank">#</th><th>Agent</th><th style="text-align:right">Value</th>
+        <th style="text-align:right">P&amp;L</th><th style="text-align:right">Skill</th><th style="width:90px">Trend</th>
+      </tr></thead><tbody id="lbbody"></tbody></table>
+    </div>
+    <div class="card">
+      <h3>Live tape</h3>
+      <div class="sub">Every decision, as it happens</div>
+      <div class="tape" id="tape"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3><span class="star">★</span> Model leaderboard — which model trades best</h3>
+    <div class="sub">agents grouped by the model driving them. <b>This is the benchmark</b> — what Benchhood measures and can sell.</div>
+    <table class="lb"><thead><tr>
+      <th class="rank">#</th><th>Model</th><th style="text-align:right">Avg P&amp;L</th>
+      <th style="text-align:right">Avg skill</th><th style="text-align:right">Agents</th><th>Top agent</th>
+    </tr></thead><tbody id="modelboard"></tbody></table>
+  </div>
+  <div class="foot"><b>Benchhood</b> · built for Robinhood Chain · independent, not affiliated with Robinhood Markets · prototype · simulated prices · not financial advice</div>
+</main>
+
+<!-- ==================== CONTROL ROOM ("/pilot", local in production) ==================== -->
+<main id="view-control" class="hide">
+  <div class="tiles" id="tiles"></div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>System controls <span class="arole" style="text-transform:none">— runs locally on your machine in production</span></h3>
+    <div class="controls">
+      <div class="ctl">Market speed <input type="range" id="speed" min="120" max="1600" step="20" value="650"><span id="speedv" class="tnum"></span></div>
+      <div class="ctl">Think cadence ×<input type="range" id="cadence" min="0.3" max="3" step="0.1" value="1"><span id="cadv" class="tnum"></span></div>
+      <div class="ctl">Brain provider
+        <select id="brainsel">
+          <option value="rules">Built-in rules (works now)</option>
+          <option value="ollama">Ollama — local (your PC)</option>
+          <option value="claude">Claude — cloud (better)</option>
+        </select>
+      </div>
+      <div class="ctl inline"><input type="checkbox" id="rotate"><label for="rotate" style="cursor:pointer">rotate models over time</label></div>
+      <div class="ctl" id="ollamacfg" style="display:none">Ollama URL
+        <div style="display:flex;gap:6px;align-items:center"><input type="text" id="ollamaurl" value="http://localhost:11434" style="width:180px"><button class="btn" id="reconnect">Auto-connect</button></div>
+      </div>
+      <div class="ctl">Ollama status <span id="ollamastat" style="color:var(--ink-2)">detecting…</span></div>
+      <button class="btn" id="resetbtn">↻ Reset season</button>
+      <button class="btn" id="expjson">⭳ Export JSON</button>
+      <button class="btn" id="expcsv">⭳ Export CSV</button>
+    </div>
+    <div id="brainnote" class="seam" style="margin-top:12px"></div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:14px">
+    <div class="card">
+      <h3>Decision log — observe every choice</h3>
+      <div class="sub">observation → decision → reason, tagged by model. <select id="logfilter" style="margin-left:6px"></select></div>
+      <div class="log" id="declog"></div>
+    </div>
+    <div class="card">
+      <h3>Experience Store — <span class="tnum" id="expcount">0</span> records</h3>
+      <div class="sub">The product. Every row = context + decision + outcome + <b>model</b>. Grows every tick; export any time.</div>
+      <div class="log" id="expprev"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>Agent internals — how intelligence accumulates</h3>
+    <div class="sub">model · cadence · next wake · risk appetite · the strategy note each agent rewrites for itself</div>
+    <table class="lb"><thead><tr>
+      <th>Agent</th><th>Model</th><th style="text-align:right">Thinks</th><th style="text-align:right">Trades</th>
+      <th style="text-align:right">Next in</th><th style="text-align:right">Risk</th><th>Strategy note (self-written)</th>
+    </tr></thead><tbody id="internals"></tbody></table>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>What this prototype is designed to reveal</h3>
+    <div class="note" id="essentials"></div>
+  </div>
+  <div class="foot">Control Room · local-only in production · everything observable · seams for real feed &amp; real brains labeled in code</div>
+</main>
+
+<div id="modalroot"></div>
+
+<script>
+/* ============================================================
+   BENCHHOOD — single-file agent trading arena (prototype)
+   MARKET · EXPERIENCE · BRAIN(multi-model) · SIMULATOR · SCORING · SCHEDULER · CHARTS · RENDER
+   No external libraries. Runs from file:// with zero setup.
+   ============================================================ */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const randn=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const money=x=>'$'+(Math.abs(x)>=1e6?(x/1e6).toFixed(2)+'M':Math.abs(x)>=1e3?(x/1e3).toFixed(1)+'K':x.toFixed(0));
+const money2=x=>'$'+x.toLocaleString('en-US',{maximumFractionDigits:2});
+const pct=x=>(x>=0?'+':'')+x.toFixed(2)+'%';
+const px=x=> x>=1?x.toFixed(2): x>=0.01?x.toFixed(4):x.toFixed(5);
+const now=()=>new Date().toLocaleTimeString('en-US',{hour12:false});
+const cssv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+const CAT={bluechip:'#3987e5',etf:'#199e70',memestock:'#d95926',smallcap:'#8f7bff',memecoin:'#d55181',stable:'#83887f'};
+const ASSETS=[
+  ['AAPL','Apple','bluechip',225,.006,.0002],['NVDA','Nvidia','bluechip',176,.010,.0006],
+  ['TSLA','Tesla','bluechip',340,.014,.0003],['MSFT','Microsoft','bluechip',505,.006,.0002],
+  ['META','Meta','bluechip',720,.008,.0003],['AMZN','Amazon','bluechip',232,.008,.0002],
+  ['GOOGL','Alphabet','bluechip',201,.007,.0002],
+  ['GME','GameStop','memestock',28,.028,0],['MSTR','MicroStrategy','memestock',405,.024,.0004],['AMC','AMC','memestock',6.2,.030,-.0002],
+  ['IONQ','IonQ','smallcap',46,.026,.0005],['RKLB','Rocket Lab','smallcap',31,.024,.0006],['NBIS','Nebius','smallcap',61,.028,.0004],
+  ['SPY','S&P 500','etf',642,.005,.0002],['QQQ','Nasdaq 100','etf',561,.006,.0003],
+  ['USDG','RH Dollar','stable',1,.0004,0],
+  ['FOREST','Forest King','memecoin',0.0120,.055,.001],['REAL','Real','memecoin',0.082,.050,.0008],
+  ['AIX','AI','memecoin',0.051,.058,.0009],['DEGN','Degen','memecoin',0.0041,.062,-.0004]
+].map(([sym,name,cat,price,vol,drift])=>({sym,name,cat,price,seed:price,vol,drift,hist:[price],chg:0,mom:0,dev:0}));
+const AMAP=Object.fromEntries(ASSETS.map(a=>[a.sym,a]));
+
+const AGENTDEFS=[
+  {id:'val',  name:'Value Val',       role:'value investor',    color:'--a1',cad:10,risk:.15},
+  {id:'mom',  name:'Momentum Mia',    role:'trend chaser',      color:'--a2',cad:6, risk:.20},
+  {id:'degen',name:'Degen Dex',       role:'meme degen',        color:'--a3',cad:4, risk:.30},
+  {id:'contra',name:'Contrarian Cole',role:'buys the dip',      color:'--a4',cad:8, risk:.18},
+  {id:'mrev', name:'Mean-Reverter Mara',role:'fades extremes',  color:'--a5',cad:7, risk:.18},
+  {id:'index',name:'Index Ivy',       role:'diversified, calm', color:'--a6',cad:14,risk:.08},
+  {id:'event',name:'Event Nia',       role:'reacts to shocks',  color:'--a7',cad:3, risk:.20},
+  {id:'rand', name:'Random Randy',    role:'coin-flip baseline',color:'--a8',cad:6,risk:.12,baseline:true},
+];
+const START_CASH=10000;
+const DEMO_MODELS=['qwen2.5','llama3.3','mistral','gemma2'];
+const MODELCOLORS=['--a1','--a2','--a3','--a4','--a5','--a6','--a7','--a8'];
+
+/* MARKET  (SEAM › RealMarket = Alchemy Prices / Uniswap pools on RH Chain 4663) */
+const market={ tick(){ for(const a of ASSETS){
+  if(a.cat==='memecoin' && Math.random()<0.05){ a.price*=(1+rnd(-0.35,0.45)); }
+  a.price=Math.max(a.seed*0.02, a.price*(1+(a.drift+a.vol*randn())));
+  a.hist.push(a.price); if(a.hist.length>140)a.hist.shift();
+  a.chg=(a.price/a.seed-1)*100; const w=a.hist.slice(-12), wr=a.hist.slice(-24);
+  a.mom=(a.price/w[0]-1)*100; const mean=wr.reduce((s,x)=>s+x,0)/wr.length; a.dev=(a.price/mean-1)*100;
+}}};
+
+/* SIMULATOR */
+const FEE=0.001;
+function equity(ag){let e=ag.cash;for(const s in ag.hold)e+=ag.hold[s]*AMAP[s].price;return e;}
+function execute(ag,act){
+  if(act.action==='BUY'&&act.sym){ const a=AMAP[act.sym]; const cost=act.qty*a.price*(1+FEE);
+    if(act.qty>0 && cost<=ag.cash){ ag.cash-=cost; ag.hold[act.sym]=(ag.hold[act.sym]||0)+act.qty; return true; }
+  } else if(act.action==='SELL'&&act.sym){ const held=ag.hold[act.sym]||0; const q=Math.min(held,act.qty);
+    if(q>0){ ag.cash+=q*AMAP[act.sym].price*(1-FEE); ag.hold[act.sym]=held-q; if(ag.hold[act.sym]<=1e-9)delete ag.hold[act.sym]; return true; } }
+  return false;
+}
+
+/* EXPERIENCE STORE */
+const experience=[];
+function record(ag,act,executed){
+  experience.push({t:now(),tick:state.tick,agent:ag.name,agentId:ag.id,role:ag.role,model:ag.model,
+    action:act.action,sym:act.sym||'',qty:+(act.qty||0).toFixed(4),
+    price:act.sym?+AMAP[act.sym].price.toFixed(5):0,reason:act.reason,executed,equity:+equity(ag).toFixed(2)});
+  if(experience.length>4000)experience.shift();
+}
+
+/* MODELS */
+function activeModels(){ return state.models.length?state.models:DEMO_MODELS; }
+function assignModels(){ const m=activeModels(); AGENTS.forEach((a,i)=>a.model=m[i%m.length]); }
+function modelColor(m){ const l=activeModels(); const i=l.indexOf(m); return cssv(MODELCOLORS[(i<0?0:i)%8]); }
+function modelChip(m){ if(!m)return''; const c=modelColor(m); return `<span class="mchip" style="border-color:${c}66;color:${c}">${m}</span>`; }
+
+/* BRAIN */
+function observe(ag){ const assets=ASSETS.filter(a=>a.cat!=='stable').map(a=>({sym:a.sym,cat:a.cat,price:a.price,chg:a.chg,mom:a.mom,dev:a.dev}));
+  return {cash:ag.cash,hold:{...ag.hold},equity:equity(ag),assets,note:ag.note}; }
+const RuleBrain={ decide(ag,o){
+  const A=o.assets, held=Object.keys(o.hold); const risk=ag.risk*(ag.riskMood||1);
+  const buy=(sym,why)=>{const p=AMAP[sym].price;const q=Math.floor((risk*o.cash)/p);return q>0?{action:'BUY',sym,qty:q,reason:why}:hold('no cash');};
+  const sell=(sym,why,frac=1)=>{const q=(o.hold[sym]||0)*frac;return q>0?{action:'SELL',sym,qty:q,reason:why}:hold('nothing to sell');};
+  const hold=why=>({action:'HOLD',sym:null,qty:0,reason:why});
+  const by=(arr,f,dir=1)=>[...arr].sort((a,b)=>(f(b)-f(a))*dir);
+  switch(ag.id){
+    case 'val':{ const cheap=by(A.filter(a=>a.cat==='bluechip'||a.cat==='etf'),a=>a.dev,-1)[0]; const rich=held.map(s=>AMAP[s]).filter(a=>a.dev>6)[0];
+      if(rich)return sell(rich.sym,`taking profit, ${pct(rich.dev)} over trend`); if(cheap&&cheap.dev<-1.2)return buy(cheap.sym,`${cheap.sym} cheap, ${pct(cheap.dev)} vs trend`); return hold('nothing cheap enough'); }
+    case 'mom':{ const top=by(A,a=>a.mom)[0]; const lag=held.map(s=>AMAP[s]).filter(a=>a.mom<-1.5)[0];
+      if(lag)return sell(lag.sym,`cutting ${lag.sym}, rolling over`); if(top.mom>1.4)return buy(top.sym,`riding ${top.sym}, ${pct(top.mom)}`); return hold('no clear trend'); }
+    case 'degen':{ const memes=A.filter(a=>a.cat==='memecoin'||a.cat==='memestock'); const hot=by(memes,a=>a.mom)[0]; const dump=held.map(s=>AMAP[s]).filter(a=>a.mom<-8)[0];
+      if(dump&&Math.random()<.6)return sell(dump.sym,`bailing ${dump.sym}, it's dumping`); if(hot.mom>2)return buy(hot.sym,`aping ${hot.sym}, ${pct(hot.mom)}`);
+      return Math.random()<.5?buy(pick(memes).sym,'vibes'):hold('waiting for a runner'); }
+    case 'contra':{ const loser=by(A,a=>a.mom,-1)[0]; const winner=held.map(s=>AMAP[s]).filter(a=>a.mom>6)[0];
+      if(winner)return sell(winner.sym,`selling strength in ${winner.sym}`); if(loser.mom<-2)return buy(loser.sym,`fading the drop in ${loser.sym}`); return hold('no dip worth buying'); }
+    case 'mrev':{ const low=by(A,a=>a.dev,-1)[0]; const high=held.map(s=>AMAP[s]).filter(a=>a.dev>3)[0];
+      if(high)return sell(high.sym,`${high.sym} stretched above mean`); if(low.dev<-2.5)return buy(low.sym,`${low.sym} below average, reverting`); return hold('prices near fair'); }
+    case 'index':{ const uni=A.filter(a=>a.cat==='bluechip'||a.cat==='etf'); const missing=uni.filter(a=>!o.hold[a.sym]);
+      if(missing.length&&o.cash>o.equity*0.2)return buy(pick(missing).sym,'topping up the basket'); return hold('basket balanced'); }
+    case 'event':{ const shock=by(A,a=>Math.abs(a.chg))[0]; if(Math.abs(shock.mom)>3)return buy(shock.sym,`shock in ${shock.sym}, ${pct(shock.mom)}`);
+      const w=held.map(s=>AMAP[s]).filter(a=>a.mom>5)[0]; if(w)return sell(w.sym,`locking gains on ${w.sym}`); return hold('markets quiet'); }
+    case 'rand':default:{ const r=Math.random(); if(r<.4)return buy(pick(A).sym,'coin flip'); if(r<.7&&held.length)return sell(pick(held),'coin flip'); return hold('coin flip'); }
+  }
+}};
+// SEAM › OllamaBrain: each agent uses its own ag.model → one season benchmarks many models. Needs OLLAMA_ORIGINS=*.
+const OllamaBrain={ async decide(ag,o){
+  const top=[...o.assets].sort((a,b)=>Math.abs(b.mom)-Math.abs(a.mom)).slice(0,8);
+  const sys=`You are ${ag.name}, a ${ag.role}. Reply ONLY JSON: {"action":"BUY|SELL|HOLD","symbol":"TICKER"|null,"qty":number,"reason":"<=10 words","next_check_secs":number}.`;
+  const usr=`Cash $${o.cash.toFixed(0)}. Holdings ${JSON.stringify(o.hold)}. Movers `+top.map(a=>`${a.sym} ${a.price.toFixed(3)} ${a.mom.toFixed(1)}%`).join(', ')+`. Notes: ${o.note||'none'}. One action.`;
+  const r=await fetch(state.ollama.url.replace(/\/$/,'')+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:ag.model||activeModels()[0],format:'json',stream:false,messages:[{role:'system',content:sys},{role:'user',content:usr}]})});
+  const j=await r.json(); const d=JSON.parse(j.message.content);
+  return {action:(d.action||'HOLD').toUpperCase(),sym:d.symbol&&AMAP[d.symbol]?d.symbol:null,qty:Math.max(0,+d.qty||0),reason:d.reason||'(ollama)',next:d.next_check_secs};
+}};
+// SEAM › ClaudeBrain: routes through your PC backend in production (browser can't call Anthropic directly). Falls back to rules here.
+const ClaudeBrain={ async decide(ag,o){ return RuleBrain.decide(ag,o); } };
+
+/* SCORING */
+function metrics(ag){ const h=ag.equityBars; if(h.length<3)return {ret:(equity(ag)/START_CASH-1)*100,vol:0,skill:0};
+  const rets=[]; for(let i=1;i<h.length;i++)rets.push(h[i]/h[i-1]-1);
+  const m=rets.reduce((s,x)=>s+x,0)/rets.length; const sd=Math.sqrt(rets.reduce((s,x)=>s+(x-m)**2,0)/rets.length)||1e-9;
+  return {ret:(equity(ag)/START_CASH-1)*100, vol:sd*100, skill:(m/sd)*Math.sqrt(rets.length)}; }
+
+/* STATE */
+const state={tick:0,running:true,speed:650,cadMul:1,provider:'rules',ollama:{url:'http://localhost:11434'},
+  models:[],ollamaConnected:false,rotateModels:false,focus:null,sortSkill:false,barEvery:6,ollamaBusy:false};
+let AGENTS=[];
+function initAgents(){ AGENTS=AGENTDEFS.map(d=>({...d,cash:START_CASH,hold:{},equityBars:[START_CASH],thinks:0,trades:0,
+  nextTick:Math.floor(rnd(1,d.cad)),note:'just getting started',riskMood:1,lastEq:START_CASH,wins:0,losses:0,recent:[],model:null})); assignModels(); }
+
+/* OLLAMA AUTO-CONNECT */
+async function autoConnectOllama(){ const stat=$('#ollamastat'); if(stat)stat.textContent='detecting…';
+  try{ const c=new AbortController(); const to=setTimeout(()=>c.abort(),1500);
+    const r=await fetch(state.ollama.url.replace(/\/$/,'')+'/api/tags',{signal:c.signal}); clearTimeout(to);
+    const j=await r.json(); const names=(j.models||[]).map(m=>m.name).filter(Boolean);
+    if(names.length){ state.models=names; state.ollamaConnected=true; state.provider='ollama'; assignModels();
+      const sel=$('#brainsel'); if(sel)sel.value='ollama'; $('#ollamacfg').style.display='flex'; } else throw new Error('no models');
+  }catch(e){ state.ollamaConnected=false; state.models=[]; }
+  updateStatus(); setBrainNote(); }
+function updateStatus(){ $('#brainstat').textContent='brain: '+state.provider+(state.ollamaConnected&&state.provider==='ollama'?` · ${state.models.length} models`:'');
+  const s=$('#ollamastat'); if(s){ s.textContent=state.ollamaConnected?`connected · ${state.models.length} models`:'not detected — using demo tags'; s.style.color=state.ollamaConnected?cssv('--brand-2'):cssv('--muted'); } }
+
+/* SCHEDULER */
+function brain(){ return state.provider==='ollama'?OllamaBrain: state.provider==='claude'?ClaudeBrain: RuleBrain; }
+async function thinkAgent(ag){ const o=observe(ag); let act;
+  try{ if(state.provider==='ollama'){ if(state.ollamaBusy)return; state.ollamaBusy=true; act=await OllamaBrain.decide(ag,o); state.ollamaBusy=false; }
+    else act=await brain().decide(ag,o); }
+  catch(e){ state.ollamaBusy=false; act={action:'HOLD',sym:null,qty:0,reason:'(brain error → hold)'}; }
+  ag.thinks++; const did=execute(ag,act); if(did)ag.trades++;
+  const eq=equity(ag), delta=eq-ag.lastEq; ag.recent.push(delta); if(ag.recent.length>6)ag.recent.shift();
+  if(delta<0)ag.losses++; else if(delta>0)ag.wins++; ag.lastEq=eq;
+  record(ag,act,did); pushTape(ag,act);
+  ag.nextTick=state.tick+Math.max(1,Math.round(ag.cad*state.cadMul))+Math.floor(rnd(0,3));
+  if(ag.thinks%5===0)reflect(ag);
+}
+function reflect(ag){ const down=ag.recent.filter(x=>x<0).length, up=ag.recent.filter(x=>x>0).length; const held=Object.keys(ag.hold);
+  if(down>=4){ ag.riskMood=clamp((ag.riskMood||1)*0.85,.4,1.5); ag.note=`Down ${down} of last ${ag.recent.length} — trimming risk, staying picky.`; }
+  else if(up>=4){ ag.riskMood=clamp((ag.riskMood||1)*1.1,.4,1.6); ag.note=`Hot hand (${up}/${ag.recent.length}) — pressing the edge${held.length?', heavy in '+held.slice(0,2).join('/'):''}.`; }
+  else { ag.note=`Mixed results; holding ${held.length} name${held.length!==1?'s':''}, hunting a cleaner setup.`; }
+  if(state.rotateModels && activeModels().length>1 && Math.random()<0.3){ const other=activeModels().filter(m=>m!==ag.model); if(other.length)ag.model=pick(other); }
+}
+function step(){ state.tick++; market.tick();
+  for(const ag of AGENTS){ if(state.tick>=ag.nextTick) thinkAgent(ag); }
+  if(state.tick%state.barEvery===0){ for(const ag of AGENTS){ ag.equityBars.push(equity(ag)); if(ag.equityBars.length>120)ag.equityBars.shift(); } } }
+let loopTimer=null;
+function loop(){ if(state.running)step(); loopTimer=setTimeout(loop,state.speed); }
+
+/* CHARTS */
+function raceChart(){ const W=640,H=250,L=44,R=70,T=12,B=22;
+  const bars=Math.max(2,...AGENTS.map(a=>a.equityBars.length));
+  let min=Infinity,max=-Infinity; AGENTS.forEach(a=>a.equityBars.forEach(v=>{if(v<min)min=v;if(v>max)max=v;}));
+  if(min===max){min*=.99;max*=1.01;} min=Math.min(min,START_CASH*0.98); max=Math.max(max,START_CASH*1.02);
+  const x=i=>L+(bars<=1?0:i/(bars-1))*(W-L-R), y=v=>T+(1-(v-min)/(max-min))*(H-T-B); let g='';
+  for(let k=0;k<=4;k++){const v=min+(max-min)*k/4,yy=y(v);g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="${cssv('--grid')}" stroke-width="1"/><text x="${L-6}" y="${yy+3}" text-anchor="end" fill="${cssv('--muted')}" font-size="10">${money(v)}</text>`;}
+  AGENTS.forEach(a=>{ const col=cssv(a.color); const foc=state.focus, dim=foc&&foc!==a.id;
+    const pts=a.equityBars.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    g+=`<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="${foc===a.id?2.6:1.8}" opacity="${dim?0.16:1}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const lv=a.equityBars[a.equityBars.length-1]; if(!dim){const yy=clamp(y(lv),T+4,H-B);
+      g+=`<circle cx="${x(a.equityBars.length-1)}" cy="${yy}" r="3" fill="${col}"/><text x="${W-R+6}" y="${yy+3}" fill="${cssv('--ink-2')}" font-size="10">${a.name.split(' ')[1]||a.name} ${money(lv)}</text>`;} });
+  $('#racechart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="portfolio value over time">${g}</svg>`; }
+function scatter(){ const W=380,H=250,L=42,R=16,T=14,B=30; const m=AGENTS.map(a=>({a,...metrics(a)}));
+  let xmax=Math.max(0.5,...m.map(o=>o.vol))*1.15, ymin=Math.min(-1,...m.map(o=>o.ret)), ymax=Math.max(1,...m.map(o=>o.ret)); if(ymax===ymin)ymax=ymin+1;
+  const x=v=>L+(v/xmax)*(W-L-R), y=v=>T+(1-(v-ymin)/(ymax-ymin))*(H-T-B); let g=''; const y0=clamp(y(0),T,H-B);
+  g+=`<line x1="${L}" x2="${W-R}" y1="${y0}" y2="${y0}" stroke="${cssv('--baseline')}"/>`;
+  g+=`<text x="${W-R}" y="${H-6}" text-anchor="end" fill="${cssv('--muted')}" font-size="10">volatility / risk →</text>`;
+  g+=`<text x="${L-34}" y="${T+6}" fill="${cssv('--muted')}" font-size="10">return</text>`;
+  m.forEach(o=>{const col=cssv(o.a.color);const cx=x(o.vol),cy=clamp(y(o.ret),T,H-B);
+    g+=`<circle cx="${cx}" cy="${cy}" r="${o.a.baseline?6:5}" fill="${col}" stroke="${cssv('--surface-1')}" stroke-width="2"/>`;
+    g+=`<text x="${cx+8}" y="${cy+3}" fill="${cssv('--ink-2')}" font-size="10">${o.a.name.split(' ')[1]||o.a.name}${o.a.baseline?' ★':''}</text>`;});
+  $('#scatter').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="skill versus risk">${g}</svg>`; }
+function spark(bars,col){ const W=88,H=24; if(bars.length<2)return '';
+  let mn=Math.min(...bars),mx=Math.max(...bars); if(mn===mx){mn*=.999;mx*=1.001;}
+  const pts=bars.map((v,i)=>`${(i/(bars.length-1)*W).toFixed(1)},${(H-((v-mn)/(mx-mn))*H).toFixed(1)}`).join(' ');
+  const upc=bars[bars.length-1]>=bars[0]?cssv('--good'):cssv('--bad');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:${W}px"><polyline points="${pts}" fill="none" stroke="${col||upc}" stroke-width="1.6" stroke-linejoin="round"/></svg>`; }
+
+/* RENDER: Arena */
+function ranked(){const m=AGENTS.map(a=>({a,...metrics(a),eq:equity(a)}));m.sort((p,q)=>state.sortSkill?q.skill-p.skill:q.eq-p.eq);return m;}
+function renderArena(){ raceChart(); scatter();
+  $('#racelegend').innerHTML=AGENTS.map(a=>`<span class="li ${state.focus&&state.focus!==a.id?'dim':''}" data-id="${a.id}"><span class="adot" style="background:${cssv(a.color)}"></span>${a.name}</span>`).join('');
+  $('#lbbody').innerHTML=ranked().map((o,i)=>{const a=o.a;const cls=o.eq>=START_CASH?'up':'down';
+    return `<tr data-id="${a.id}" class="${state.focus===a.id?'sel':''}"><td class="rank tnum">${i+1}</td>
+      <td><span class="adot" style="background:${cssv(a.color)}"></span><span class="aname">${a.name}</span>${modelChip(a.model)}${a.baseline?'<span class="chip">baseline</span>':''}<div class="arole">${a.role}</div></td>
+      <td style="text-align:right" class="tnum">${money2(o.eq)}</td><td style="text-align:right" class="tnum ${cls}">${pct(o.ret)}</td>
+      <td style="text-align:right" class="tnum">${o.skill.toFixed(2)}</td><td>${spark(a.equityBars,cssv(a.color))}</td></tr>`;}).join('');
+  renderModelBoard();
+  $('#heat').innerHTML=[...ASSETS].sort((a,b)=>b.chg-a.chg).map(a=>{const t=clamp(a.chg/6,-1,1);
+    const bg=t>=0?`rgba(12,163,12,${0.10+0.5*t})`:`rgba(208,59,59,${0.10+0.5*-t})`;
+    return `<div class="htile" style="background:${bg}"><div class="hs">${a.sym}</div><div class="hp tnum">$${px(a.price)}</div><div class="hc tnum ${a.chg>=0?'up':'down'}">${pct(a.chg)}</div></div>`;}).join(''); }
+function renderModelBoard(){ const groups={}; AGENTS.forEach(a=>{const m=a.model||'—';(groups[m]=groups[m]||[]).push(a);});
+  const rows=Object.entries(groups).map(([m,ags])=>{const M=ags.map(a=>metrics(a));
+    return {m,n:ags.length,ret:M.reduce((s,x)=>s+x.ret,0)/ags.length,skill:M.reduce((s,x)=>s+x.skill,0)/ags.length,best:[...ags].sort((x,y)=>equity(y)-equity(x))[0]};}).sort((p,q)=>q.ret-p.ret);
+  $('#modelboard').innerHTML=rows.map((r,i)=>`<tr><td class="rank tnum">${i+1}</td>
+    <td><span class="adot" style="background:${modelColor(r.m)}"></span><span class="aname">${r.m}</span></td>
+    <td style="text-align:right" class="tnum ${r.ret>=0?'up':'down'}">${pct(r.ret)}</td><td style="text-align:right" class="tnum">${r.skill.toFixed(2)}</td>
+    <td style="text-align:right" class="tnum">${r.n}</td><td class="arole">${r.best.name}</td></tr>`).join(''); }
+function pushTape(ag,act){ const el=$('#tape'); if(!el)return; const a=act.action.toLowerCase();
+  const sym=act.sym?`<span class="sym">${act.action==='HOLD'?'':act.qty>=1?Math.round(act.qty):act.qty.toFixed(2)} ${act.sym}</span>`:'';
+  const div=document.createElement('div'); div.className='trow';
+  div.innerHTML=`<span class="t tnum">${now()}</span><span class="adot" style="background:${cssv(ag.color)}"></span><span class="act ${a}">${act.action}</span>${sym}<span class="why">— ${act.reason}</span>`;
+  el.prepend(div); while(el.childNodes.length>90)el.removeChild(el.lastChild); }
+
+/* RENDER: Control Room */
+function renderControl(){ const m=ranked(); const lead=m[0], avg=AGENTS.reduce((s,a)=>s+equity(a),0)/AGENTS.length;
+  const bestSkill=[...m].sort((p,q)=>q.skill-p.skill)[0]; const thinks=AGENTS.reduce((s,a)=>s+a.thinks,0), trades=AGENTS.reduce((s,a)=>s+a.trades,0);
+  const tiles=[['Leader',lead.a.name,pct(lead.ret),lead.eq>=START_CASH,true],['Leader value',money2(lead.eq),'',lead.eq>=START_CASH,false],
+    ['Avg portfolio',money2(avg),pct((avg/START_CASH-1)*100),avg>=START_CASH,false],['Best risk-adj (skill)',bestSkill.a.name,bestSkill.skill.toFixed(2),bestSkill.skill>=0,false],
+    ['Total decisions',thinks.toLocaleString(),'',true,false],['Trades executed',trades.toLocaleString(),'',true,false],
+    ['Experience records',experience.length.toLocaleString(),'',true,false],['Session tick',state.tick.toLocaleString(),'',true,false]];
+  $('#tiles').innerHTML=tiles.map(([l,v,d,good,hero])=>`<div class="tile"><div class="lbl">${l}</div><div class="val ${hero?'hero':''}">${v}</div>${d?`<div class="delta ${good?'up':'down'}">${d}</div>`:''}</div>`).join('');
+  const f=$('#logfilter').value; const rows=experience.slice(-140).reverse().filter(r=>!f||r.agentId===f).slice(0,60);
+  $('#declog').innerHTML=rows.map(r=>`<div class="lrow"><div class="lr-h tnum">#${r.tick} · ${r.t} · ${r.agent} · ${r.model||'—'}</div>
+    <span class="act ${r.action.toLowerCase()}">${r.action}</span> ${r.sym?`${r.qty} ${r.sym} @ $${px(r.price)}`:''} — ${r.reason} ${r.executed?'':'<span style="color:var(--muted)">(no-op)</span>'}</div>`).join('')||'<div class="note">no decisions yet</div>';
+  $('#expcount').textContent=experience.length.toLocaleString();
+  $('#expprev').innerHTML=experience.slice(-40).reverse().map(r=>`<div class="lrow tnum" style="font-size:11px;color:var(--ink-2)">${JSON.stringify({tick:r.tick,agent:r.agentId,model:r.model,a:r.action,sym:r.sym,qty:r.qty,px:r.price,eq:r.equity})}</div>`).join('');
+  $('#internals').innerHTML=AGENTS.map(a=>`<tr><td><span class="adot" style="background:${cssv(a.color)}"></span>${a.name}</td><td>${modelChip(a.model)}</td>
+    <td style="text-align:right" class="tnum">${a.thinks}</td><td style="text-align:right" class="tnum">${a.trades}</td>
+    <td style="text-align:right" class="tnum">${Math.max(0,a.nextTick-state.tick)}</td><td style="text-align:right" class="tnum">${(a.risk*(a.riskMood||1)).toFixed(2)}</td><td class="note">${a.note}</td></tr>`).join(''); }
+$('#essentials').innerHTML=`This limited prototype exposes the <b>essentials of actually harnessing intelligence</b>, so you see what's load-bearing before scaling:
+<br>• <b>A baseline to beat</b> — Random Randy is the control. If the "smart" agents can't out-rank a coin-flip, the intelligence isn't real yet.
+<br>• <b>Reasoning tied to observation</b> — every decision logs what the agent saw and why, tagged by the model that made it.
+<br>• <b>Memory that feeds back</b> — each agent rewrites a strategy note and adjusts risk from its own recent outcomes.
+<br>• <b>Skill vs. luck separation</b> — risk-adjusted score + the Skill/Risk scatter stop a reckless winner from looking smart.
+<br>• <b>A model leaderboard</b> — the benchmark payoff: rank the <i>models</i>, not just the agents.
+<br>• <b>A clean, exportable, model-attributed dataset</b> — every Experience row = context + decision + outcome + model, versioned by tick.`;
+
+function render(){ if($('#view-arena').classList.contains('hide'))renderControl(); else renderArena(); }
+setInterval(render,500);
+
+/* CONTROLS */
+$$('.tab').forEach(t=>t.onclick=()=>{$$('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');
+  const v=t.dataset.view; $('#view-arena').classList.toggle('hide',v!=='arena'); $('#view-control').classList.toggle('hide',v!=='control'); render();});
+$('#playbtn').onclick=function(){state.running=!state.running;this.textContent=state.running?'⏸ Stop sim':'▶ Run sim';
+  $('#livedot').classList.toggle('paused',!state.running);$('#clocktxt').textContent=state.running?'running':'stopped';};
+$('#maxbtn').onclick=function(){ const fs=document.fullscreenElement;
+  if(fs){document.exitFullscreen&&document.exitFullscreen();} else if(document.documentElement.requestFullscreen){document.documentElement.requestFullscreen().catch(()=>{});}
+  document.body.classList.toggle('maxed'); this.textContent=document.body.classList.contains('maxed')?'⤢ Restore':'⛶ Maximize'; };
+$('#racelegend').onclick=e=>{const li=e.target.closest('.li');if(li){state.focus=state.focus===li.dataset.id?null:li.dataset.id;renderArena();}};
+$('#lbbody').onclick=e=>{const tr=e.target.closest('tr');if(tr)openAgent(tr.dataset.id);};
+$('#sorttoggle').onclick=function(){state.sortSkill=!state.sortSkill;this.textContent=state.sortSkill?'▸ sort by value':'▸ sort by skill';renderArena();};
+$('#speed').oninput=function(){state.speed=+this.value;$('#speedv').textContent=this.value+'ms';};
+$('#cadence').oninput=function(){state.cadMul=+this.value;$('#cadv').textContent='×'+(+this.value).toFixed(1);};
+$('#speedv').textContent='650ms'; $('#cadv').textContent='×1.0';
+$('#rotate').onchange=function(){state.rotateModels=this.checked;};
+$('#brainsel').onchange=function(){state.provider=this.value;$('#ollamacfg').style.display=this.value==='ollama'?'flex':'none';updateStatus();setBrainNote();};
+$('#ollamaurl').oninput=function(){state.ollama.url=this.value;};
+$('#reconnect').onclick=autoConnectOllama;
+$('#resetbtn').onclick=()=>{ASSETS.forEach(a=>{a.price=a.seed;a.hist=[a.seed];a.chg=0;a.mom=0;a.dev=0;});experience.length=0;$('#tape').innerHTML='';state.tick=0;initAgents();buildLogFilter();};
+$('#expjson').onclick=()=>download('benchhood_experience.json',JSON.stringify(experience,null,2));
+$('#expcsv').onclick=()=>{const cols=['tick','t','agentId','role','model','action','sym','qty','price','reason','executed','equity'];
+  const csv=[cols.join(',')].concat(experience.map(r=>cols.map(c=>JSON.stringify(r[c]??'')).join(','))).join('\n');download('benchhood_experience.csv',csv);};
+$('#logfilter').onchange=renderControl;
+function download(name,txt){const b=new Blob([txt],{type:'text/plain'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);}
+function buildLogFilter(){$('#logfilter').innerHTML='<option value="">all agents</option>'+AGENTDEFS.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');}
+function setBrainNote(){const n=$('#brainnote');
+  if(state.provider==='rules')n.innerHTML=`<b>Built-in rules</b> — deterministic stand-in brains so the harness runs with zero setup. Model tags shown are <i>illustrative</i>; switch to Ollama/Claude for real model benchmarking.`;
+  else if(state.provider==='ollama')n.innerHTML=`<b>Ollama (local)</b> — ${state.ollamaConnected?`connected, ${state.models.length} models detected and assigned across agents`:'not detected'}. Each agent runs its own model, so one season benchmarks many models. Needs <code>OLLAMA_ORIGINS=*</code> + this file opened on your PC.`;
+  else n.innerHTML=`<b>Claude (cloud)</b> — the smarter brain. Browsers can't call Anthropic directly, so production routes through your PC backend (which holds the key). A Claude <i>chat</i> subscription ≠ API access — the backend needs an API key or the Agent SDK. Falls back to rules in this in-browser prototype.`;
+}
+
+/* AGENT MODAL */
+function openAgent(id){const a=AGENTS.find(x=>x.id===id);if(!a)return;const mt=metrics(a);
+  const holds=Object.entries(a.hold).map(([s,q])=>({s,q,v:q*AMAP[s].price,cat:AMAP[s].cat})).sort((x,y)=>y.v-x.v);
+  const totV=equity(a); const comp=[{lbl:'cash',v:a.cash,c:cssv('--muted')}].concat(holds.map(h=>({lbl:h.s,v:h.v,c:CAT[h.cat]})));
+  const bar=comp.map(c=>`<span style="width:${(c.v/totV*100).toFixed(1)}%;background:${c.c}"></span>`).join('');
+  const legend=comp.slice(0,8).map(c=>`<span class="li"><span class="adot" style="background:${c.c}"></span>${c.lbl} ${money(c.v)}</span>`).join('');
+  $('#modalroot').innerHTML=`<div class="modal-bg" id="mbg"><div class="modal"><button class="close" id="mclose">✕</button>
+    <div style="display:flex;align-items:center;gap:10px"><span class="adot" style="width:14px;height:14px;background:${cssv(a.color)}"></span>
+      <div><div style="font-size:18px;font-weight:700">${a.name} ${modelChip(a.model)}</div><div class="arole">${a.role}${a.baseline?' · baseline control':''}</div></div></div>
+    <div class="row" style="margin-top:14px">
+      <div class="tile col"><div class="lbl">Portfolio value</div><div class="val">${money2(totV)}</div><div class="delta ${mt.ret>=0?'up':'down'}">${pct(mt.ret)}</div></div>
+      <div class="tile col"><div class="lbl">Skill (risk-adj.)</div><div class="val">${mt.skill.toFixed(2)}</div></div>
+      <div class="tile col"><div class="lbl">Trades</div><div class="val">${a.trades}</div></div></div>
+    <h3 style="margin-top:16px">Equity curve</h3>${spark(a.equityBars,cssv(a.color)).replace('width:88px','width:100%')}
+    <h3 style="margin-top:14px">Holdings fingerprint</h3><div class="barcomp">${bar}</div><div class="legend">${legend}</div>
+    <h3 style="margin-top:14px">Strategy note (self-written)</h3><div class="seam">${a.note}</div></div></div>`;
+  $('#mbg').onclick=e=>{if(e.target.id==='mbg')close();}; $('#mclose').onclick=close; function close(){$('#modalroot').innerHTML='';}
+}
+
+/* BOOT */
+initAgents(); buildLogFilter(); setBrainNote(); updateStatus(); renderArena();
+autoConnectOllama();
+loop();
+</script>
+</body>
+</html>

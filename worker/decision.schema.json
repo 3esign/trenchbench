@@ -1,0 +1,35 @@
+{
+  "$comment": "Benchhood — the two schemas. (1) what each Ollama call MUST return (kept tiny to save tokens across many agents). (2) what we log per decision (the tracked parameters).",
+
+  "model_output": {
+    "description": "Forced via Ollama structured output. This is ALL the model returns — nothing else — so inference stays cheap.",
+    "type": "object",
+    "properties": {
+      "action":  { "type": "string", "enum": ["BUY", "SELL", "HOLD"] },
+      "symbol":  { "type": ["string", "null"], "description": "ticker to trade, or null for HOLD" },
+      "qty":     { "type": "number", "description": "units to buy/sell" },
+      "comment": { "type": "string", "description": "<= 8 words, the model's one-line reason" }
+    },
+    "required": ["action", "comment"]
+  },
+
+  "tracked_per_decision": {
+    "description": "What the worker records for every decision (model output + context). This is the dataset.",
+    "fields": [
+      "session_id", "tick", "ts",
+      "agent_id", "agent_name", "role", "model", "start_cash",
+      "action", "symbol", "qty", "price", "executed",
+      "comment", "equity"
+    ]
+  },
+
+  "tracked_per_agent_report": {
+    "description": "Emitted at session Stop, one per agent.",
+    "fields": ["agent_id","agent_name","role","model","start_cash","end_value","ret","skill","trades","summary","notes_history"]
+  },
+
+  "tracked_per_session": {
+    "description": "Session envelope.",
+    "fields": ["id","name","provider","status","memecoins","started_at","stopped_at"]
+  }
+}

@@ -1,0 +1,36 @@
+# ---- secrets: never commit -------------------------------------
+config.txt
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+!config.example.txt
+
+# ---- deploy / tooling state -------------------------------------
+.vercel/
+web/.vercel/
+.deploy/
+node_modules/
+
+# ---- generated session data (the IP lives in Supabase) ----------
+sessions/
+worker/sessions/
+worker/.stop
+
+# ---- noise -------------------------------------------------------
+*.log
+.DS_Store
+Thumbs.db
+
+# ---- anything shaped like a secret, not just the exact filename ----
+# a config.txt.bak or "config - Copy.txt" used to sail straight past the guard
+config*.txt
+!config.example.txt
+*.bak
+*secret*
+*credentials*
+
+# ---- archived runs are still raw data ----
+sessions_archive/
+worker/pools_cache.json

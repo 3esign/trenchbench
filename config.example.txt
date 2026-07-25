@@ -1,0 +1,58 @@
+REM ============================================================
+REM  BENCHHOOD - configuration template
+REM  Copy this file to  config.txt  and fill in your own values.
+REM  config.txt is git-ignored and must NEVER be committed.
+REM ============================================================
+
+REM --- chain + data sources -----------------------------------
+ALCHEMY_RPC_URL=https://robinhood-mainnet.g.alchemy.com/v2/YOUR_ALCHEMY_KEY
+EXPLORER_API=https://robinhoodchain.blockscout.com/api/v2
+
+REM --- database (Supabase project) ----------------------------
+SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+SUPABASE_ANON_KEY=YOUR_PUBLISHABLE_KEY
+REM the site can only READ with the anon key; writes need this one (never commit it)
+SUPABASE_SERVICE_KEY=YOUR_SERVICE_ROLE_KEY
+SUPABASE_DB_PASSWORD=YOUR_DB_PASSWORD
+
+REM --- deploy --------------------------------------------------
+VERCEL_TOKEN=YOUR_VERCEL_TOKEN
+
+REM --- brains (Ollama, local or cloud) ------------------------
+OLLAMA_URL=http://localhost:11434
+REM leave OLLAMA_MODELS empty to auto-detect every installed model
+OLLAMA_MODELS=
+MAX_MODELS=8
+
+REM --- market ---------------------------------------------------
+REM live = prices move every round · real = refresh from chain only · sim = simulated
+PRICE_MODE=live
+NUM_TOKENS=30
+REFRESH_SECONDS=8
+CONTROL_TOKENS=USDG,NVDA,TSLA,WETH
+FRESH_TOKENS=6
+
+REM --- session ---------------------------------------------------
+REM SESSION_SECONDS is a SAFETY CAP, not the plan - Stop ends a session.
+REM MAX_MODEL_CALLS is the real limit: a hard ceiling on paid model calls.
+MAX_MODEL_CALLS=1200
+THINK_TIMEOUT_MS=12000
+ROUND_MS=800
+SESSION_SECONDS=900
+CAPITAL_MIN=500
+CAPITAL_MAX=100000
+
+REM --- benchmark methodology -------------------------------------
+REM rotate | fixed | random - rotate walks a Latin square so that over N
+REM sessions every model plays every persona, which is what separates
+REM "this model is good" from "this strategy is good"
+PAIRING=rotate
+REM equal | random - equal keeps returns comparable between agents
+CAPITAL_MODE=equal
+START_CAPITAL=25000
+REM sessions shorter than this many rounds cannot move the all-time boards
+MIN_BENCH_ROUNDS=10
+REM how many rounds ahead a decision is judged against
+OUTCOME_HORIZON=10
+REM the notional bankroll the career ledger compounds
+CAREER_START=100000

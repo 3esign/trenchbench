@@ -1,0 +1,416 @@
+{
+  "session_id": "0928f27c-2fec-4159-a4aa-fdf4f9def6a9",
+  "created_at": "2026-07-25T21:45:07.356Z",
+  "lessons": [
+    {
+      "session_id": "0928f27c-2fec-4159-a4aa-fdf4f9def6a9",
+      "agent_id": "val",
+      "agent_name": "Value Val",
+      "model": "nemotron-3-super:cloud",
+      "ret": -2.14,
+      "lesson": "Hold through 5m momentum shifts >2%, avoid chasing drawdowns >3%, and scale position size with holding duration consistency."
+    },
+    {
+      "session_id": "0928f27c-2fec-4159-a4aa-fdf4f9def6a9",
+      "agent_id": "mom",
+      "agent_name": "Momentum Mia",
+      "model": "minimax-m3:cloud",
+      "ret": 1.97,
+      "lesson": "Skip ambiguous setups; concentrate capital on rare, high-conviction momentum breakouts for outsized returns."
+    },
+    {
+      "session_id": "0928f27c-2fec-4159-a4aa-fdf4f9def6a9",
+      "agent_id": "degen",
+      "agent_name": "Degen Dex",
+      "model": "kimi-k2.7-code:cloud",
+      "ret": -0.99,
+      "lesson": "Cut losers faster than winners run; momentum fades after two failed 5m extensions."
+    },
+    {
+      "session_id": "0928f27c-2fec-4159-a4aa-fdf4f9def6a9",
+      "agent_id": "contra",
+      "agent_name": "Contrarian Cole",
+      "model": "glm-5.2:cloud",
+      "ret": 2.54,
+      "lesson": "Cut holding rounds faster on sub-3% momentum entries; 26.83% win rate demands tighter stops on deeper drawdowns."
+    },
+    {
+      "session_id": "0928f27c-2fec-4159-a4aa-fdf4f9def6a9",
+      "agent_id": "mrev",
+      "agent_name": "Mean-Reverter Mara",
+      "model": "gemma4:31b-cloud",
+      "ret": 2.74,
+      "lesson": "Fade extreme 5m momentum spikes after three holding rounds to capture mean reversion during drawdowns."
+    },
+    {
+      "session_id": "0928f27c-2fec-4159-a4aa-fdf4f9def6a9",
+      "agent_id": "index",
+      "agent_name": "Index Ivy",
+      "model": "deepseek-v4-flash:cloud",
+      "ret": -0.74,
+      "lesson": "Hold longer when 5m momentum exceeds 2% to avoid premature exits."
+    },
+    {
+      "session_id": "0928f27c-2fec-4159-a4aa-fdf4f9def6a9",
+      "agent_id": "event",
+      "agent_name": "Event Nia",
+      "model": "qwen3.5:cloud",
+      "ret": -1.73,
+      "lesson": "Tighten stop-losses on low-momentum entries to preserve capital during extended holding rounds."
+    },
+    {
+      "session_id": "0928f27c-2fec-4159-a4aa-fdf4f9def6a9",
+      "agent_id": "rand",
+      "agent_name": "Random Randy",
+      "model": "minimax-m3:cloud",
+      "ret": -1.31,
+      "lesson": "Count: With(1) only(2) 20%(3) win(4) rate(5) require(6) stronger(7) 5m(8) momentum(9) confirmation"
+    }
+  ],
+  "agents": [
+    {
+      "id": "val",
+      "name": "Value Val",
+      "model": "nemotron-3-super:cloud",
+      "start_cash": 47525,
+      "final_equity": 46509,
+      "trades_count": 17,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "catutu",
+          "px": 0.000002171,
+          "tick": 43
+        },
+        {
+          "action": "BUY",
+          "sym": "catutu",
+          "px": 0.000002171,
+          "tick": 44
+        },
+        {
+          "action": "SELL",
+          "sym": "catutu",
+          "px": 0.000002145,
+          "tick": 49
+        },
+        {
+          "action": "BUY",
+          "sym": "catutu",
+          "px": 0.000002145,
+          "tick": 50
+        },
+        {
+          "action": "BUY",
+          "sym": "EUROFY",
+          "px": 0.000004124,
+          "tick": 53
+        },
+        {
+          "action": "SELL",
+          "sym": "EUROFY",
+          "px": 0.000004457,
+          "tick": 60
+        }
+      ]
+    },
+    {
+      "id": "mom",
+      "name": "Momentum Mia",
+      "model": "minimax-m3:cloud",
+      "start_cash": 9393,
+      "final_equity": 9578,
+      "trades_count": 53,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "bullism",
+          "px": 0.00000282,
+          "tick": 81
+        },
+        {
+          "action": "SELL",
+          "sym": "ENOCOV",
+          "px": 0.000002428,
+          "tick": 82
+        },
+        {
+          "action": "SELL",
+          "sym": "Kettle",
+          "px": 0.000009027,
+          "tick": 83
+        },
+        {
+          "action": "SELL",
+          "sym": "bullism",
+          "px": 0.00000282,
+          "tick": 84
+        },
+        {
+          "action": "SELL",
+          "sym": "EUROFY",
+          "px": 0.000004042,
+          "tick": 85
+        },
+        {
+          "action": "BUY",
+          "sym": "Kettle",
+          "px": 0.000009027,
+          "tick": 86
+        }
+      ]
+    },
+    {
+      "id": "degen",
+      "name": "Degen Dex",
+      "model": "kimi-k2.7-code:cloud",
+      "start_cash": 62271,
+      "final_equity": 61655,
+      "trades_count": 41,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Extraction",
+          "px": 0.000008931,
+          "tick": 72
+        },
+        {
+          "action": "BUY",
+          "sym": "Extraction",
+          "px": 0.000008931,
+          "tick": 73
+        },
+        {
+          "action": "SELL",
+          "sym": "DINOCAT",
+          "px": 0.000002736,
+          "tick": 77
+        },
+        {
+          "action": "SELL",
+          "sym": "catutu",
+          "px": 0.000002145,
+          "tick": 79
+        },
+        {
+          "action": "BUY",
+          "sym": "catutu",
+          "px": 0.000002145,
+          "tick": 82
+        },
+        {
+          "action": "SELL",
+          "sym": "Kettle",
+          "px": 0.000009027,
+          "tick": 84
+        }
+      ]
+    },
+    {
+      "id": "contra",
+      "name": "Contrarian Cole",
+      "model": "glm-5.2:cloud",
+      "start_cash": 67343,
+      "final_equity": 69055,
+      "trades_count": 41,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "catutu",
+          "px": 0.000002145,
+          "tick": 68
+        },
+        {
+          "action": "BUY",
+          "sym": "catutu",
+          "px": 0.000002145,
+          "tick": 69
+        },
+        {
+          "action": "BUY",
+          "sym": "Alisia",
+          "px": 0.000002369,
+          "tick": 70
+        },
+        {
+          "action": "BUY",
+          "sym": "ENOCOV",
+          "px": 0.000002478,
+          "tick": 71
+        },
+        {
+          "action": "BUY",
+          "sym": "Extraction",
+          "px": 0.000008931,
+          "tick": 75
+        },
+        {
+          "action": "BUY",
+          "sym": "DINOCAT",
+          "px": 0.000002736,
+          "tick": 78
+        }
+      ]
+    },
+    {
+      "id": "mrev",
+      "name": "Mean-Reverter Mara",
+      "model": "gemma4:31b-cloud",
+      "start_cash": 30896,
+      "final_equity": 31742,
+      "trades_count": 39,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Marmoset",
+          "px": 0.00000526,
+          "tick": 57
+        },
+        {
+          "action": "SELL",
+          "sym": "Extraction",
+          "px": 0.000008901,
+          "tick": 62
+        },
+        {
+          "action": "SELL",
+          "sym": "EUROFY",
+          "px": 0.000004046,
+          "tick": 67
+        },
+        {
+          "action": "BUY",
+          "sym": "EUROFY",
+          "px": 0.000004046,
+          "tick": 68
+        },
+        {
+          "action": "BUY",
+          "sym": "Extraction",
+          "px": 0.000008931,
+          "tick": 69
+        },
+        {
+          "action": "BUY",
+          "sym": "ENOCOV",
+          "px": 0.000002428,
+          "tick": 77
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "name": "Index Ivy",
+      "model": "deepseek-v4-flash:cloud",
+      "start_cash": 67931,
+      "final_equity": 67431,
+      "trades_count": 5,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Jackson",
+          "px": 0.000002439,
+          "tick": 2
+        },
+        {
+          "action": "SELL",
+          "sym": "Jackson",
+          "px": 0.000002371,
+          "tick": 52
+        },
+        {
+          "action": "BUY",
+          "sym": "Marmoset",
+          "px": 0.00000526,
+          "tick": 61
+        },
+        {
+          "action": "SELL",
+          "sym": "Marmoset",
+          "px": 0.000004947,
+          "tick": 77
+        },
+        {
+          "action": "BUY",
+          "sym": "bullism",
+          "px": 0.00000282,
+          "tick": 78
+        }
+      ]
+    },
+    {
+      "id": "event",
+      "name": "Event Nia",
+      "model": "qwen3.5:cloud",
+      "start_cash": 71491,
+      "final_equity": 70254,
+      "trades_count": 3,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Jackson",
+          "px": 0.000002439,
+          "tick": 9
+        },
+        {
+          "action": "SELL",
+          "sym": "Jackson",
+          "px": 0.000002371,
+          "tick": 49
+        },
+        {
+          "action": "BUY",
+          "sym": "Marmoset",
+          "px": 0.00000526,
+          "tick": 58
+        }
+      ]
+    },
+    {
+      "id": "rand",
+      "name": "Random Randy",
+      "model": "minimax-m3:cloud",
+      "start_cash": 64475,
+      "final_equity": 63629,
+      "trades_count": 47,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "DINOCAT",
+          "px": 0.000002736,
+          "tick": 80
+        },
+        {
+          "action": "BUY",
+          "sym": "Extraction",
+          "px": 0.000007867,
+          "tick": 82
+        },
+        {
+          "action": "SELL",
+          "sym": "Alisia",
+          "px": 0.000002369,
+          "tick": 83
+        },
+        {
+          "action": "SELL",
+          "sym": "EUROFY",
+          "px": 0.000004042,
+          "tick": 84
+        },
+        {
+          "action": "SELL",
+          "sym": "Extraction",
+          "px": 0.000007867,
+          "tick": 85
+        },
+        {
+          "action": "BUY",
+          "sym": "Jackson",
+          "px": 0.000002362,
+          "tick": 86
+        }
+      ]
+    }
+  ]
+}

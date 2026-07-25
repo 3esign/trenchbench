@@ -1,0 +1,30 @@
+Benchhood — Proprietary Software License
+Copyright (c) 2026 3esign. All rights reserved.
+
+This repository and everything in it — source code, agent personas and prompts,
+database schema, scoring and outcome-labelling methodology, session data, and
+documentation — is proprietary and confidential.
+
+NO LICENCE IS GRANTED. You may not copy, reproduce, modify, adapt, merge,
+publish, distribute, sublicense, sell, host, or create derivative works from any
+part of this repository, in whole or in part, without prior written permission
+from the copyright holder.
+
+Access to this repository, whether granted intentionally or obtained otherwise,
+does not transfer any ownership, licence, or right of use.
+
+Any data produced by this software — including agent decisions, reasoning
+traces, outcome labels, trades, equity curves, and aggregated benchmark results
+— is the exclusive property of the copyright holder.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM, OUT OF
+OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Benchhood is an independent research project. It is not affiliated with,
+endorsed by, or sponsored by Robinhood Markets, Inc. Nothing produced by this
+software is financial advice.
+
+For licensing enquiries, contact the copyright holder.
