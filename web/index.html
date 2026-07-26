@@ -883,9 +883,8 @@ function renderRadarChart() {
     const ay = cy + r * Math.sin(angle);
     const lx = cx + (r + 14) * Math.cos(angle);
     const ly = cy + (r + 14) * Math.sin(angle);
-    const tipKey = 'radar' + axes[i].replace(/\s+/g, '');
     g += `<line x1="${cx}" y1="${cy}" x2="${ax}" y2="${ay}" stroke="var(--grid)" opacity="0.5"/>`;
-    g += `<text x="${lx}" y="${ly+3}" text-anchor="middle" fill="var(--ink2)" font-size="9" font-weight="600" class="hint" data-tip="${tipKey}" style="cursor:pointer;">${axes[i]}</text>`;
+    g += `<text x="${lx}" y="${ly+3}" text-anchor="middle" fill="var(--ink2)" font-size="9" font-weight="600">${axes[i]}</text>`;
   }
 
   const personas = [
@@ -901,15 +900,13 @@ function renderRadarChart() {
       const rad = r * sc;
       return `${(cx + rad * Math.cos(angle)).toFixed(1)},${(cy + rad * Math.sin(angle)).toFixed(1)}`;
     });
-    const tipKey = 'radar' + key;
-    g += `<polygon id="rpoly-${key}" points="${pts.join(' ')}" fill="${p.color}" fill-opacity="0.2" stroke="${p.color}" stroke-width="2" class="hint rpoly" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer; transition: fill-opacity 0.2s, stroke-width 0.2s, opacity 0.2s;"/>`;
+    g += `<polygon id="rpoly-${key}" points="${pts.join(' ')}" fill="${p.color}" fill-opacity="0.2" stroke="${p.color}" stroke-width="2" class="rpoly"/>`;
   });
 
   g += `<g transform="translate(10, ${H - 8})">`;
   personas.forEach((p, idx) => {
     const key = p.name.split(' ')[1];
-    const tipKey = 'radar' + key;
-    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 102}" y="-8" width="90" height="16" fill="transparent"/><circle cx="${idx * 102 + 6}" cy="0" r="4" fill="${p.color}"/><text x="${idx * 102 + 14}" y="3" fill="var(--ink2)" font-size="9" font-weight="600">${p.name}</text></g>`;
+    g += `<g class="radar-leg"><circle cx="${idx * 102 + 6}" cy="0" r="4" fill="${p.color}"/><text x="${idx * 102 + 14}" y="3" fill="var(--ink2)" font-size="9" font-weight="600">${p.name}</text></g>`;
   });
   g += `</g>`;
 
