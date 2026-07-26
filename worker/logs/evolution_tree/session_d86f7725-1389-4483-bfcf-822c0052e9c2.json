@@ -1,0 +1,432 @@
+{
+  "session_id": "d86f7725-1389-4483-bfcf-822c0052e9c2",
+  "created_at": "2026-07-26T03:32:50.290Z",
+  "lessons": [
+    {
+      "session_id": "d86f7725-1389-4483-bfcf-822c0052e9c2",
+      "agent_id": "val",
+      "agent_name": "Value Val",
+      "model": "glm-5.2:cloud",
+      "ret": 0.67,
+      "lesson": "Cut losers faster after 5m momentum stalls beyond 3 rounds; let winners run when drawdown stays under 1.5%."
+    },
+    {
+      "session_id": "d86f7725-1389-4483-bfcf-822c0052e9c2",
+      "agent_id": "mom",
+      "agent_name": "Momentum Mia",
+      "model": "gemma4:31b-cloud",
+      "ret": -0.56,
+      "lesson": "Reduce trade frequency and tighten momentum entry thresholds to increase the win rate above 23%."
+    },
+    {
+      "session_id": "d86f7725-1389-4483-bfcf-822c0052e9c2",
+      "agent_id": "contra",
+      "agent_name": "Contrarian Cole",
+      "model": "qwen3.5:cloud",
+      "ret": -2.6,
+      "lesson": "Increase holding rounds to filter noise and only buy dips after a 15% drawdown."
+    },
+    {
+      "session_id": "d86f7725-1389-4483-bfcf-822c0052e9c2",
+      "agent_id": "mrev",
+      "agent_name": "Mean-Reverter Mara",
+      "model": "nemotron-3-super:cloud",
+      "ret": 1.01,
+      "lesson": "Exit when momentum fades or drawdown exceeds 1.5%, holding no longer than 3 rounds unless price confirms trend continuation."
+    },
+    {
+      "session_id": "d86f7725-1389-4483-bfcf-822c0052e9c2",
+      "agent_id": "index",
+      "agent_name": "Index Ivy",
+      "model": "minimax-m3:cloud",
+      "ret": -10.89,
+      "lesson": "Actually, let me think more carefully. The principle should be something that would actually help. With only 21.62% beating market, the"
+    },
+    {
+      "session_id": "d86f7725-1389-4483-bfcf-822c0052e9c2",
+      "agent_id": "event",
+      "agent_name": "Event Nia",
+      "model": "kimi-k2.7-code:cloud",
+      "ret": 2.41,
+      "lesson": "Cut losing positions faster than winners compound; momentum fades, but discipline preserves capital."
+    },
+    {
+      "session_id": "d86f7725-1389-4483-bfcf-822c0052e9c2",
+      "agent_id": "analyst",
+      "agent_name": "The Analyst",
+      "model": "nemotron-3-super:cloud",
+      "ret": 1.49,
+      "lesson": "Exit trades that show 5m momentum reversal or 2% drawdown, regardless of time held, to protect capital and improve win rate."
+    }
+  ],
+  "agents": [
+    {
+      "id": "val",
+      "name": "Value Val",
+      "model": "glm-5.2:cloud",
+      "start_cash": 72154,
+      "final_equity": 72637,
+      "trades_count": 54,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "MITCH",
+          "px": 0.000004473438956197577,
+          "tick": 55
+        },
+        {
+          "action": "BUY",
+          "sym": "ELON",
+          "px": 0.000002095,
+          "tick": 56
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.00001143,
+          "tick": 57
+        },
+        {
+          "action": "BUY",
+          "sym": "MITCH",
+          "px": 0.000004473438956197577,
+          "tick": 58
+        },
+        {
+          "action": "SELL",
+          "sym": "Casper",
+          "px": 0.000002626,
+          "tick": 59
+        },
+        {
+          "action": "BUY",
+          "sym": "gat",
+          "px": 0.00001146,
+          "tick": 60
+        }
+      ]
+    },
+    {
+      "id": "mom",
+      "name": "Momentum Mia",
+      "model": "gemma4:31b-cloud",
+      "start_cash": 72154,
+      "final_equity": 71749,
+      "trades_count": 60,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "/DREAM",
+          "px": 0.00003079,
+          "tick": 55
+        },
+        {
+          "action": "BUY",
+          "sym": "/DREAM",
+          "px": 0.00003079,
+          "tick": 56
+        },
+        {
+          "action": "SELL",
+          "sym": "HUKT",
+          "px": 0.00003058,
+          "tick": 57
+        },
+        {
+          "action": "BUY",
+          "sym": "HUKT",
+          "px": 0.00003058,
+          "tick": 58
+        },
+        {
+          "action": "BUY",
+          "sym": "Casper",
+          "px": 0.000002626,
+          "tick": 59
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.00001146,
+          "tick": 60
+        }
+      ]
+    },
+    {
+      "id": "degen",
+      "name": "Degen Dex",
+      "model": "deepseek-v4-flash:cloud",
+      "start_cash": 72154,
+      "final_equity": 74161,
+      "trades_count": 58,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "WASSIE",
+          "px": 0.000002324,
+          "tick": 55
+        },
+        {
+          "action": "BUY",
+          "sym": "gat",
+          "px": 0.00001041,
+          "tick": 56
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.00001143,
+          "tick": 57
+        },
+        {
+          "action": "SELL",
+          "sym": "/DREAM",
+          "px": 0.00003079,
+          "tick": 58
+        },
+        {
+          "action": "SELL",
+          "sym": "HUKT",
+          "px": 0.00003058,
+          "tick": 59
+        },
+        {
+          "action": "BUY",
+          "sym": "gat",
+          "px": 0.00001146,
+          "tick": 60
+        }
+      ]
+    },
+    {
+      "id": "contra",
+      "name": "Contrarian Cole",
+      "model": "qwen3.5:cloud",
+      "start_cash": 72154,
+      "final_equity": 70275,
+      "trades_count": 38,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "ELON",
+          "px": 0.000002095,
+          "tick": 54
+        },
+        {
+          "action": "BUY",
+          "sym": "ELON",
+          "px": 0.000002095,
+          "tick": 55
+        },
+        {
+          "action": "SELL",
+          "sym": "ELON",
+          "px": 0.000002095,
+          "tick": 56
+        },
+        {
+          "action": "BUY",
+          "sym": "ELON",
+          "px": 0.000002095,
+          "tick": 57
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.00001143,
+          "tick": 58
+        },
+        {
+          "action": "SELL",
+          "sym": "Casper",
+          "px": 0.000002626,
+          "tick": 59
+        }
+      ]
+    },
+    {
+      "id": "mrev",
+      "name": "Mean-Reverter Mara",
+      "model": "nemotron-3-super:cloud",
+      "start_cash": 72154,
+      "final_equity": 72881,
+      "trades_count": 56,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "MITCH",
+          "px": 0.000004473438956197577,
+          "tick": 55
+        },
+        {
+          "action": "SELL",
+          "sym": "LOLA",
+          "px": 0.00003074,
+          "tick": 56
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.00001143,
+          "tick": 57
+        },
+        {
+          "action": "BUY",
+          "sym": "pumpcat",
+          "px": 0.00003069,
+          "tick": 58
+        },
+        {
+          "action": "SELL",
+          "sym": "Casper",
+          "px": 0.000002626,
+          "tick": 59
+        },
+        {
+          "action": "BUY",
+          "sym": "gat",
+          "px": 0.00001146,
+          "tick": 60
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "name": "Index Ivy",
+      "model": "minimax-m3:cloud",
+      "start_cash": 72154,
+      "final_equity": 64300,
+      "trades_count": 37,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Eular",
+          "px": 0.00003073,
+          "tick": 54
+        },
+        {
+          "action": "SELL",
+          "sym": "LOLA",
+          "px": 0.00003074,
+          "tick": 55
+        },
+        {
+          "action": "BUY",
+          "sym": "gat",
+          "px": 0.00001041,
+          "tick": 56
+        },
+        {
+          "action": "BUY",
+          "sym": "LOLA",
+          "px": 0.00003074,
+          "tick": 58
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.00001146,
+          "tick": 59
+        },
+        {
+          "action": "SELL",
+          "sym": "HUKT",
+          "px": 0.00003058,
+          "tick": 60
+        }
+      ]
+    },
+    {
+      "id": "event",
+      "name": "Event Nia",
+      "model": "kimi-k2.7-code:cloud",
+      "start_cash": 72154,
+      "final_equity": 73896,
+      "trades_count": 55,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Rick",
+          "px": 0.000006396,
+          "tick": 53
+        },
+        {
+          "action": "BUY",
+          "sym": "Rick",
+          "px": 0.000005931,
+          "tick": 54
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.00001143,
+          "tick": 57
+        },
+        {
+          "action": "BUY",
+          "sym": "gat",
+          "px": 0.00001143,
+          "tick": 58
+        },
+        {
+          "action": "SELL",
+          "sym": "Casper",
+          "px": 0.000002626,
+          "tick": 59
+        },
+        {
+          "action": "BUY",
+          "sym": "Erc",
+          "px": 0.00003059,
+          "tick": 60
+        }
+      ]
+    },
+    {
+      "id": "analyst",
+      "name": "The Analyst",
+      "model": "nemotron-3-super:cloud",
+      "start_cash": 72154,
+      "final_equity": 73228,
+      "trades_count": 55,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "RIXASH",
+          "px": 0.00000261,
+          "tick": 55
+        },
+        {
+          "action": "SELL",
+          "sym": "ELON",
+          "px": 0.000002095,
+          "tick": 56
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.00001143,
+          "tick": 57
+        },
+        {
+          "action": "BUY",
+          "sym": "BRUNO",
+          "px": 0.00003074,
+          "tick": 58
+        },
+        {
+          "action": "BUY",
+          "sym": "gat",
+          "px": 0.00001146,
+          "tick": 59
+        },
+        {
+          "action": "SELL",
+          "sym": "Casper",
+          "px": 0.000002626,
+          "tick": 60
+        }
+      ]
+    }
+  ]
+}

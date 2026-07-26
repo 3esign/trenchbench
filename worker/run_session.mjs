@@ -35,7 +35,7 @@ const MIN_ALT_CAP = +(ENV.MIN_PAIRED_CAP || 25000);   // below this a same-ticke
 const MIN_BENCH_ROUNDS = +(ENV.MIN_BENCH_ROUNDS || 5);           // below this, a session does not count
 // A token that has not traded in this long is not offered on the menu.
 const MENU_ACTIVE_MS = +(ENV.MENU_ACTIVITY_MINUTES || 20) * 60000;
-const MIN_MENU_POOL = +(ENV.MIN_MENU_POOL || 8);                  // never starve the menu
+const MIN_MENU_POOL = +(ENV.MIN_MENU_POOL || 15);                  // never starve the menu
 const CAREER_START = +(ENV.CAREER_START || 100000);               // the notional bankroll the career ledger compounds
 const MAX_MODEL_CALLS = +(ENV.MAX_MODEL_CALLS || 1200);           // HARD ceiling on paid model calls per session
 const RUNLOCK = new URL('worker/.running', ROOT);
@@ -46,7 +46,7 @@ const MAX_MODELS = +(ENV.MAX_MODELS || 8);
 // the free public ones carry the session rather than ending it. Set RPC_URLS in
 // config.txt (comma-separated) to add more.
 const PRICE_MODE = (ENV.PRICE_MODE || 'real').toLowerCase();
-const NUM_TOKENS = +(ENV.NUM_TOKENS || 20);
+const NUM_TOKENS = +(ENV.NUM_TOKENS || 40);
 const CONTROL = (ENV.CONTROL_TOKENS || 'SOL,USDC,WIF,BONK').split(',').map(s => s.trim()).filter(Boolean);
 const MODE = (process.argv[2] || ENV.ROSTER_MODE || 'mixed').toLowerCase();
 const FRESH_MIN = +(ENV.FRESH_TOKENS || 6);
@@ -58,6 +58,8 @@ const NUM_PREDICT = +(ENV.OLLAMA_NUM_PREDICT || 400);  // reasoning models need 
 const DEC_FORMAT = (ENV.DECISION_FORMAT || 'menu').toLowerCase(); // menu | schema | json | line
 const MEMORY_ON = (ENV.MEMORY || 'on').toLowerCase() !== 'off';
 const MEMORY_DEPTH = +(ENV.MEMORY_DEPTH || 3);   // how many past lessons an agent carries in
+let ANALYST_KNOWLEDGE = '';
+try { ANALYST_KNOWLEDGE = fs.readFileSync(new URL('logs/analyst_memory.txt', ROOT), 'utf8').trim(); } catch (e) {}
 const SKIP_CHECK = (ENV.SKIP_SCHEMA_CHECK || '') === '1';
 const STOPFLAG = new URL('worker/.stop', ROOT);
 
@@ -382,76 +384,62 @@ async function think(ag, obs) {
     if (a.isMigrated) signals.push('🎓 Raydium');
     return `${a.sym} (${signals.join(' | ')})`;
   }).join(', ');
-  // Show the agent what it is ALREADY HOLDING, with entry price and unrealised
-  // P&L. Without this the models simply never sold — 300 trades produced 13
-  // closed round-trips — because nothing in the prompt asked them to look.
+  // --- STATE VECTOR COMPRESSION ---
+  obs.menu = obs.menu || [];
+  // 1. Compress menu items with dense telemetry
+  for (const o of obs.menu) {
+    if (o.k === 'HOLD') continue; // keep HOLD simple
+    const a = o.sym ? obs.top.find(x => x.sym === o.sym) || obs.positions.find(x => x.sym === o.sym) : null;
+    if (a) {
+      const sigs = [];
+      if (a.liq) sigs.push(`LQ:${shortNum(a.liq)}`);
+      if (a.vol5m) sigs.push(`V5:${shortNum(a.vol5m)}`);
+      if (a.mc) sigs.push(`MC:${shortNum(a.mc)}`);
+      sigs.push(`M1:${a.mom >= 0 ? '+' : ''}${a.mom.toFixed(1)}%`);
+      if (a.mom15m != null) sigs.push(`M15:${a.mom15m >= 0 ? '+' : ''}${a.mom15m.toFixed(1)}%`);
+      if (a.mom1h != null) sigs.push(`M60:${a.mom1h >= 0 ? '+' : ''}${a.mom1h.toFixed(1)}%`);
+      o.label = `${o.k} ${o.sym} [${sigs.join('|')}]`;
+    }
+  }
+
+  // 2. Compress positions
   const pos = obs.positions.length
-    ? obs.positions.map(p => `${p.sym} x${p.qty < 1 ? p.qty.toPrecision(3) : Math.round(p.qty)} bought ${fmt(p.avg)} now ${fmt(p.px)} (${p.pnl >= 0 ? '+' : ''}${p.pnl.toFixed(1)}%)`).join('; ')
-    : 'none — you should BUY something';
-  // What its own last few calls have done since. This is the feedback loop —
-  // without it an agent repeats the same mistake for the whole session because
-  // nothing ever tells it the last one lost money.
+    ? obs.positions.map(p => `${p.sym}[${p.qty < 1 ? p.qty.toPrecision(3) : Math.round(p.qty)}@${fmt(p.avg)}->${fmt(p.px)}|${p.pnl >= 0 ? '+' : ''}${p.pnl.toFixed(1)}%]`).join(',')
+    : 'NONE';
+
+  // 3. Compress history
   const hist = (obs.log || []).slice(-3).map(h => {
     const now = obs.M[h.sym] ? obs.M[h.sym].price : h.px;
     const move = h.px > 0 ? (now / h.px - 1) * 100 : 0;
     const scored = h.action === 'BUY' ? move : -move;
-    return `r${h.tick} ${h.action} ${h.sym} at ${fmt(h.px)} -> ${scored >= 0 ? '+' : ''}${scored.toFixed(1)}% ${scored >= 0 ? 'in your favour' : 'against you'}`;
-  }).join('; ') || 'none yet — make your first move!';
-  // Escalating nudge: the longer an agent sits idle, the harder the push.
-  // This is still information, not a forced trade — but it is loud.
-  const idle = ag.holdStreak >= 3
-    ? (ag.holdStreak >= 8
-      ? `\n⚠️ WARNING: you have done NOTHING for ${ag.holdStreak} rounds. Cash sitting idle loses to the market. ACT NOW or fall behind.`
-      : `\nyou have not traded for ${ag.holdStreak} rounds. Consider making a move.`)
-    : '';
-  const learned = (ag.memory && ag.memory.length)
-    ? `\nwhat this strategy learned in earlier sessions:\n${ag.memory.map(m => `- ${m}`).join('\n')}` : '';
+    return `r${h.tick}:${h.action}_${h.sym}@${fmt(h.px)}[${scored >= 0 ? '+' : ''}${scored.toFixed(1)}%]`;
+  }).join(',') || 'NONE';
+
+  const idle = ag.holdStreak >= 3 ? `|IDLE:${ag.holdStreak}r` : '';
+  let learned = (ag.memory && ag.memory.length) ? `|MEM:${ag.memory.map(m => m.replace(/ /g, '_')).join(';')}` : '';
+  if (ag.id === 'analyst' && ANALYST_KNOWLEDGE) {
+    learned += `\n[ARENA_KNOWLEDGE]:\n${ANALYST_KNOWLEDGE}`;
+  }
+
   const used = obs.positions.length, room = (ag.maxPos ?? 5);
-  const budget = `$${Math.round(obs.equity)} total, $${obs.cash | 0} of it cash · ${obs.equity >= ag.start_cash ? '+' : ''}${(((obs.equity / ag.start_cash) - 1) * 100).toFixed(1)}% on the session · ${used}/${room} position slots used`;
-  const menu = obs.menu || [];
-  const tradable = obs.top.map(a => a.sym);
-  for (const p of obs.positions) if (!tradable.includes(p.sym)) tradable.push(p.sym);
-  const sys = DEC_FORMAT === 'menu'
-    ? `You are ${ag.name}, a ${ag.role} trading Pump.fun memecoins on Solana.
+  const budget = `EQ:$${Math.round(obs.equity)}|CASH:$${obs.cash | 0}|PNL:${obs.equity >= ag.start_cash ? '+' : ''}${(((obs.equity / ag.start_cash) - 1) * 100).toFixed(1)}%|POS:${used}/${room}`;
+  
+  const menu = obs.menu;
+  const sys = `You are ${ag.name}, a ${ag.role} trading Pump.fun memecoins on Solana.
 ${ag.desc || ''}
 You are in a competitive benchmark against other AI traders. SITTING STILL LOSES.
-You MUST actively trade to win — BUY tokens you believe in, SELL when you have a
-profit or need to cut losses. Holding cash earns nothing while the market moves.
-You will see your money, positions, recent results, and a numbered menu.
-Choose exactly ONE. Reply with its number and NOTHING else — just the digit.`
-    : DEC_FORMAT === 'line'
-    ? `You are ${ag.name}, a ${ag.role} trading Pump.fun memecoins on Solana.
-${ag.desc || ''}
-You are in a competitive benchmark. SITTING STILL LOSES. Trade actively.
-Reply with ONE line and nothing else, exactly in this form:
-ACTION SYMBOL QTY | reason
-ACTION is BUY, SELL or HOLD. For HOLD write: HOLD | reason
-QTY is a whole number of tokens. The reason is at most 8 words.
-Example: BUY WIF 12 | Raydium Migration
-Only use a SYMBOL from the tradable list. Review what you already own first —
-a gain only becomes money when you SELL.`
-    : `You are ${ag.name}, a ${ag.role} trading Pump.fun memecoins on Solana.
-${ag.desc || ''}
-You are in a competitive benchmark. SITTING STILL LOSES. Trade actively.
-Pick ONE action: BUY, SELL or HOLD. Only use a symbol from the tradable list.
-Review what you already own first — a gain only becomes money when you SELL.
-comment must be at most 8 words.`;
-  const usr = DEC_FORMAT === 'menu'
-    ? `your money: ${budget}
-you own: ${pos}
-your recent calls: ${hist}
-your last note to yourself: ${ag.note || 'none'}${learned}${idle}
+You MUST actively trade to win. You will receive dense telemetry data.
+Choose exactly ONE option from the menu. Reply with its integer number and NOTHING else.`;
 
-your options this round:
+  const usr = `[STATE]
+${budget}
+HOLDINGS:${pos}
+RECENT:${hist}${idle}${learned}
+
+[MENU]
 ${menu.map((o, i) => `${i}) ${o.label}`).join('\n')}
 
-Reply with one number, 0 to ${menu.length - 1}.`
-    : `your money: ${budget}
-you own: ${pos}
-your recent calls: ${hist}
-tradable: ${tradable.join(', ')}
-biggest movers: ${movers}
-your last note to yourself: ${ag.note || 'none'}${learned}${idle}`;
+> REPLY_INTEGER_ONLY:`;
   // one slow cloud model must not hold up all eight agents — cut it off and
   // let the rule brain answer for that round instead.
   if (SHUTTING || CALLS >= MAX_MODEL_CALLS) return { ...ruleFallback(ag, obs), comment: 'call ceiling', brain: 'rules' };
@@ -550,10 +538,9 @@ const PERSONAS = [
                  name: 'Index Ivy',          role: 'diversified',        risk: .15, tp: 8,  sl: -6,  maxPos: 8 },
   { id: 'event', desc: 'You are an event trader. You watch for ANY token that moved more than 3% in the last 5 minutes and JUMP on it immediately — buy the pump or buy the crash. When nothing is moving, sell your weakest position. You swing hard.',
                  name: 'Event Nia',          role: 'reacts to shocks',   risk: .35, tp: 18, sl: -12, maxPos: 4 },
-  { id: 'rand',  desc: 'You flip a coin. You do not overthink it. Just pick something random every round.',
-                 name: 'Random Randy',       role: 'coin-flip persona',  risk: .20, tp: 99, sl: -99, maxPos: 6 },
+  { id: 'analyst', desc: 'You are the Analyst. You adapt your strategy dynamically based on recent market reports.',
+                 name: 'The Analyst',        role: 'dynamic meta-trader',risk: .30, tp: 15, sl: -10, maxPos: 5 },
 ];
-
 // ============================================================
 //  BASELINES — the null models. NO model is ever called for these.
 //
@@ -1338,6 +1325,8 @@ Write ONE sentence, under 20 words, for your next session. No preamble, just the
     console.log('\n  running observer agent (performance analysis)...');
     const obsModel = models[0];
     const standings = ranked.map((r, i) => `${i + 1}. ${r.agent_name} (${r.model}) - Final Equity: $${Math.round(r.end_value)} (${r.ret >= 0 ? '+' : ''}${r.ret}%)`).join('\n');
+    const winner = ranked[0];
+    const topFact = `WINNING STRATEGY THIS SESSION: ${winner.agent_name} playing ${winner.model} (+${winner.ret}%).`;
     const sys3 = `You are a quantitative trading analyst observing a benchmark session. You provide realistic, objective observation and performance analysis. Keep it strictly to 2-3 paragraphs.`;
     const usr3 = `The trading session has ended after ${round} rounds.
 Starting Capital: $${session_cash}
@@ -1362,6 +1351,12 @@ Write an objective performance analysis of the strategies used. Identify which s
           console.log(`  ${commentary.split('\n').join('\n  ')}\n`);
           const okObs = await sbInsertSafe('session_commentary', [{ session_id, model: obsModel, commentary }]);
           console.log(`  observer commentary saved: ${okObs}`);
+          
+          // Save the Dynamic Knowledge for 'The Analyst'
+          const dynamicKnowledge = `${topFact}\n\nMARKET OBSERVATION:\n${commentary}`;
+          fs.mkdirSync(new URL('logs', ROOT), { recursive: true });
+          fs.writeFileSync(new URL('logs/analyst_memory.txt', ROOT), dynamicKnowledge, 'utf8');
+          console.log(`  [research] dynamic knowledge updated for The Analyst.`);
         }
       } else {
         console.log('  observer agent failed to generate commentary (HTTP error).');

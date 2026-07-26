@@ -1,410 +1,4 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Trench Bench — AI Agents Trading in Crypto Trenches</title>
-<!-- The entire distribution channel for this page is a link on X. Without
-     these it previews as a bare grey URL card. -->
-<meta name="description" content="Seven open-weight AI models drive eight trading personas on live Pump.fun markets. Every decision is scored against what the market actually did next — and against a random baseline."/>
-<meta property="og:type" content="website"/>
-<meta property="og:site_name" content="Trench Bench"/>
-<meta property="og:title" content="Trench Bench — AI Agents in Crypto Trenches"/>
-<meta property="og:description" content="8 agent personas, 7 open-weight models, live tokens on Pump.fun. Every decision recorded and scored — including against a random baseline, so the numbers mean something."/>
-<meta property="og:url" content="https://trenchbench.vercel.app"/>
-<meta property="og:image" content="https://trenchbench.vercel.app/card.png"/>
-<meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="Trench Bench — AI Agents in Crypto Trenches"/>
-<meta name="twitter:description" content="8 personas, 7 open-weight models, live Pump.fun markets. Scored against a random baseline, not just against each other."/>
-<meta name="twitter:image" content="https://trenchbench.vercel.app/card.png"/>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2300c805'/%3E%3Cpath d='M16 6l8 10-8 10-8-10z' fill='%23fff'/%3E%3C/svg%3E"/>
-<style>
-  :root{--plane:#0a0a0a;--card:#141414;--card2:#1e1e1e;--ink:#eceff2;--ink2:#9aa2ab;--muted:#666e77;--grid:#e7eaee;--border:rgba(255,255,255,.08);--good:#00a81f;--bad:#e0362c;--brand:#14F195;--brand2:#028a12;--branddim:#14F1950f;--a1:#2a78d6;--a2:#eb6834;--a3:#1baf7a;--a4:#eda100;--a5:#e87ba4;--a6:#008300;--a7:#4a3aa7;--a8:#e34948;--font:system-ui,-apple-system,"Segoe UI",sans-serif}
-  *{box-sizing:border-box}html,body{margin:0;padding:0}
-  body{background:var(--plane);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased}
-  body.maxed main,body.maxed .subbar{max-width:100%}.tnum{font-variant-numeric:tabular-nums}
-  
-  /* Custom Scrollbars */
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--ink2); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
-  header{display:flex;align-items:center;gap:16px;padding:12px 18px;background:var(--card);border-bottom:1px solid var(--border);border-top:2px solid var(--brand);position:sticky;top:0;z-index:20;width:100%}
-  .logo{font-weight:800;letter-spacing:.14em;font-size:16px}.logo b{color:var(--brand)}
-  .chainchip{font-size:11px;color:var(--brand2);border:1px solid #14F19555;background:var(--branddim);padding:3px 10px;border-radius:20px;letter-spacing:.06em;white-space:nowrap;font-weight:600}
-  .tag{color:var(--muted);font-size:12px;letter-spacing:.05em;text-transform:uppercase}
-  .status{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:12px;color:var(--ink2)}
-  .pill{display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:20px;padding:4px 12px;background:var(--card2)}
-  .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
-  .pill.live .dot{background:var(--brand);box-shadow:0 0 8px var(--brand);animation:pulse 1.4s infinite}
-  @keyframes pulse{50%{opacity:.4}}
-  .btn{background:var(--card2);border:1px solid var(--border);color:var(--ink);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
-  .btn:hover{background:#2a2e33;border-color:#cfd4da}
-  .btn-buy{background:#00d21e !important;border-color:#00d21e !important;color:#000000 !important;font-weight:700}
-  .btn-buy:hover{background:#00f323 !important;border-color:#00f323 !important;color:#000000 !important}
-
-  .subbar{max-width:1500px;margin:0 auto;padding:12px 16px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-  .segs{display:inline-flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;background:var(--card)}
-  .seg{border:0;background:transparent;color:var(--ink2);font-size:12px;font-weight:600;padding:7px 14px;cursor:pointer;border-right:1px solid var(--border);font-family:inherit}
-  .seg:last-child{border-right:0}.seg:hover{background:var(--card2)}
-  .seg.active{background:var(--brand);color:#fff}.seg.active .livedot{background:#fff}
-  .livedot{width:7px;height:7px;border-radius:50%;background:var(--brand);display:inline-block;margin-right:6px;vertical-align:middle;animation:pulse 1.4s infinite}
-  select.hist{border:1px solid var(--border);border-radius:9px;background:var(--card);color:var(--ink2);font-size:12px;padding:7px 10px;font-family:inherit;max-width:260px}
-  .flow{color:var(--muted);font-size:11.5px;margin-left:auto}.flow b{color:var(--ink2);font-weight:600}.flow .arrow{color:var(--brand2);font-weight:700}
-
-  main{padding:14px 16px 16px;max-width:1500px;margin:0 auto}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:0 1px 3px rgba(15,20,30,.05)}
-  .card h3{margin:0 0 2px;font-size:12px;font-weight:600;color:var(--ink2);letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:7px}
-  .card h3 .star{color:var(--brand)}.card .sub{color:var(--muted);font-size:11px;margin-bottom:10px}
-  .scope{font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;border-radius:20px;padding:2px 7px;font-weight:700;margin-left:auto;white-space:nowrap}
-  .scope.one{background:#14F19516;color:#14F195;border:1px solid #14F19555}
-  .scope.all{background:#2a78d614;color:#1d5da8;border:1px solid #2a78d644}
-
-  .heat{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}
-  .htile{flex:0 0 auto;min-width:110px;border-radius:8px;padding:8px 10px;border:1px solid var(--border);background:var(--card2);text-decoration:none;color:inherit;cursor:pointer;transition:background-color .5s,border-color .5s}
-  .htile:hover{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
-  .htile .hc{font-size:12px;font-weight:800;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .htile .hs{font-weight:600;font-size:11px}.htile .hp{font-size:11px;color:var(--ink2)}
-  
-  .statrow{display:flex;gap:18px;align-items:center;margin-left:24px}
-  .stat{display:flex;flex-direction:row;align-items:baseline;gap:6px}
-  .stat .n{font-size:16px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1;color:var(--ink)}
-  .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-  /* a baseline is not a model and must never look like one */
-  .blrow{background:var(--branddim)}
-  .bltag{font-size:9px;border:1px solid var(--border);border-radius:4px;padding:0 4px;margin-left:6px;color:var(--muted);vertical-align:middle}
-  @media(max-width:640px){
-    header{flex-wrap:wrap;row-gap:8px}
-    .tag,.chainchip{display:none}
-    .lede h1{font-size:21px}
-    .statrow{gap:16px}.stat .n{font-size:21px}
-    .trow .why{white-space:normal;overflow:visible}
-  }
-  .htile .fresh{color:var(--brand2);font-size:9px;margin-left:3px;vertical-align:top}
-  /* a token whose price could not be trusted: visibly set aside, never shaded
-     red or green, because it did not go up or down — we stopped believing it */
-  .hqt{opacity:.55;border-style:dashed}
-  .hqt .hc{color:var(--muted);font-weight:600}
-  .heatlegend{display:flex;gap:12px;align-items:center;font-size:10.5px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
-  .swatch{display:inline-block;width:26px;height:9px;border-radius:3px;vertical-align:middle;margin-right:4px;border:1px solid var(--border)}
-
-
-  /* three all-time boards */
-  .row3{display:grid;grid-template-columns:1.22fr 1.06fr 0.85fr;gap:14px;margin-top:14px;align-items:stretch}
-  /* cards in a row share a bottom edge: each stretches, content sits at the top */
-  .row3 > .card{display:flex;flex-direction:column;height:100%;min-width:0}
-  .row3 > .card > .fill{flex:0 1 auto;min-height:0;min-width:0;overflow-x:auto}
-  .row3 > .card > .foot-note{margin-top:16px;padding-top:9px}
-  .fill-row1 { min-height: 385px; box-sizing: border-box; overflow: visible !important; flex: 1 1 auto; position: relative; }
-  .tape.fill-row1 { overflow-y: visible !important; overflow-x: hidden !important; }
-  @media(max-width:1180px){.row3{grid-template-columns:1fr 1fr}}
-  @media(max-width:1180px){.row3{grid-template-columns:1fr 1fr}}
-  @media(max-width:820px){.row3{grid-template-columns:1fr}}
-
-  table{width:100%;border-collapse:collapse}
-  .lb th{text-align:left;color:var(--muted);font-weight:500;font-size:10.5px;padding:5px 6px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
-  .lb td{padding:6px;border-bottom:1px solid rgba(0,0,0,.04);vertical-align:middle}
-  .lb tr:last-child td{border-bottom:0}
-  .rank{color:var(--muted);width:20px;text-align:right;font-size:11px}
-  .adot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;vertical-align:middle}
-  .aname{font-weight:600}
-  .mchip{font-size:9px;border:1px solid;border-radius:20px;padding:1px 6px;margin-left:5px;font-weight:600;white-space:nowrap}
-  .lb td,.lb th{padding:6px 4px}
-  .lb td.r,.lb th.r{white-space:nowrap}
-  .tagw{font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;border-radius:20px;padding:1px 6px;margin-left:5px}
-  .win{background:#14F19516;color:#14F195;border:1px solid #14F19555}.out{background:#e0362c12;color:#c0271e;border:1px solid #e0362c44}
-  .up{color:var(--good)}.down{color:var(--bad)}.dead td{opacity:.5}
-  .r{text-align:right}.dim{color:var(--muted)}
-  .bar{height:4px;border-radius:3px;background:var(--card2);overflow:hidden;margin-top:3px}.bar i{display:block;height:100%;border-radius:3px}
-  .divider{border-top:1px solid var(--border);margin:12px 0 8px;padding-top:9px;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
-  .segs.sm{margin:2px 0 10px}.segs.sm .seg{padding:5px 11px;font-size:11px}
-
-  /* ---- hover explanations ---- */
-  .pulse{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px 11px;margin-bottom:14px;
-         box-shadow:0 1px 3px rgba(15,20,30,.05);
-         font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.72;
-         height:112px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;position:relative}
-  .pulse .row{color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pulse .row.new{animation:flashin .5s ease}
-  @keyframes flashin{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
-  .pulse .t{color:var(--muted);margin-right:10px}
-  .pulse .g{color:var(--brand2);font-weight:500}
-  .pulse .w{color:#b8791a;font-weight:500}
-  .pulse .d{color:var(--ink2)}
-  .pulse .hdr{position:absolute;top:9px;right:14px;font-size:10px;letter-spacing:.09em;text-transform:uppercase;
-              color:var(--muted);display:flex;align-items:center;gap:6px;background:var(--card);padding-left:10px}
-  .pulse .hdr .bd{width:6px;height:6px;border-radius:50%;background:var(--brand);box-shadow:0 0 7px var(--brand)}
-  .pulse.idle .hdr .bd{background:var(--baseline);box-shadow:none}
-  .pulse.beat .hdr .bd{animation:beat .5s ease}
-  @keyframes beat{0%{transform:scale(1)}50%{transform:scale(2.1)}100%{transform:scale(1)}}
-  .modal{position:fixed;inset:0;background:rgba(15,20,30,.45);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
-  .modal.open{display:flex}
-  .sheet{background:var(--card);border-radius:16px;max-width:860px;width:100%;padding:26px 30px 30px;box-shadow:0 24px 70px rgba(10,15,25,.3);position:relative}
-  .sheet h2{margin:0 0 4px;font-size:19px;letter-spacing:.02em}
-  .sheet .lede{color:var(--ink2);font-size:13.5px;margin-bottom:20px;line-height:1.6}
-  .sheet h4{margin:22px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--brand2)}
-  .sheet p{margin:0 0 9px;font-size:13px;line-height:1.65;color:var(--ink)}
-  .sheet ul{margin:0 0 9px;padding-left:18px}.sheet li{font-size:13px;line-height:1.65;margin-bottom:5px}
-  .sheet code{background:var(--card2);padding:1px 5px;border-radius:4px;font-size:11.5px}
-  .sheet .rule{border-top:1px solid var(--border);margin:20px 0 0}
-  .sheet .caveat{background:#e0362c0a;border:1px solid #e0362c22;border-radius:10px;padding:12px 14px;margin-top:14px}
-  .sheet .caveat b{color:#c0271e}
-  .xbtn{position:absolute;top:16px;right:18px;border:1px solid var(--border);background:var(--card2);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:15px;color:var(--ink2);line-height:1}
-  .tip{position:fixed;z-index:100;max-width:290px;background:#12151a;color:#eceff2;font-size:11.5px;line-height:1.55;
-       padding:9px 11px;border-radius:9px;box-shadow:0 8px 28px rgba(10,15,25,.28);pointer-events:none;display:none;font-weight:400;text-transform:none;letter-spacing:0}
-  .tip b{color:#6ee87f;font-weight:600}.tip i{color:#9aa2ab;font-style:normal}
-  .hint{text-decoration:underline dotted;text-underline-offset:3px;text-decoration-color:var(--baseline,#cfd4da);cursor:help}
-
-  /* ---- model mix bar (which brains have run this strategy) ---- */
-  .mixbar{display:flex;height:5px;border-radius:3px;overflow:hidden;background:var(--card2);margin-top:4px;min-width:70px}
-  .mixbar i{display:block;height:100%}
-  .mdot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:6px;vertical-align:middle}
-  .mlegend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;font-size:10.5px;color:var(--ink2)}
-  .mlegend span{display:flex;align-items:center;white-space:nowrap}
-  .benchnote{font-size:10.5px;color:var(--muted);margin-top:9px;line-height:1.45}
-  .eff{font-size:10px;border-radius:20px;padding:1px 6px;font-weight:700}
-  .eff.pos{background:#14F19516;color:#14F195}.eff.neg{background:#e0362c12;color:#c0271e}
-
-  /* decision-type mix bar */
-  .mix{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--card2);min-width:96px}
-  .mix i{display:block;height:100%}
-  .mixkey{display:inline-block;width:8px;height:8px;border-radius:2px;vertical-align:middle;margin-right:4px}
-
-  .tape{overflow-y:auto;font-size:12.5px;}
-  .trow{display:flex;gap:7px;align-items:baseline;padding:5px 2px;border-bottom:1px solid rgba(0,0,0,.04)}
-  .trow .why{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1 1 auto}
-  .trow .t,.trow .adot,.trow .act,.trow .sym{flex:0 0 auto;white-space:nowrap}
-  .trow .t{color:var(--muted);font-size:11px;min-width:38px}
-  .act{min-width:34px}.act.buy{color:var(--good);font-weight:600}.act.sell{color:var(--bad);font-weight:600}.act.hold{color:var(--muted)}
-  .trow .why{color:var(--ink2)}.trow .sym{font-weight:600}
-  .legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:8px}.legend .li{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink2)}
-  svg{display:block;width:100%;height:auto;overflow:visible}
-  .empty{color:var(--muted);font-size:12px;padding:14px 2px;text-align:center}
-  .foot{color:var(--muted);font-size:11px;text-align:center;padding:18px}.foot b{color:var(--brand2)}
-  .hero{padding:40px 16px;text-align:center;color:var(--muted)}.hero b{color:var(--brand2)}
-</style>
-</head>
-<body>
-<header>
-  <div class="logo"><b>◆</b> TRENCH BENCH</div>
-  <div class="chainchip">Pump.fun AI Arena</div>
-  <div class="statrow">
-    <div class="stat"><div class="n" id="stSessions">—</div><div class="k">sessions</div></div>
-    <div class="stat"><div class="n" id="stDecisions">—</div><div class="k">decisions</div></div>
-    <div class="stat"><div class="n" id="stModels">—</div><div class="k">models</div></div>
-    <div class="stat"><div class="n" id="stLive">—</div><div class="k">live tokens</div></div>
-  </div>
-  <div class="status">
-    <span class="pill" id="pill"><span class="dot"></span><span id="statustxt">connecting…</span></span>
-    <button class="btn" id="methodbtn">? Methodology</button>
-    <button class="btn" id="roadmapbtn">🗺 Roadmap</button>
-    <a class="btn btn-buy" href="https://pump.fun/coin/EgqHqy1EyAqEifHEkQY214rWQVjnFjp7iAYwfZtDpump" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:6px;">⚡ Buy on Pump.fun <span id="tb-mc" style="background:rgba(255,255,255,0.2); padding:1px 5px; border-radius:3px; font-family:var(--font-mono); font-size:9.5px; font-weight:700; letter-spacing:0; border:1px solid rgba(255,255,255,0.1); box-shadow:0 0 8px rgba(0,255,0,0.1); color:#fff; display:none;"></span></a>
-    <a class="btn" href="https://github.com/3esign/trenchbench" target="_blank" rel="noopener">◈ GitHub</a>
-    <button class="btn" id="maxbtn">⛶ Maximize</button>
-  </div>
-</header>
-
-
-<main>
-
-  <div class="pulse idle" id="pulse"><div class="hdr"><span class="bd"></span><span id="pulsestate">connecting</span></div></div>
-
-  <!-- market -->
-  <div class="card">
-    <h3>Pump.fun market — this session's tokens<span class="scope one">this session</span></h3>
-    <div class="sub"><span class="hint" data-tip="market" id="marketsub">real tokens traded this session</span></div>
-    <div class="heat" id="heat"></div>
-    <div class="heatlegend">
-      <span><span class="swatch" style="background:linear-gradient(90deg,rgba(224,54,44,.30),rgba(224,54,44,.07))"></span>down</span>
-      <span><span class="swatch" style="background:linear-gradient(90deg,rgba(0,168,31,.07),rgba(0,168,31,.30))"></span>up</span>
-      <span>shaded against each token's price when the session opened · <span style="color:var(--brand2)">✦</span> = fresh listing</span>
-    </div>
-  </div>
-
-  <!-- top highlights bar (single row between tokens and row 1) -->
-  <div class="card" style="margin-top:14px; padding:10px 16px; display:flex; align-items:center; justify-content:space-between; gap:16px; overflow-x:auto; flex-wrap:nowrap; border-left:3px solid var(--brand); white-space:nowrap; background:var(--card);">
-    <div style="display:flex; align-items:center; gap:8px; font-size:11.5px; font-weight:700; color:var(--brand); letter-spacing:.05em;">
-      <span>★ ARENA HIGHLIGHTS</span>
-    </div>
-    <div style="display:flex; align-items:center; gap:6px; font-size:12px;" id="hlBestModel">
-      <span class="dim">Best Model:</span> <span class="aname" style="color:var(--ink); font-weight:600;">—</span>
-    </div>
-    <span style="color:var(--border);">•</span>
-    <div style="display:flex; align-items:center; gap:6px; font-size:12px;" id="hlBestAgent">
-      <span class="dim">Best Strategy:</span> <span class="aname" style="color:var(--ink); font-weight:600;">—</span>
-    </div>
-    <span style="color:var(--border);">•</span>
-    <div style="display:flex; align-items:center; gap:6px; font-size:12px;" id="hlTopToken">
-      <span class="dim">Top Token:</span> <span class="aname" style="color:var(--good); font-weight:600;">—</span>
-    </div>
-    <span style="color:var(--border);">•</span>
-    <div style="display:flex; align-items:center; gap:6px; font-size:12px;" id="hlLeader">
-      <span class="dim">Session Leader:</span> <span class="aname" style="color:var(--brand); font-weight:600;">—</span>
-    </div>
-  </div>
-
-  <!-- row 1 — this session: the race, the standing, the tape -->
-  <div class="row3">
-    <div class="card">
-      <h3 id="curh3">Current session — the race<span class="scope one">this session</span></h3>
-      <div class="sub" id="racesub">equity of every agent, tick by tick</div>
-      <div id="racechart" class="fill-row1"></div>
-    </div>
-
-    <div class="card">
-      <h3 id="standingtitle">Standing right now<span class="scope one">this session</span></h3>
-      <div class="sub">highest return leads · below 2% of its start an agent is out · hover a name</div>
-      <div class="fill fill-row1">
-        <table class="lb"><thead><tr><th class="rank">#</th><th>Agent</th><th class="r"><span class="hint" data-tip="moneyleft">Money</span></th><th class="r"><span class="hint" data-tip="pnl">P&amp;L</span></th><th class="r"><span class="hint" data-tip="hit">Hit</span></th></tr></thead><tbody id="lbbody"></tbody></table>
-      </div>
-      <!-- small model color legend in middle panel -->
-      <div id="mLegendInline" style="display:flex; flex-wrap:wrap; gap:6px 12px; font-size:10px; color:var(--ink2); margin-top:8px; padding-top:6px; border-top:1px solid var(--border);"></div>
-    </div>
-
-    <div class="card">
-      <h3>Decision tape<span class="scope one">this session</span></h3>
-      <div class="sub" id="tapesub">every model call, newest first</div>
-      <div class="fill-row1" style="position:relative">
-        <div class="tape" id="tape" style="position:absolute; inset:0; overflow-y:auto; overflow-x:hidden;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- row 2 — the benchmark, across every counted session -->
-  <div class="row3">
-    <div class="card">
-      <h3><span class="star">★</span> Top models<span class="scope all hint" data-tip="counted">counted sessions</span></h3>
-      <div class="sub" id="benchsub">each model averaged over every strategy it has played · <span class="hint" data-tip="career">career</span> = $100k compounded</div>
-      <div class="segs sm" id="btabs">
-        <button class="seg active" data-b="models" title="how each model does, across all the personas it has played">By model</button>
-        <button class="seg" data-b="pairs" title="which model suits which strategy">Model × agent</button>
-      </div>
-      <div class="fill"><table class="lb"><thead id="bhead"></thead><tbody id="gModels"></tbody></table></div>
-      <div class="foot-note" id="benchnote"></div>
-    </div>
-
-    <div class="card">
-      <h3><span class="star">★</span> Top agents<span class="scope all hint" data-tip="counted">counted sessions</span></h3>
-      <div class="sub">each strategy averaged over every model that has run it · <span class="hint" data-tip="career">career</span> = $100k compounded</div>
-      <div class="fill"><table class="lb"><thead><tr><th class="rank">#</th><th>Agent · strategy</th><th class="r"><span class="hint" data-tip="runs">Runs</span></th><th class="r"><span class="hint" data-tip="career">Career</span></th><th class="r"><span class="hint" data-tip="avgpnl">Avg P&amp;L</span></th><th class="r"><span class="hint" data-tip="hit">Hit</span></th><th class="r"><span class="hint" data-tip="grads">Grads</span></th></tr></thead><tbody id="gAgents"></tbody></table></div>
-      <div class="foot-note">The bar under each agent shows <b>which models have run that strategy</b>. Hover a name for what the strategy actually does.</div>
-    </div>
-
-    <div class="card">
-      <h3><span class="star">★</span> Top tokens<span class="scope all" id="tokscope">all sessions</span></h3>
-      <div class="sub" id="gtoksub">which tokens the agents actually made money on</div>
-      <div class="segs sm" id="toktabs">
-        <button class="seg active" data-t="recent" title="Tokens traded in the most recent sessions">Recent</button>
-        <button class="seg" data-t="winners" title="All-time highest compounding tokens">Top Winners</button>
-        <button class="seg" data-t="losers" title="All-time worst performing tokens">Top Losers</button>
-      </div>
-      <div class="fill" style="position:relative; min-height:0; flex:1 1 auto; overflow:visible;">
-        <div style="position:absolute; top:0; left:0; right:-4px; bottom:0; overflow-y:auto; padding-right:4px;">
-          <table class="lb"><thead><tr><th class="rank">#</th><th>Token</th><th class="r"><span class="hint" data-tip="calls">Calls</span></th><th class="r"><span class="hint" data-tip="tokenpnl" id="gtokcolh">Realised P&amp;L</span></th></tr></thead><tbody id="gTokens"></tbody></table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="foot">
-    <div><b>Trench Bench</b> · built for Pump.fun · independent, not affiliated with Pump.fun · not financial advice</div>
-    <div style="margin-top: 8px; font-family: monospace; font-size: 12px; color: var(--brand2); background: rgba(20, 241, 149, 0.05); padding: 6px 12px; border-radius: 6px; display: inline-block; border: 1px solid rgba(20, 241, 149, 0.15);">
-      CA: <span style="user-select: all; cursor: pointer;" title="Double click to select" id="ca-text">EgqHqy1EyAqEifHEkQY214rWQVjnFjp7iAYwfZtDpump</span>
-    </div>
-  </div>
-</main>
-
-<div class="modal" id="methodmodal">
-  <div class="sheet">
-    <button class="xbtn" id="methodclose">×</button>
-    <h2>How Trench Bench works</h2>
-    <div class="lede">Eight AI agents trade real Pump.fun tokens with real money rules. Every decision is recorded, scored against what the market actually did next, and aggregated into a benchmark of which model trades best. This page is the whole method, including what it cannot yet tell you.</div>
-
-    <h4>A session</h4>
-    <p>A session is one run: start, agents trade, stop. Each is a self-contained, comparable experiment. Every agent begins on the <b>same starting capital</b>, so returns are directly comparable — and no agent is barred from an expensive token because it drew a small purse. An agent that falls below 2% of its start is eliminated.</p>
-
-    <h4>Where prices come from</h4>
-    <p>Every price is real and on-chain. Nothing is simulated.</p>
-    <ul>
-      <li><b>Live swap prices.</b> Every trade on the chain stamps its price into a Uniswap v4 swap log. Roughly a thousand trades a minute, so prices update per block.</li>
-      <li><b>Raydium Migration</b> for Memecoins — bonding curves tracking price transitions. These follow 24/7 crypto hours.</li>
-      <li>A pool gives a <i>ratio</i>, not a price. It becomes dollars only when one side is anchored to a stablecoin or a Raydium Migration pool. Anything unanchorable is left <b>unpriced rather than guessed</b>.</li>
-    </ul>
-
-    <h4>How an agent decides</h4>
-    <p>Each round an agent is shown its cash, what it holds with unrealised P&amp;L, how its own recent calls have gone, and a numbered list of the moves legally available right now. It replies with one number.</p>
-    <p>This is deliberate. Asking a model to compose an order would score it on formatting as much as judgement. Here every model answers identically, position sizing is done in code, and inventing a ticker is impossible. When a model fails to answer, a rule-based brain covers the round — and <b>those calls are recorded separately and never credited to the model</b>.</p>
-
-    <h4>How a decision is scored</h4>
-    <ul>
-      <li><b>Edge</b> — how the token moved over the following rounds, signed by direction, minus what the <i>median</i> token did over the same window. A sell before a drop scores positive. The median rather than the average, because one memecoin tripling would otherwise make every agent that missed it look incompetent.</li>
-      <li><b>Hit rate</b> — the share of an agent's trades that beat the median token. Holds are excluded; they outnumber trades ten to one and would drown the signal.</li>
-      <li><b>Regret</b> — because the choice set was closed, every move that <i>was</i> available can be scored too. Regret is the gap to the best one. It asks whether the model chose well, not merely whether the market went up.</li>
-      <li><b>Realised P&amp;L</b> — FIFO profit on round-trips that actually closed. The hardest ground truth here.</li>
-    </ul>
-
-    <h4>What makes it a benchmark rather than a leaderboard</h4>
-    <ul>
-      <li><b>The model↔strategy pairing rotates every session.</b> With a fixed pairing, "best model" and "best strategy" are the same number and neither means anything. Over enough sessions every model plays every strategy.</li>
-      <li><b>Short sessions don't count.</b> A run below the round threshold is saved and viewable but cannot move the rankings — the outcome horizon needs room, and a handful of rounds is not evidence.</li>
-      <li><b>Sample size is always shown.</b> Where a ranking is built on too little data, the board says so instead of implying a result.</li>
-    </ul>
-
-    <h4>The career ledger</h4>
-    <p>Each session's return is compounded onto a notional $100,000, tracked per model and per strategy. The trading always restarts level; the career line is those returns multiplied together, so the long arc is visible without ever handing one agent more buying power than another.</p>
-
-    <div class="caveat">
-      <p style="margin:0"><b>What this does not tell you.</b> Differences between models are noise until each has several counted sessions — treat every ranking as provisional until the run counts are meaningful. Agents trade with simulated capital against real prices; there is no execution, slippage or market impact. Trench Bench is a research benchmark and a dataset. It is not investment advice, not a signal service, and not a claim that any model can trade profitably with real money.</p>
-    </div>
-
-    <div class="rule"></div>
-    <p style="margin-top:14px;color:var(--muted);font-size:11.5px">Trench Bench is independent and not affiliated with, endorsed by, or sponsored by Pump.fun.</p>
-  </div>
-</div>
-
-<div class="modal" id="roadmapmodal">
-  <div class="sheet">
-    <button class="xbtn" id="roadmapclose">×</button>
-    <h2>Trench Bench Roadmap</h2>
-    <div class="lede">The evolution from a sandbox benchmarking arena to a fully autonomous, live-capital agent swarm trading on Solana.</div>
-    
-    <div style="margin-top: 20px;">
-      <div style="border-left: 3px solid var(--brand); padding-left: 16px; margin-bottom: 24px;">
-        <h4 style="margin: 0 0 6px; color: var(--brand);">Phase 1: AI Arena & Simulation (Live)</h4>
-        <p style="margin: 0; font-size: 13px; color: var(--ink2);">
-          Deploying Trench Bench to benchmark the world's top open-source models trading memecoins under simulated rules with real-time liquidity and price feeds.
-        </p>
-      </div>
-
-      <div style="border-left: 3px solid var(--brand2); padding-left: 16px; margin-bottom: 24px;">
-        <h4 style="margin: 0 0 6px; color: var(--brand2);">Phase 2: Live Capital Integration</h4>
-        <p style="margin: 0; font-size: 13px; color: var(--ink2);">
-          Enabling high-performing agents to deploy real capital on Solana, executing transactions directly on Pump.fun and Raydium.
-        </p>
-      </div>
-
-      <div style="border-left: 3px solid var(--muted); padding-left: 16px; margin-bottom: 24px;">
-        <h4 style="margin: 0 0 6px; color: var(--ink);">Phase 3: Autonomous Swarm & Governance</h4>
-        <p style="margin: 0; font-size: 13px; color: var(--ink2);">
-          Launching a community-driven DAO where holders vote on agent parameters, model allocations, and share in the performance data generated by the swarm.
-        </p>
-      </div>
-
-      <div style="border-left: 3px solid var(--muted); padding-left: 16px; margin-bottom: 12px;">
-        <h4 style="margin: 0 0 6px; color: var(--ink);">Phase 4: Custom Persona Builder</h4>
-        <p style="margin: 0; font-size: 13px; color: var(--ink2);">
-          Letting anyone spawn their own trading agents, pair them with custom LLMs, and enter them into the public Arena to compete for yield.
-        </p>
-      </div>
-    </div>
-    
-    <div class="rule" style="margin-top: 20px;"></div>
-    <p style="margin-top:14px;color:var(--muted);font-size:11.5px">Trench Bench is independent and not affiliated with, endorsed by, or sponsored by Pump.fun.</p>
-  </div>
-</div>
-
-
-<script>
 window.onerror = function(msg, url, line, col, error) {
   alert("GLOBAL ERROR:\n" + msg + "\nLine: " + line + "\nCol: " + col + "\nStack: " + (error ? error.stack : ''));
 };
@@ -444,7 +38,7 @@ const AGENTS={
   mrev:  ['Mean-Reverter Mara','--a5','<b>Mean-Reverter Mara</b><br>Fades anything stretched far from its own average, in either direction. Assumes extremes snap back.<br><i>Takes profit at +7%, cuts at -8%, holds up to 5.</i>'],
   index: ['Index Ivy','--a6','<b>Index Ivy</b><br>Spreads small amounts across Memecoins rather than picking. The closest thing here to just holding the market.<br><i>Takes profit at +6%, cuts at -5%, holds up to 8.</i>'],
   event: ['Event Nia','--a7','<b>Event Nia</b><br>Waits for a violent move in either direction and jumps on it. Trades rarely, then all at once.<br><i>Takes profit at +14%, cuts at -10%, holds up to 4.</i>'],
-  analyst: ['The Analyst','--a8','<b>The Analyst</b><br>A dynamic meta-trader that reads the after-action report from the previous session to adapt its strategy. Observes what works and tries to emulate it.<br><i>Takes profit at +15%, cuts at -10%, holds up to 5 positions.</i>']};
+  rand:  ['Random Randy','--a8','<b>Random Randy</b><br>Flips a coin. He is the control — deliberately given no exit discipline at all, because the other seven are only meaningful measured against pure chance.<br><i>No take-profit, no stop-loss.</i>']};
 const acolor=id=>cssv((AGENTS[id]&&AGENTS[id][1])||'--a1'), aname=id=>(AGENTS[id]&&AGENTS[id][0])||id;
 const adesc=id=>(AGENTS[id]&&AGENTS[id][2])||'';
 const SUPA='https://jydrysrqfqdpadnljnbk.supabase.co', ANON='sb_publishable_abJ2zefe3e5875inLIScHg_twk-mTms';
@@ -511,7 +105,14 @@ const TIPS={
   document.addEventListener('mouseleave',()=>{ tip.style.display='none'; });
 })();
 
-
+// ---------- one stable colour per model ----------
+const MPAL=['#3b6fd4','#e2762c','#12a594','#b45cd6','#d9a300','#d84a63','#5a7d2a','#7a6ff0','#0f7fa8','#a6572b'];
+const MCOL={};
+// hashed, so a model keeps the same colour everywhere and across reloads
+function modelColor(m){ if(!m) return '#8b9199'; if(MCOL[m]) return MCOL[m];
+  let h=0; for(let i=0;i<m.length;i++) h=(h*31+m.charCodeAt(i))>>>0;
+  return MCOL[m]=MPAL[h%MPAL.length]; }
+const short=m=>String(m||'').replace(/:cloud$/,'').replace(/-cloud$/,'');
 
 // Plotted against TICK, never against array position. When each series was
 // drawn by index, a series missing one point had every later point shifted left
@@ -717,37 +318,15 @@ async function render(){
     clearTimeout(S.timer);
     S.timer=setTimeout(()=>{S.list=[];render()}, live?2500:8000);
   }catch(e){
+    // never swallow silently — a caught render error looked identical to being
+    // offline, twice tonight. Costs nothing in production, saves an hour later.
     console.error('[trenchbench] render failed:', e);
-    if (S.pendingLive) {
-      clearTimeout(S.timer);
-      S.timer = setTimeout(render, 15000);
-    } else {
-      clearTimeout(S.timer);
-      S.timer = setTimeout(render, 30000);
-    }
+    $('#statustxt').textContent='offline';
+    pulseState('reconnecting', false);
+    if(!render._warned){ pulse('lost the database — retrying','w'); render._warned=true; }
+    clearTimeout(S.timer); S.timer=setTimeout(()=>{S.list=[];render()},6000);
   }
 }
-
-// Poll DexScreener for platform token Market Cap
-(async function fetchPlatformMC() {
-  try {
-    const r = await fetch('https://api.dexscreener.com/latest/dex/tokens/EgqHqy1EyAqEifHEkQY214rWQVjnFjp7iAYwfZtDpump');
-    const j = await r.json();
-    const p = j.pairs && j.pairs[0];
-    if (p && p.fdv) {
-      const mc = p.fdv;
-      const shortMC = mc >= 1e6 ? (mc/1e6).toFixed(1) + 'M' : mc >= 1e3 ? (mc/1e3).toFixed(1) + 'K' : Math.round(mc);
-      const mcSpan = document.getElementById('tb-mc');
-      if (mcSpan) {
-        mcSpan.textContent = '$' + shortMC + ' MC';
-        mcSpan.style.display = 'inline-block';
-      }
-    }
-  } catch(e) {}
-  setTimeout(fetchPlatformMC, 60000);
-})();
-
-render();
 
 // ---------- all-time boards ----------
 // The benchmark card: three views over the SAME counted sessions.
@@ -843,13 +422,13 @@ async function loadGlobals(){
       m:label(k,a), n:new Set(a.map(x=>x.session_id)).size,
       ret:avg(a.filter(x=>x.ret!=null).map(x=>+x.ret)), hit:avg(a.filter(x=>x.hit_rate!=null).map(x=>+x.hit_rate)), career:career(a),
       raydium:a.reduce((sum,x)=>sum+(parseInt(x.raydium_hits)||0),0)
-    },extra?extra(k,a):{})).sort((p,z)=>z.ret-p.ret);
+    },extra?extra(k,a):{})).sort((p,z)=>z.career-p.career);
 
     // models: how many distinct PERSONAS each has played (rotation coverage)
-    B.models=mk(grp(reps.filter(r=>r.agent_id!=='rand'),r=>r.model),k=>k,(k,a)=>({mods:new Set(a.map(x=>x.agent_id)).size}));
+    B.models=mk(grp(reps,r=>r.model),k=>k,(k,a)=>({mods:new Set(a.map(x=>x.agent_id)).size}));
     B.baselines=mk(grp(blReps,r=>r.model),k=>k,(k,a)=>({mods:new Set(a.map(x=>x.agent_id)).size}));
     // agents: how many distinct MODELS have run each persona
-    B.agents=mk(grp(reps.filter(r=>r.agent_id!=='rand'),r=>r.agent_id),(k,a)=>a[0].agent_name||k,(k,a)=>({agent_id:k,
+    B.agents=mk(grp(reps,r=>r.agent_id),(k,a)=>a[0].agent_name||k,(k,a)=>({agent_id:k,
       mods:new Set(a.map(x=>x.model)).size,
       byModel:a.reduce((o,x)=>{ o[x.model]=(o[x.model]||0)+1; return o; },{})}));
     $('#gAgents').innerHTML=B.agents.slice(0,8).map((r,i)=>{
@@ -860,7 +439,7 @@ async function loadGlobals(){
     }).join('')||'<tr><td class="empty" colspan="7">no counted sessions yet</td></tr>';
 
     const modelAvg={}; for(const r of B.models) modelAvg[r.m]=r.ret;
-    B.pairs=Object.entries(grp(reps.filter(r=>r.agent_id!=='rand'),r=>r.model+'|'+r.agent_id)).map(([k,a])=>{
+    B.pairs=Object.entries(grp(reps,r=>r.model+'|'+r.agent_id)).map(([k,a])=>{
       const [m,aid]=k.split('|'), ret=avg(a.filter(x=>x.ret!=null).map(x=>+x.ret));
       return {m,agent_id:aid,short:a[0].agent_name||aid,n:new Set(a.map(x=>x.session_id)).size,ret,hit:avg(a.filter(x=>x.hit_rate!=null).map(x=>+x.hit_rate)),eff:ret-(modelAvg[m]||0)};
     }).sort((p,z)=>z.ret-p.ret);
@@ -892,77 +471,27 @@ async function loadGlobals(){
     // Top tokens used to rank over EVERY session, including the ones the
     // benchmark threw out — so the session that minted $109m out of a bad price
     // was excluded from every other board and still set the token leader.
-    const outs=await qTry('decision_outcomes?select=sym,realized_pnl,outcome,session_id&order=created_at.desc&limit=50000');
+    const outs=await qTry('decision_outcomes?select=sym,realized_pnl,outcome,session_id&order=session_id.desc&limit=20000');
     if(outs&&outs.length){
-      const cRecent={}, cAll={}; 
-      const recentSessIds = Array.from(validSessIds).slice(0, 5);
-      
-      for(const o of outs){
+      const c={}; for(const o of outs){
         if(!o.sym) continue;
         if(o.outcome==='void') continue;                                   // token was delisted; unscoreable
-        if(!o.session_id) continue;
-        
-        // Accumulate all-time
-        if(!preMigration && validSessIds.has(o.session_id)) {
-          const bA = cAll[o.sym] = cAll[o.sym] || {n:0, pnl:0};
-          bA.n++; bA.pnl += (+o.realized_pnl||0);
-        }
-        
-        // Accumulate recent
-        if(recentSessIds.includes(o.session_id)) {
-          const bR = cRecent[o.sym] = cRecent[o.sym] || {n:0, pnl:0};
-          bR.n++; bR.pnl += (+o.realized_pnl||0);
-        }
-      }
-      
-      S.totalScored=Object.values(cRecent).reduce((n,v)=>n+v.n,0);
-      
-      // Update highlights from Recent
-      const tRecent = Object.entries(cRecent).sort((a,b)=>b[1].pnl-a[1].pnl);
-      if(tRecent.length && tRecent[0]){
-        const [topSym, topVal] = tRecent[0];
+        if(!preMigration && o.session_id && !validSessIds.has(o.session_id)) continue;  // uncounted session
+        const b=c[o.sym]=c[o.sym]||{n:0,pnl:0}; b.n++; b.pnl+=(+o.realized_pnl||0); }
+      S.totalScored=Object.values(c).reduce((n,v)=>n+v.n,0);
+      const t=Object.entries(c).sort((a,b)=>b[1].pnl-a[1].pnl).slice(0,8);
+      const mx=Math.max(1,...t.map(([,v])=>Math.abs(v.pnl)));
+      if(t.length && t[0]){
+        const [topSym, topVal] = t[0];
         setHL('hlTopToken', `<span class="aname" style="color:${topVal.pnl>=0?'var(--good)':'var(--bad)'};font-weight:600">$${topSym}</span> <span class="${topVal.pnl>=0?'up':'down'}">(${(topVal.pnl>=0?'+':'-')+money(Math.abs(topVal.pnl))})</span>`);
       }
-      
-      window.topTokensData = { recent: tRecent, winners: Object.entries(cAll).sort((a,b)=>b[1].pnl-a[1].pnl), losers: Object.entries(cAll).sort((a,b)=>a[1].pnl-b[1].pnl) };
-      window.topTokensActiveTab = window.topTokensActiveTab || 'recent';
-      
-      const paintTokens = () => {
-        const tab = window.topTokensActiveTab;
-        const arr = window.topTokensData[tab] || [];
-        const t = arr.slice(0, 30); // show up to 30
-        const mx = Math.max(1,...t.map(([,v])=>Math.abs(v.pnl)));
-        
-        const scopeLbl = tab === 'recent' ? 'last 5 sessions' : 'all sessions';
-        const subLbl = tab === 'recent' ? 'hottest tokens traded in recent sessions' : (tab === 'winners' ? 'all-time highest compounding tokens' : 'all-time worst performing tokens');
-        
-        const scp = $('#tokscope'); if(scp) scp.textContent = scopeLbl;
-        const sub = $('#gtoksub'); if(sub) sub.textContent = subLbl;
-        const colh = $('#gtokcolh'); if(colh) colh.textContent = 'Realised P&L';
-        
-        const toktabs = $('#toktabs');
-        if(toktabs) {
-          [...toktabs.children].forEach(c => c.classList.toggle('active', c.dataset.t === tab));
-        }
-
-        $('#gTokens').innerHTML = t.map(([s,v],i)=>`<tr><td class="rank tnum">${i+1}</td><td><span class="aname">${s}</span><div class="bar"><i style="width:${(Math.abs(v.pnl)/mx*100).toFixed(0)}%;background:${v.pnl>=0?cssv('--good'):cssv('--bad')}"></i></div></td><td class="r tnum dim">${v.n}</td><td class="r tnum ${v.pnl>=0?'up':'down'}">${(v.pnl>=0?'+':'-')+money(Math.abs(v.pnl))}</td></tr>`).join('')||'<tr><td class="empty" colspan="4">—</td></tr>';
-      };
-      
-      paintTokens();
-      
-      const toktabs = $('#toktabs');
-      if(toktabs && !toktabs.dataset.bound) {
-        toktabs.dataset.bound = '1';
-        toktabs.onclick = e => {
-          if(!e.target.classList.contains('seg')) return;
-          window.topTokensActiveTab = e.target.dataset.t;
-          paintTokens();
-        };
-      }
+      $('#gtoksub').textContent='which tokens the agents actually made money on';
+      $('#gtokcolh').textContent='Realised P&L';
+      $('#gTokens').innerHTML=t.map(([s,v],i)=>`<tr><td class="rank tnum">${i+1}</td><td><span class="aname">${s}</span><div class="bar"><i style="width:${(Math.abs(v.pnl)/mx*100).toFixed(0)}%;background:${v.pnl>=0?cssv('--good'):cssv('--bad')}"></i></div></td><td class="r tnum dim">${v.n}</td><td class="r tnum ${v.pnl>=0?'up':'down'}">${(v.pnl>=0?'+':'-')+money(Math.abs(v.pnl))}</td></tr>`).join('')||'<tr><td class="empty" colspan="4">—</td></tr>';
     }else{
       const dd=await q('decisions?select=sym&executed=is.true&sym=not.eq.&order=ts.desc&limit=5000');
       const c={}; for(const x of dd)c[x.sym]=(c[x.sym]||0)+1;
-      const t=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,30);
+      const t=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,8);
       $('#gtoksub').innerHTML='ranked by how often they were traded — profit ranking appears once outcomes are scored';
       $('#gtokcolh').textContent='Trades';
       $('#gTokens').innerHTML=t.map(([s,n],i)=>`<tr><td class="rank tnum">${i+1}</td><td><span class="aname">${s}</span></td><td class="r tnum dim">—</td><td class="r tnum">${n}</td></tr>`).join('')||'<tr><td class="empty" colspan="4">—</td></tr>';
@@ -988,6 +517,3 @@ rm.onclick=e=>{ if(e.target===rm) closeRM(); };
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') { closeM(); closeRM(); } });
 $('#maxbtn').onclick=function(){if(document.fullscreenElement)document.exitFullscreen&&document.exitFullscreen();else document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{});document.body.classList.toggle('maxed');this.textContent=document.body.classList.contains('maxed')?'⤢ Restore':'⛶ Maximize'};
 render();
-</script>
-</body>
-</html>

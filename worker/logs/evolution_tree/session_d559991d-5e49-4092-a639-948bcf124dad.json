@@ -1,0 +1,440 @@
+{
+  "session_id": "d559991d-5e49-4092-a639-948bcf124dad",
+  "created_at": "2026-07-26T04:45:58.199Z",
+  "lessons": [
+    {
+      "session_id": "d559991d-5e49-4092-a639-948bcf124dad",
+      "agent_id": "val",
+      "agent_name": "Value Val",
+      "model": "qwen3.5:cloud",
+      "ret": -0.45,
+      "lesson": "Reduce trade frequency to filter noise and only act on significant momentum breakouts."
+    },
+    {
+      "session_id": "d559991d-5e49-4092-a639-948bcf124dad",
+      "agent_id": "mom",
+      "agent_name": "Momentum Mia",
+      "model": "nemotron-3-super:cloud",
+      "ret": -6.61,
+      "lesson": "Reduce position size after consecutive losses, tighten stops during low-momentum 5m periods, and avoid trading unless price shows clear directional bias."
+    },
+    {
+      "session_id": "d559991d-5e49-4092-a639-948bcf124dad",
+      "agent_id": "degen",
+      "agent_name": "Degen Dex",
+      "model": "minimax-m3:cloud",
+      "ret": -0.77,
+      "lesson": "Let me try: \"Cut trade count"
+    },
+    {
+      "session_id": "d559991d-5e49-4092-a639-948bcf124dad",
+      "agent_id": "contra",
+      "agent_name": "Contrarian Cole",
+      "model": "kimi-k2.7-code:cloud",
+      "ret": -4.42,
+      "lesson": "Buy deeper dips, hold fewer rounds, cut losers faster than winners."
+    },
+    {
+      "session_id": "d559991d-5e49-4092-a639-948bcf124dad",
+      "agent_id": "mrev",
+      "agent_name": "Mean-Reverter Mara",
+      "model": "glm-5.2:cloud",
+      "ret": -7.34,
+      "lesson": "Cut losers faster at first 5m momentum reversal signal; holding beyond three rounds compounds drawdowns beyond recovery."
+    },
+    {
+      "session_id": "d559991d-5e49-4092-a639-948bcf124dad",
+      "agent_id": "index",
+      "agent_name": "Index Ivy",
+      "model": "gemma4:31b-cloud",
+      "ret": 2.61,
+      "lesson": "Reduce trade frequency and increase holding time to capture momentum and avoid over-trading noise."
+    },
+    {
+      "session_id": "d559991d-5e49-4092-a639-948bcf124dad",
+      "agent_id": "event",
+      "agent_name": "Event Nia",
+      "model": "deepseek-v4-flash:cloud",
+      "ret": -16.27,
+      "lesson": "Cut losses faster; holding beyond two rounds rarely recovers drawdowns."
+    },
+    {
+      "session_id": "d559991d-5e49-4092-a639-948bcf124dad",
+      "agent_id": "analyst",
+      "agent_name": "The Analyst",
+      "model": "qwen3.5:cloud",
+      "ret": -24.86,
+      "lesson": "Eliminate high-frequency churn; only enter when five-minute momentum exceeds the average drawdown threshold."
+    }
+  ],
+  "agents": [
+    {
+      "id": "val",
+      "name": "Value Val",
+      "model": "qwen3.5:cloud",
+      "start_cash": 17747,
+      "final_equity": 17668,
+      "trades_count": 121,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Excalibur",
+          "px": 0.000004417,
+          "tick": 965
+        },
+        {
+          "action": "SELL",
+          "sym": "fuck",
+          "px": 0.000003737,
+          "tick": 973
+        },
+        {
+          "action": "SELL",
+          "sym": "RIXASH",
+          "px": 0.000002399,
+          "tick": 995
+        },
+        {
+          "action": "SELL",
+          "sym": "Beluga",
+          "px": 0.00000217,
+          "tick": 1002
+        },
+        {
+          "action": "BUY",
+          "sym": "fuck",
+          "px": 0.000004524,
+          "tick": 1023
+        },
+        {
+          "action": "SELL",
+          "sym": "fuck",
+          "px": 0.000005189,
+          "tick": 1047
+        }
+      ]
+    },
+    {
+      "id": "mom",
+      "name": "Momentum Mia",
+      "model": "nemotron-3-super:cloud",
+      "start_cash": 17747,
+      "final_equity": 16574,
+      "trades_count": 184,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "/DREAM",
+          "px": 0.00003079,
+          "tick": 962
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 977
+        },
+        {
+          "action": "BUY",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 985
+        },
+        {
+          "action": "SELL",
+          "sym": "/DREAM",
+          "px": 0.00003079,
+          "tick": 1007
+        },
+        {
+          "action": "BUY",
+          "sym": "WASSIE",
+          "px": 0.000002121,
+          "tick": 1016
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 1032
+        }
+      ]
+    },
+    {
+      "id": "degen",
+      "name": "Degen Dex",
+      "model": "minimax-m3:cloud",
+      "start_cash": 17747,
+      "final_equity": 17611,
+      "trades_count": 113,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Excalibur",
+          "px": 0.000004417,
+          "tick": 960
+        },
+        {
+          "action": "BUY",
+          "sym": "RIXASH",
+          "px": 0.000002399,
+          "tick": 996
+        },
+        {
+          "action": "SELL",
+          "sym": "/DREAM",
+          "px": 0.00003079,
+          "tick": 1029
+        },
+        {
+          "action": "SELL",
+          "sym": "BRUNO",
+          "px": 0.00003074,
+          "tick": 1034
+        },
+        {
+          "action": "SELL",
+          "sym": "pumpcat",
+          "px": 0.00003069,
+          "tick": 1038
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 1052
+        }
+      ]
+    },
+    {
+      "id": "contra",
+      "name": "Contrarian Cole",
+      "model": "kimi-k2.7-code:cloud",
+      "start_cash": 17747,
+      "final_equity": 16963,
+      "trades_count": 166,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "RIXASH",
+          "px": 0.000002399,
+          "tick": 1012
+        },
+        {
+          "action": "BUY",
+          "sym": "Excalibur",
+          "px": 0.000004417,
+          "tick": 1014
+        },
+        {
+          "action": "SELL",
+          "sym": "RIXASH",
+          "px": 0.000002399,
+          "tick": 1042
+        },
+        {
+          "action": "SELL",
+          "sym": "Excalibur",
+          "px": 0.000004417,
+          "tick": 1044
+        },
+        {
+          "action": "BUY",
+          "sym": "Rick",
+          "px": 0.000005684,
+          "tick": 1046
+        },
+        {
+          "action": "BUY",
+          "sym": "fuck",
+          "px": 0.000005189,
+          "tick": 1048
+        }
+      ]
+    },
+    {
+      "id": "mrev",
+      "name": "Mean-Reverter Mara",
+      "model": "glm-5.2:cloud",
+      "start_cash": 17747,
+      "final_equity": 16444,
+      "trades_count": 355,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Excalibur",
+          "px": 0.000004417,
+          "tick": 1048
+        },
+        {
+          "action": "BUY",
+          "sym": "RIXASH",
+          "px": 0.000002399,
+          "tick": 1049
+        },
+        {
+          "action": "SELL",
+          "sym": "RIXASH",
+          "px": 0.000002399,
+          "tick": 1055
+        },
+        {
+          "action": "BUY",
+          "sym": "Rick",
+          "px": 0.000005684,
+          "tick": 1056
+        },
+        {
+          "action": "SELL",
+          "sym": "Rick",
+          "px": 0.000005684,
+          "tick": 1058
+        },
+        {
+          "action": "BUY",
+          "sym": "RIXASH",
+          "px": 0.000002399,
+          "tick": 1059
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "name": "Index Ivy",
+      "model": "gemma4:31b-cloud",
+      "start_cash": 17747,
+      "final_equity": 18211,
+      "trades_count": 116,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "/DREAM",
+          "px": 0.00003079,
+          "tick": 1018
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 1035
+        },
+        {
+          "action": "BUY",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 1045
+        },
+        {
+          "action": "BUY",
+          "sym": "USDT",
+          "px": 1.029,
+          "tick": 1047
+        },
+        {
+          "action": "SELL",
+          "sym": "/DREAM",
+          "px": 0.00003079,
+          "tick": 1051
+        },
+        {
+          "action": "BUY",
+          "sym": "RIXASH",
+          "px": 0.000002399,
+          "tick": 1052
+        }
+      ]
+    },
+    {
+      "id": "event",
+      "name": "Event Nia",
+      "model": "deepseek-v4-flash:cloud",
+      "start_cash": 17747,
+      "final_equity": 14859,
+      "trades_count": 572,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 1029
+        },
+        {
+          "action": "BUY",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 1031
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 1036
+        },
+        {
+          "action": "BUY",
+          "sym": "USDT",
+          "px": 1.029,
+          "tick": 1037
+        },
+        {
+          "action": "BUY",
+          "sym": "fuck",
+          "px": 0.000005189,
+          "tick": 1043
+        },
+        {
+          "action": "BUY",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 1048
+        }
+      ]
+    },
+    {
+      "id": "analyst",
+      "name": "The Analyst",
+      "model": "qwen3.5:cloud",
+      "start_cash": 17747,
+      "final_equity": 13336,
+      "trades_count": 472,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 1013
+        },
+        {
+          "action": "BUY",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 1016
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 1036
+        },
+        {
+          "action": "BUY",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 1037
+        },
+        {
+          "action": "SELL",
+          "sym": "gat",
+          "px": 0.0000308,
+          "tick": 1043
+        },
+        {
+          "action": "BUY",
+          "sym": "/DREAM",
+          "px": 0.00003079,
+          "tick": 1059
+        }
+      ]
+    }
+  ]
+}
