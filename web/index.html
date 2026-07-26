@@ -681,38 +681,17 @@ const TIPS={
   };
   
   let currentLegHover = null;
-  
-  document.addEventListener('mousemove', e => {
-    // 1. Tooltip Logic & Legend Highlight
-    let t = null;
-    
-    // Mathematical hit testing: completely ignores SVG paint-culling bugs
-    // by using the pure geometric bounding box of the <g> element.
-    const targets = document.querySelectorAll('[data-tip]');
-    for (let i = 0; i < targets.length; i++) {
-      const r = targets[i].getBoundingClientRect();
-      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
-        t = targets[i];
-        break;
-      }
-    }
-    
+
+  document.addEventListener('mouseover', e => {
+    const t = e.target.closest && e.target.closest('[data-tip]');
     if (t) {
-      if (tip.style.display !== 'block' || tip.dataset.current !== t.dataset.tip) {
-        tip.innerHTML = TIPS[t.dataset.tip] || t.dataset.tip;
-        tip.style.display = 'block';
-        tip.dataset.current = t.dataset.tip;
-      }
+      tip.innerHTML = TIPS[t.dataset.tip] || t.dataset.tip;
+      tip.style.display = 'block';
+      tip.dataset.current = t.dataset.tip;
       place(e);
-    } else {
-      if (tip.style.display !== 'none') {
-        tip.style.display = 'none';
-        tip.dataset.current = '';
-      }
     }
-    
-    // 2. Legend Hover Highlight for Radar Chart
-    const leg = t && t.classList.contains('radar-leg') ? t : null;
+
+    const leg = e.target.closest && e.target.closest('.radar-leg');
     if (leg) {
       const key = leg.dataset.persona;
       if (currentLegHover !== key) {
@@ -729,8 +708,29 @@ const TIPS={
           }
         });
       }
-    } else {
-      if (currentLegHover !== null) {
+    }
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (tip.style.display === 'block') {
+      place(e);
+    }
+  });
+
+  document.addEventListener('mouseout', e => {
+    const t = e.target.closest && e.target.closest('[data-tip]');
+    if (t) {
+      const related = e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('[data-tip]');
+      if (t !== related) {
+        tip.style.display = 'none';
+        tip.dataset.current = '';
+      }
+    }
+
+    const leg = e.target.closest && e.target.closest('.radar-leg');
+    if (leg) {
+      const related = e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.radar-leg');
+      if (leg !== related) {
         currentLegHover = null;
         document.querySelectorAll('.rpoly').forEach(poly => {
           poly.setAttribute('fill-opacity', '0.2');
@@ -740,7 +740,7 @@ const TIPS={
       }
     }
   });
-  
+
   document.addEventListener('scroll', () => { tip.style.display = 'none'; }, true);
   window.addEventListener('blur', () => { tip.style.display = 'none'; });
   document.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
@@ -892,6 +892,7 @@ function renderRadarChart() {
   const numAxes = axes.length;
 
   let g = '';
+  // 1. Grid Rings
   for (let level = 1; level <= 5; level++) {
     const rad = (r * level) / 5;
     const pts = [];
@@ -902,18 +903,15 @@ function renderRadarChart() {
     g += `<polygon points="${pts.join(' ')}" fill="none" stroke="var(--grid)" stroke-dasharray="2 4" opacity="0.4"/>`;
   }
 
+  // 2. Axis Spokes
   for (let i = 0; i < numAxes; i++) {
     const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
     const ax = cx + r * Math.cos(angle);
     const ay = cy + r * Math.sin(angle);
-    const lx = cx + (r + 14) * Math.cos(angle);
-    const ly = cy + (r + 14) * Math.sin(angle);
-    const tipKey = 'radar' + axes[i].replace(/\s+/g, '');
     g += `<line x1="${cx}" y1="${cy}" x2="${ax}" y2="${ay}" stroke="var(--grid)" opacity="0.5"/>`;
-    // fill="transparent" guarantees it contributes to getBoundingClientRect() of the group
-    g += `<g class="hint" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${lx - 30}" y="${ly - 9}" width="60" height="18" fill="transparent" pointer-events="all"/><text x="${lx}" y="${ly+3}" text-anchor="middle" fill="var(--ink2)" font-size="9" font-weight="600">${axes[i]}</text></g>`;
   }
 
+  // 3. Persona Skill Polygons (Rendered under labels so labels are always on top)
   const personas = [
     { name: 'Value Val', color: '#14F195', scores: [0.9, 0.7, 0.95, 0.4, 0.75] },
     { name: 'Momentum Mia', color: '#eda100', scores: [0.75, 0.6, 0.4, 0.9, 0.65] },
@@ -935,11 +933,21 @@ function renderRadarChart() {
     g += `<polygon id="rpoly-${key}" points="${pts.join(' ')}" fill="${p.color}" fill-opacity="0.2" stroke="${p.color}" stroke-width="2" class="rpoly" style="transition: fill-opacity 0.2s, stroke-width 0.2s, opacity 0.2s; pointer-events: none;"/>`;
   });
 
+  // 4. Axis Labels (Top layer, transparent hit box + pointer-events:none on text)
+  for (let i = 0; i < numAxes; i++) {
+    const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
+    const lx = cx + (r + 16) * Math.cos(angle);
+    const ly = cy + (r + 16) * Math.sin(angle);
+    const tipKey = 'radar' + axes[i].replace(/\s+/g, '');
+    g += `<g class="hint" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${lx - 35}" y="${ly - 10}" width="70" height="20" fill="transparent" style="pointer-events:all;"/><text x="${lx}" y="${ly+3}" text-anchor="middle" fill="var(--ink2)" font-size="9" font-weight="600" style="pointer-events:none;">${axes[i]}</text></g>`;
+  }
+
+  // 5. Legend Rows
   g += `<g transform="translate(6, ${H - 24})">`;
   personas.slice(0, 4).forEach((p, idx) => {
     const key = p.name.split(' ')[1];
     const tipKey = 'radar' + key;
-    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 77}" y="-8" width="76" height="18" fill="transparent" pointer-events="all"/><circle cx="${idx * 77 + 5}" cy="0" r="3.5" fill="${p.color}"/><text x="${idx * 77 + 12}" y="3" fill="var(--ink2)" font-size="8" font-weight="600">${p.name}</text></g>`;
+    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 77}" y="-9" width="76" height="18" fill="transparent" style="pointer-events:all;"/><circle cx="${idx * 77 + 5}" cy="0" r="3.5" fill="${p.color}" style="pointer-events:none;"/><text x="${idx * 77 + 12}" y="3" fill="var(--ink2)" font-size="8" font-weight="600" style="pointer-events:none;">${p.name}</text></g>`;
   });
   g += `</g>`;
 
@@ -947,7 +955,7 @@ function renderRadarChart() {
   personas.slice(4).forEach((p, idx) => {
     const key = p.name.split(' ')[1];
     const tipKey = 'radar' + key;
-    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 77}" y="-8" width="76" height="18" fill="transparent" pointer-events="all"/><circle cx="${idx * 77 + 5}" cy="0" r="3.5" fill="${p.color}"/><text x="${idx * 77 + 12}" y="3" fill="var(--ink2)" font-size="8" font-weight="600">${p.name}</text></g>`;
+    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 77}" y="-9" width="76" height="18" fill="transparent" style="pointer-events:all;"/><circle cx="${idx * 77 + 5}" cy="0" r="3.5" fill="${p.color}" style="pointer-events:none;"/><text x="${idx * 77 + 12}" y="3" fill="var(--ink2)" font-size="8" font-weight="600" style="pointer-events:none;">${p.name}</text></g>`;
   });
   g += `</g>`;
 
