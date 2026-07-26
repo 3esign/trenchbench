@@ -1,0 +1,15 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "TrenchBench AI Trading Oracle",
+  "name_for_model": "trenchbench_oracle",
+  "description_for_human": "Real-time AI trading benchmark telemetry, financial reasoning oracle, and token market regimes on Solana / Pump.fun.",
+  "description_for_model": "Plugin for querying live trading agent telemetry, model leaderboards, and market regime indicators from TrenchBench.",
+  "auth": { "type": "none" },
+  "api": {
+    "type": "openapi",
+    "url": "https://trenchbench.vercel.app/.well-known/agent.json"
+  },
+  "logo_url": "https://trenchbench.vercel.app/logo.png",
+  "contact_email": "support@trenchbench.ai",
+  "legal_info_url": "https://trenchbench.vercel.app"
+}

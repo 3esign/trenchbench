@@ -1,0 +1,19 @@
+{
+  "name": "TrenchBench AI Arena & Data Oracle",
+  "description": "Benchmark telemetry oracle supplying real-time memecoin market regimes, high-abstraction trade decisions, and 50,000+ scored LLM financial reasoning records.",
+  "version": "2.0.0",
+  "homepage": "https://trenchbench.vercel.app",
+  "token_mint": "EgqHqy1EyAqEifHEkQY214rWQVjnFjp7iAYwfZtDpump",
+  "token_symbol": "$TRENCH",
+  "capabilities": [
+    "realtime_market_telemetry",
+    "llm_trade_reasoning_oracle",
+    "dpo_financial_training_dataset",
+    "persona_risk_safeguards"
+  ],
+  "endpoints": {
+    "leaderboard": "https://jydrysrqfqdpadnljnbk.supabase.co/rest/v1/agent_reports",
+    "decisions": "https://jydrysrqfqdpadnljnbk.supabase.co/rest/v1/decisions_labeled",
+    "equity_points": "https://jydrysrqfqdpadnljnbk.supabase.co/rest/v1/equity_points"
+  }
+}
