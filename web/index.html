@@ -206,20 +206,6 @@
   .tip b{color:#6ee87f;font-weight:600}.tip i{color:#9aa2ab;font-style:normal}
   .hint{text-decoration:underline dotted;text-underline-offset:3px;text-decoration-color:var(--baseline,#cfd4da);cursor:help}
 
-  /* ---- Native HTML Radar Overlay & Legend ---- */
-  .radar-container{position:relative;width:100%;min-height:240px;display:flex;flex-direction:column;align-items:center;user-select:none}
-  .radar-axis-chip{position:absolute;font-size:10px;font-weight:700;color:var(--ink2);
-                   padding:3px 8px;border-radius:6px;background:var(--card2);border:1px solid var(--border);
-                   cursor:pointer;white-space:nowrap;transition:all .15s ease;z-index:10}
-  .radar-axis-chip:hover{border-color:var(--brand2);color:var(--brand2);background:var(--card);transform:scale(1.05)}
-  .radar-axis-chip[style*="translateX(-50%)"]:hover{transform:translateX(-50%) scale(1.05)}
-  .radar-legend-grid{display:flex;flex-wrap:wrap;gap:6px 8px;justify-content:center;margin-top:14px;padding:0 4px;width:100%}
-  .radar-leg-chip{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:600;color:var(--ink2);
-                  padding:4px 8px;border-radius:6px;background:var(--card2);border:1px solid var(--border);
-                  cursor:pointer;white-space:nowrap;transition:all .15s ease}
-  .radar-leg-chip:hover{border-color:var(--brand);color:var(--ink);background:var(--card);transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,0,0,.15)}
-  .radar-leg-chip .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
-
   /* ---- model mix bar (which brains have run this strategy) ---- */
   .mixbar{display:flex;height:5px;border-radius:3px;overflow:hidden;background:var(--card2);margin-top:4px;min-width:70px}
   .mixbar i{display:block;height:100%}
@@ -670,14 +656,9 @@ const TIPS={
   radarHODL:'<b>HODL Resiliency Axis</b><br>Measures the agent\'s capacity to hold positions through drawdown phases without premature panic-selling.',
   radarVariety:'<b>Action Variety Axis</b><br>Measures the diversity of primitives used (BUY, SELL, SWAP, HEDGE, REBALANCE) to navigate different volatility regimes.',
   radarRegret:'<b>Regret Axis</b><br>Measures the variance between actual trade exits and the theoretical maximum return possible during the holding window (lower regret is better/higher score).',
-  radarVal:'<b>Value Val Skill Profile</b><br>• Return: 90%<br>• Hit Rate: 70%<br>• HODL: 95%<br>• Variety: 40%<br>• Regret: 75%<br><br>Excels at entering deeply oversold dips and holding through drawdown, but has lower action variety.',
+  radarVal:'<b>Value Val Skill Profile</b><br>• Return: 90%<br>• Hit Rate: 70%<br>• HODL: 95%<br>• Variety: 80%<br>• Regret: 75%<br><br>Excels at entering deeply oversold dips and holding through drawdown, but has low action variety.',
   radarMia:'<b>Momentum Mia Skill Profile</b><br>• Return: 70%<br>• Hit Rate: 60%<br>• HODL: 30%<br>• Variety: 90%<br>• Regret: 60%<br><br>Chases trend velocity with high variety, but cuts trades early (low HODL resiliency).',
-  radarCole:'<b>Contrarian Cole Skill Profile</b><br>• Return: 85%<br>• Hit Rate: 65%<br>• HODL: 88%<br>• Variety: 85%<br>• Regret: 80%<br><br>Balanced dip sniper. High precision on local panic capitulations.',
-  radarIvy:'<b>Index Ivy Skill Profile</b><br>• Return: 55%<br>• Hit Rate: 50%<br>• HODL: 90%<br>• Variety: 30%<br>• Regret: 60%<br><br>Portfolio rebalancer. High HODL resiliency but limited return variance.',
-  radarNia:'<b>Event Nia Skill Profile</b><br>• Return: 70%<br>• Hit Rate: 55%<br>• HODL: 35%<br>• Variety: 85%<br>• Regret: 55%<br><br>Volatility shock responder. Executes high-abstraction hedge/DCA primitives.',
-  radarAnalyst:'<b>The Analyst Skill Profile</b><br>• Return: 80%<br>• Hit Rate: 70%<br>• HODL: 75%<br>• Variety: 70%<br>• Regret: 75%<br><br>Meta-macro auditor. Regularly self-optimizes action weights based on historical session runs.',
-  radarDex:'<b>Degen Dex Skill Profile</b><br>• Return: 65%<br>• Hit Rate: 50%<br>• HODL: 30%<br>• Variety: 95%<br>• Regret: 45%<br><br>High-risk sentiment chaser. Executes aggressive entry/exit primitives.',
-  radarMara:'<b>Mean-Reverter Mara Skill Profile</b><br>• Return: 72%<br>• Hit Rate: 62%<br>• HODL: 60%<br>• Variety: 65%<br>• Regret: 70%<br><br>Extreme oscillator fader. Targets local deviation bands.'
+  radarCole:'<b>Contrarian Cole Skill Profile</b><br>• Return: 85%<br>• Hit Rate: 65%<br>• HODL: 88%<br>• Variety: 85%<br>• Regret: 80%<br><br>Balanced dip sniper. High precision on local panic capitulations.'
 };
 (function(){
   const tip=document.createElement('div'); tip.className='tip'; document.body.appendChild(tip);
@@ -880,13 +861,12 @@ function careerChart(series) {
 function renderRadarChart() {
   const el = $('#radarCanvas');
   if (!el) return;
+  const W = 320, H = 220;
+  const cx = W / 2, cy = H / 2 - 12, r = Math.min(cx, cy) - 25;
+  const axes = ['Return', 'Hit Rate', 'HODL', 'Variety', 'Regret'];
+  const numAxes = axes.length;
 
-  const W = 280, H = 170;
-  const cx = W / 2, cy = H / 2 - 2, r = 54;
-  const numAxes = 5;
-
-  let svg = '';
-  // 1. Grid Rings
+  let g = '';
   for (let level = 1; level <= 5; level++) {
     const rad = (r * level) / 5;
     const pts = [];
@@ -894,27 +874,24 @@ function renderRadarChart() {
       const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
       pts.push(`${(cx + rad * Math.cos(angle)).toFixed(1)},${(cy + rad * Math.sin(angle)).toFixed(1)}`);
     }
-    svg += `<polygon points="${pts.join(' ')}" fill="none" stroke="var(--grid)" stroke-dasharray="2 4" opacity="0.4"/>`;
+    g += `<polygon points="${pts.join(' ')}" fill="none" stroke="var(--grid)" stroke-dasharray="2 4" opacity="0.4"/>`;
   }
 
-  // 2. Axis Spokes
   for (let i = 0; i < numAxes; i++) {
     const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
     const ax = cx + r * Math.cos(angle);
     const ay = cy + r * Math.sin(angle);
-    svg += `<line x1="${cx}" y1="${cy}" x2="${ax}" y2="${ay}" stroke="var(--grid)" opacity="0.5"/>`;
+    const lx = cx + (r + 14) * Math.cos(angle);
+    const ly = cy + (r + 14) * Math.sin(angle);
+    const tipKey = 'radar' + axes[i].replace(/\s+/g, '');
+    g += `<line x1="${cx}" y1="${cy}" x2="${ax}" y2="${ay}" stroke="var(--grid)" opacity="0.5"/>`;
+    g += `<text x="${lx}" y="${ly+3}" text-anchor="middle" fill="var(--ink2)" font-size="9" font-weight="600" class="hint" data-tip="${tipKey}" style="cursor:pointer;">${axes[i]}</text>`;
   }
 
-  // 3. All 8 Persona Skill Polygons
   const personas = [
-    { name: 'Value Val', color: '#14F195', scores: [0.7, 0.9, 0.95, 0.4, 0.75] },
-    { name: 'Momentum Mia', color: '#eda100', scores: [0.6, 0.75, 0.4, 0.9, 0.65] },
-    { name: 'Contrarian Cole', color: '#2a78d6', scores: [0.65, 0.85, 0.88, 0.5, 0.8] },
-    { name: 'Index Ivy', color: '#9945FF', scores: [0.5, 0.55, 0.9, 0.3, 0.6] },
-    { name: 'Event Nia', color: '#ff0055', scores: [0.55, 0.7, 0.35, 0.85, 0.55] },
-    { name: 'The Analyst', color: '#00e5ff', scores: [0.7, 0.8, 0.75, 0.7, 0.75] },
-    { name: 'Degen Dex', color: '#ff5500', scores: [0.5, 0.65, 0.3, 0.95, 0.45] },
-    { name: 'Mean-Reverter Mara', color: '#a0a0a0', scores: [0.62, 0.72, 0.6, 0.65, 0.7] }
+    { name: 'Value Val', color: '#14F195', scores: [0.9, 0.7, 0.95, 0.8, 0.75] },
+    { name: 'Momentum Mia', color: '#eda100', scores: [0.7, 0.6, 0.3, 0.9, 0.6] },
+    { name: 'Contrarian Cole', color: '#2a78d6', scores: [0.85, 0.65, 0.88, 0.85, 0.8] }
   ];
 
   personas.forEach(p => {
@@ -924,42 +901,19 @@ function renderRadarChart() {
       const rad = r * sc;
       return `${(cx + rad * Math.cos(angle)).toFixed(1)},${(cy + rad * Math.sin(angle)).toFixed(1)}`;
     });
-    svg += `<polygon id="rpoly-${key}" points="${pts.join(' ')}" fill="${p.color}" fill-opacity="0.18" stroke="${p.color}" stroke-width="2" class="rpoly" style="transition: fill-opacity 0.2s, stroke-width 0.2s, opacity 0.2s; pointer-events: none;"/>`;
+    const tipKey = 'radar' + key;
+    g += `<polygon id="rpoly-${key}" points="${pts.join(' ')}" fill="${p.color}" fill-opacity="0.2" stroke="${p.color}" stroke-width="2" class="hint rpoly" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer; transition: fill-opacity 0.2s, stroke-width 0.2s, opacity 0.2s;"/>`;
   });
 
-  // 4. HTML Axis Overlay Chips (Native DOM elements positioned around 280x170 box)
-  const axisPositions = [
-    { label: 'Hit Rate', key: 'radarHitRate', style: 'top: -6px; left: 50%; transform: translateX(-50%);' },
-    { label: 'Return', key: 'radarReturn', style: 'top: 24px; right: 0px;' },
-    { label: 'HODL', key: 'radarHODL', style: 'bottom: 8px; right: 4px;' },
-    { label: 'Variety', key: 'radarVariety', style: 'bottom: 8px; left: 4px;' },
-    { label: 'Regret', key: 'radarRegret', style: 'top: 24px; left: 0px;' }
-  ];
-
-  let htmlTags = '';
-  axisPositions.forEach(ap => {
-    htmlTags += `<span class="radar-axis-chip hint" data-tip="${ap.key}" style="${ap.style}">${ap.label}</span>`;
-  });
-
-  // 5. HTML Legend Grid (All 8 agents as native HTML chips)
-  let htmlLegend = '<div class="radar-legend-grid">';
-  personas.forEach(p => {
+  g += `<g transform="translate(10, ${H - 8})">`;
+  personas.forEach((p, idx) => {
     const key = p.name.split(' ')[1];
     const tipKey = 'radar' + key;
-    htmlLegend += `<div class="radar-leg-chip hint radar-leg" data-persona="${key}" data-tip="${tipKey}">` +
-                    `<span class="dot" style="background:${p.color};"></span>` +
-                    `<span>${p.name}</span>` +
-                  `</div>`;
+    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 102}" y="-8" width="90" height="16" fill="transparent"/><circle cx="${idx * 102 + 6}" cy="0" r="4" fill="${p.color}"/><text x="${idx * 102 + 14}" y="3" fill="var(--ink2)" font-size="9" font-weight="600">${p.name}</text></g>`;
   });
-  htmlLegend += '</div>';
+  g += `</g>`;
 
-  el.innerHTML = `<div class="radar-container">` +
-                   `<div style="position:relative; width:${W}px; height:${H}px;">` +
-                     `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="display:block;">${svg}</svg>` +
-                     htmlTags +
-                   `</div>` +
-                   htmlLegend +
-                 `</div>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="220" style="display:block;">${g}</svg>`;
 }
 
 function setChartWindow(win, btn) {
