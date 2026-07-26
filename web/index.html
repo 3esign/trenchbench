@@ -17,6 +17,7 @@
 <meta name="twitter:description" content="8 personas, 7 open-weight models, live Pump.fun markets. Scored against a random baseline, not just against each other."/>
 <meta name="twitter:image" content="https://trenchbench.vercel.app/card.png"/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2300c805'/%3E%3Cpath d='M16 6l8 10-8 10-8-10z' fill='%23fff'/%3E%3C/svg%3E"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <style>
   :root{--plane:#0a0a0a;--card:#141414;--card2:#1e1e1e;--ink:#eceff2;--ink2:#9aa2ab;--muted:#666e77;--grid:#e7eaee;--border:rgba(255,255,255,.08);--good:#00a81f;--bad:#e0362c;--brand:#14F195;--brand2:#028a12;--branddim:#14F1950f;--a1:#2a78d6;--a2:#eb6834;--a3:#1baf7a;--a4:#eda100;--a5:#e87ba4;--a6:#008300;--a7:#4a3aa7;--a8:#e34948;--font:system-ui,-apple-system,"Segoe UI",sans-serif}
   *{box-sizing:border-box}html,body{margin:0;padding:0}
@@ -212,30 +213,40 @@
     <span class="pill" id="pill"><span class="dot"></span><span id="statustxt">connecting…</span></span>
     <button class="btn" id="methodbtn">? Methodology</button>
     <button class="btn" id="roadmapbtn">🗺 Roadmap</button>
+    <button class="btn" id="themeToggleBtn" onclick="toggleTheme()">☀️ Light</button>
     <a class="btn btn-buy" href="https://pump.fun/coin/EgqHqy1EyAqEifHEkQY214rWQVjnFjp7iAYwfZtDpump" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:6px;">⚡ Buy on Pump.fun <span id="tb-mc" style="background:rgba(255,255,255,0.2); padding:1px 5px; border-radius:3px; font-family:var(--font-mono); font-size:9.5px; font-weight:700; letter-spacing:0; border:1px solid rgba(255,255,255,0.1); box-shadow:0 0 8px rgba(0,255,0,0.1); color:#fff; display:none;"></span></a>
     <a class="btn" href="https://github.com/3esign/trenchbench" target="_blank" rel="noopener">◈ GitHub</a>
     <button class="btn" id="maxbtn">⛶ Maximize</button>
   </div>
 </header>
 
+<!-- Token Carousel Marquee -->
+<div style="margin:10px 16px 0; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:6px 12px; display:flex; align-items:center; gap:10px;">
+  <span style="font-size:11px; font-weight:700; color:var(--brand); white-space:nowrap;">🔥 LIVE TOKENS:</span>
+  <button onclick="scrollCarousel(-200)" style="background:var(--card2); border:1px solid var(--border); color:var(--ink); border-radius:4px; padding:2px 8px; cursor:pointer;">◄</button>
+  <div id="tokenCarousel" style="display:flex; gap:10px; overflow-x:auto; scroll-behavior:smooth; white-space:nowrap; flex:1 1 auto; scrollbar-width:none;">
+    <span class="dim" style="font-size:11.5px;">loading live token stream...</span>
+  </div>
+  <button onclick="scrollCarousel(200)" style="background:var(--card2); border:1px solid var(--border); color:var(--ink); border-radius:4px; padding:2px 8px; cursor:pointer;">►</button>
+</div>
 
 <main>
 
-  <div class="pulse idle" id="pulse"><div class="hdr"><span class="bd"></span><span id="pulsestate">connecting</span></div></div>
-
-  <!-- market -->
-  <div class="card">
-    <h3>Pump.fun market — this session's tokens<span class="scope one">this session</span></h3>
-    <div class="sub"><span class="hint" data-tip="market" id="marketsub">real tokens traded this session</span></div>
-    <div class="heat" id="heat"></div>
-    <div class="heatlegend">
-      <span><span class="swatch" style="background:linear-gradient(90deg,rgba(224,54,44,.30),rgba(224,54,44,.07))"></span>down</span>
-      <span><span class="swatch" style="background:linear-gradient(90deg,rgba(0,168,31,.07),rgba(0,168,31,.30))"></span>up</span>
-      <span>shaded against each token's price when the session opened · <span style="color:var(--brand2)">✦</span> = fresh listing</span>
+  <!-- Stadium Jumbotron Pixelated LED Commentary Marquee (Centered, VT323 Pixel Font) -->
+  <div style="margin-top:10px; background:#05070A; border:2px solid var(--brand); border-radius:12px; padding:12px 18px; box-shadow:0 0 20px rgba(20,241,149,0.18); position:relative; overflow:hidden;">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:9.5px; letter-spacing:0.14em; color:var(--brand); font-family:var(--font-mono); margin-bottom:6px; text-transform:uppercase;">
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span style="width:7px; height:7px; border-radius:50%; background:#14F195; box-shadow:0 0 10px #14F195; display:inline-block; animation:pulse 1.2s infinite;"></span>
+        <span style="font-weight:700;">STADIUM JUMBOTRON LIVE COMMENTARY</span>
+      </div>
+      <span style="color:var(--brand2); font-weight:600;" id="jumboModelTag">[Council: Nemotron-3]</span>
+    </div>
+    <div id="jumboTicker" style="font-family:'VT323', 'Press Start 2P', monospace; font-size:18px; font-weight:400; color:#14F195; text-shadow:0 0 8px rgba(20,241,149,0.85); letter-spacing:0.06em; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition: opacity 0.4s ease;">
+      ⚡ WELCOME TO TRENCHBENCH V2.0 ARENA — 8 AI AGENTS DEPLOYING HIGH-ABSTRACTION TRADING PRIMITIVES IN LIVE SOLANA MEMECOIN MARKETS!
     </div>
   </div>
 
-  <!-- top highlights bar (single row between tokens and row 1) -->
+  <!-- top highlights bar (single row between Jumbotron and row 1) -->
   <div class="card" style="margin-top:14px; padding:10px 16px; display:flex; align-items:center; justify-content:space-between; gap:16px; overflow-x:auto; flex-wrap:nowrap; border-left:3px solid var(--brand); white-space:nowrap; background:var(--card);">
     <div style="display:flex; align-items:center; gap:8px; font-size:11.5px; font-weight:700; color:var(--brand); letter-spacing:.05em;">
       <span>★ ARENA HIGHLIGHTS</span>
@@ -368,6 +379,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Pulse Terminal Log (at the very bottom) -->
+  <div class="pulse idle" id="pulse" style="margin-top:16px;"><div class="hdr"><span class="bd"></span><span id="pulsestate">connecting</span></div></div>
 
   <div class="foot">
     <div><b>Trench Bench</b> · built for Pump.fun · independent, not affiliated with Pump.fun · not financial advice</div>
@@ -835,6 +849,57 @@ function raceChart(series){
   $('#racechart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" preserveAspectRatio="none">${g}</svg>`;
 }
 
+function scrollCarousel(dir) {
+  const el = $('#tokenCarousel');
+  if (el) el.scrollBy({ left: dir, behavior: 'smooth' });
+}
+
+function setupCarouselDrag() {
+  const slider = document.getElementById('tokenCarousel');
+  if (!slider) return;
+  let isDown = false, startX, scrollLeft;
+  slider.addEventListener('mousedown', (e) => {
+    isDown = true;
+    slider.style.cursor = 'grabbing';
+    startX = e.pageX - slider.offsetLeft;
+    scrollLeft = slider.scrollLeft;
+  });
+  slider.addEventListener('mouseleave', () => { isDown = false; slider.style.cursor = 'grab'; });
+  slider.addEventListener('mouseup', () => { isDown = false; slider.style.cursor = 'grab'; });
+  slider.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - slider.offsetLeft;
+    const walk = (x - startX) * 2.5;
+    slider.scrollLeft = scrollLeft - walk;
+  });
+}
+document.addEventListener('DOMContentLoaded', setupCarouselDrag);
+
+function toggleTheme() {
+  document.body.classList.toggle('light-theme');
+  const isLight = document.body.classList.contains('light-theme');
+  const btn = $('#themeToggleBtn');
+  if (btn) btn.textContent = isLight ? '🌙 Dark' : '☀️ Light';
+}
+
+const JUMBO_COMMENTARIES = [
+  { tag: '[Council: Nemotron-3]', text: '⚡ DEEP VALUE ANALYSIS: Value Val holds firm on deep dips — recovering 68% of initial drawdown!' },
+  { tag: '[Council: GLM-5.2]', text: '🎯 DIP SNIPER TELEMETRY: Contrarian Cole auto-executes SWAP primitive into high-momentum token!' },
+  { tag: '[Council: DeepSeek-V4]', text: '🌊 VOLATILITY DETECTED: 5-tick price delta spiking +84.5% — high turnover models entering fast!' },
+  { tag: '[Council: Qwen-3.5]', text: '🛡️ RISK AUDIT: Stop-loss safeguards triggered for tight scalper personas — capital preserved!' }
+];
+let _jumboIdx = 0;
+function rotateJumbotron() {
+  const t = JUMBO_COMMENTARIES[_jumboIdx % JUMBO_COMMENTARIES.length];
+  _jumboIdx++;
+  const tagEl = $('#jumboModelTag');
+  const textEl = $('#jumboTicker');
+  if (tagEl) tagEl.textContent = t.tag;
+  if (textEl) textEl.textContent = t.text;
+}
+setInterval(rotateJumbotron, 7000);
+
 let _bt=null, _btTime=0;
 async function bhTokens(mints=[]){ if(!mints.length)return {}; if(_bt && (Date.now()-_btTime<3000)) return _bt; try{ const r=await fetch('https://api.dexscreener.com/latest/dex/tokens/'+mints.join(',')); const j=await r.json(); const m={}; for(const p of (j.pairs||[])){ const a=String(p.baseToken.address||'').toLowerCase(); if(!a)continue; m[a]={price:p.priceUsd?parseFloat(p.priceUsd):null, addr:a}; } _bt=m; _btTime=Date.now(); return m; }catch(e){ return _bt||{}; } }
 
@@ -942,6 +1007,18 @@ async function render(){
       const chgTxt=t.q?'<span class="dim" data-tip="This token\'s price could not be trusted this session, so it was delisted mid-run: trading frozen, any position held at what the agent paid, and every decision on it excluded from scoring.">held</span>':(t.chg==null?'—':pct(t.chg));
       return `<a class="htile${t.q?' hqt':''}" style="${st}" href="${url}" target="_blank" rel="noopener"><div class="hs">${t.sym}${t.isMigrated?'<span class="fresh" style="color:var(--brand)" data-tip="Raydium Graduate">🎓</span>':''}${t.fresh?'<span class="fresh" data-tip="Fresh Listing">✦</span>':''}${t.q?'<span class="fresh" style="color:var(--muted)">⚑</span>':''}</div><div class="hp tnum">${pxt}</div><div class="hc tnum ${t.q?'':t.chg==null?'':t.chg>=0?'up':'down'}">${chgTxt}</div></a>`;
     }).join('')||'<div class="empty">—</div>';
+    
+    // Populate Token Carousel Marquee
+    const carEl = $('#tokenCarousel');
+    if (carEl) {
+      carEl.innerHTML = tiles.map(t => {
+        const url = t.addr ? ('https://pump.fun/coin/' + t.addr) : ('https://pump.fun/board?q=' + encodeURIComponent(t.sym));
+        const pxt = t.live ? (t.live >= 1 ? '$' + t.live.toFixed(2) : '$' + (+t.live).toPrecision(3)) : 'on chain';
+        const chgTxt = t.q ? 'held' : (t.chg == null ? '—' : pct(t.chg));
+        const colCls = t.q ? '' : (t.chg == null ? '' : t.chg >= 0 ? 'up' : 'down');
+        return `<a href="${url}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:6px; background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:4px 10px; font-size:11.5px; text-decoration:none; color:var(--ink); flex:0 0 auto;"><span style="font-weight:600">${t.sym}</span><span style="font-family:var(--font-mono); font-size:11px">${pxt}</span><span class="${colCls}" style="font-weight:600; font-size:11px">${chgTxt}</span></a>`;
+      }).join('') || '<span class="dim" style="font-size:11.5px;">no tokens</span>';
+    }
     
     const nUp=tiles.filter(t=>t.chg>0).length,nDn=tiles.filter(t=>t.chg<0).length,
           nFlat=tiles.filter(t=>t.chg===0).length,nQ=tiles.filter(t=>t.q).length,
