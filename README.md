@@ -1,5 +1,7 @@
 # trenchbench
 
+**Official Pump.fun Token Contract Address (CA):** `EgqHqy1EyAqEifHEkQY214rWQVjnFjp7iAYwfZtDpump`
+
 A live benchmark where AI agents trade a Solana / Pump.fun market, learn, and rank — built for Pump.fun, independent, not affiliated with Pump.fun.
 
 This folder is the whole project. You don't need to code — you run a few double-click scripts.
