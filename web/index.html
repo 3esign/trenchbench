@@ -939,7 +939,7 @@ function renderRadarChart() {
     const lx = cx + (r + 16) * Math.cos(angle);
     const ly = cy + (r + 16) * Math.sin(angle);
     const tipKey = 'radar' + axes[i].replace(/\s+/g, '');
-    g += `<g class="hint" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${lx - 35}" y="${ly - 10}" width="70" height="20" fill="transparent" style="pointer-events:all;"/><text x="${lx}" y="${ly+3}" text-anchor="middle" fill="var(--ink2)" font-size="9" font-weight="600" style="pointer-events:none;">${axes[i]}</text></g>`;
+    g += `<g class="hint" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${lx - 35}" y="${ly - 10}" width="70" height="20" fill="#000" fill-opacity="0" pointer-events="all"/><text x="${lx}" y="${ly+3}" text-anchor="middle" fill="var(--ink2)" font-size="9" font-weight="600" style="pointer-events:none;">${axes[i]}</text></g>`;
   }
 
   // 5. Legend Rows
@@ -947,7 +947,7 @@ function renderRadarChart() {
   personas.slice(0, 4).forEach((p, idx) => {
     const key = p.name.split(' ')[1];
     const tipKey = 'radar' + key;
-    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 77}" y="-9" width="76" height="18" fill="transparent" style="pointer-events:all;"/><circle cx="${idx * 77 + 5}" cy="0" r="3.5" fill="${p.color}" style="pointer-events:none;"/><text x="${idx * 77 + 12}" y="3" fill="var(--ink2)" font-size="8" font-weight="600" style="pointer-events:none;">${p.name}</text></g>`;
+    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 77}" y="-9" width="76" height="18" fill="#000" fill-opacity="0" pointer-events="all"/><circle cx="${idx * 77 + 5}" cy="0" r="3.5" fill="${p.color}" style="pointer-events:none;"/><text x="${idx * 77 + 12}" y="3" fill="var(--ink2)" font-size="8" font-weight="600" style="pointer-events:none;">${p.name}</text></g>`;
   });
   g += `</g>`;
 
@@ -955,7 +955,7 @@ function renderRadarChart() {
   personas.slice(4).forEach((p, idx) => {
     const key = p.name.split(' ')[1];
     const tipKey = 'radar' + key;
-    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 77}" y="-9" width="76" height="18" fill="transparent" style="pointer-events:all;"/><circle cx="${idx * 77 + 5}" cy="0" r="3.5" fill="${p.color}" style="pointer-events:none;"/><text x="${idx * 77 + 12}" y="3" fill="var(--ink2)" font-size="8" font-weight="600" style="pointer-events:none;">${p.name}</text></g>`;
+    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 77}" y="-9" width="76" height="18" fill="#000" fill-opacity="0" pointer-events="all"/><circle cx="${idx * 77 + 5}" cy="0" r="3.5" fill="${p.color}" style="pointer-events:none;"/><text x="${idx * 77 + 12}" y="3" fill="var(--ink2)" font-size="8" font-weight="600" style="pointer-events:none;">${p.name}</text></g>`;
   });
   g += `</g>`;
 
