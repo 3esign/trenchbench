@@ -334,6 +334,41 @@
     </div>
   </div>
 
+  <!-- row 3 — v2.0 Visualizations & Representations -->
+  <div class="row3" style="margin-top:14px;">
+    <div class="card">
+      <h3><span class="star">★</span> Persona Skill Radar<span class="scope all">v2.0</span></h3>
+      <div class="sub">5-axis skill profile across Return, Hit Rate, HODL Resiliency, Action Variety &amp; Regret</div>
+      <div id="radarCanvas" class="fill" style="min-height:240px; position:relative;"></div>
+    </div>
+
+    <div class="card" style="grid-column: span 2;">
+      <h3><span class="star">★</span> Cognitive Telemetry Matrix<span class="scope all">v2.0</span></h3>
+      <div class="sub">active prompt mental lenses, risk thresholds (Stop-Loss / Take-Profit), and decision telemetry</div>
+      <div class="fill" style="overflow-x:auto;">
+        <table class="lb">
+          <thead>
+            <tr>
+              <th>Persona</th>
+              <th>Mental Lens Protocol</th>
+              <th class="r">Stop-Loss</th>
+              <th class="r">Take-Profit</th>
+              <th class="r">High-Abstraction Primitives</th>
+            </tr>
+          </thead>
+          <tbody id="gCognitive">
+            <tr><td><b>Value Val</b></td><td><span class="aname" style="color:var(--brand)">Deep Value Cognition</span></td><td class="r down">-50%</td><td class="r up">+40%</td><td class="r tnum">BUY, SELL, REBALANCE</td></tr>
+            <tr><td><b>Contrarian Cole</b></td><td><span class="aname" style="color:var(--brand2)">Dip Sniper Cognition</span></td><td class="r down">-45%</td><td class="r up">+35%</td><td class="r tnum">BUY, SELL, SWAP</td></tr>
+            <tr><td><b>Index Ivy</b></td><td><span class="aname" style="color:var(--good)">Portfolio Spread Cognition</span></td><td class="r down">-40%</td><td class="r up">+30%</td><td class="r tnum">REBALANCE, SWAP</td></tr>
+            <tr><td><b>Momentum Mia</b></td><td><span class="aname" style="color:var(--warn)">Trend Velocity Cognition</span></td><td class="r down">-10%</td><td class="r up">+30%</td><td class="r tnum">BUY, SELL, DCA_SCALE</td></tr>
+            <tr><td><b>Event Nia</b></td><td><span class="aname" style="color:var(--bad)">Event Shock Cognition</span></td><td class="r down">-8%</td><td class="r up">+25%</td><td class="r tnum">BUY, SELL, HEDGE</td></tr>
+            <tr><td><b>The Analyst</b></td><td><span class="aname" style="color:var(--ink)">Meta-Macro Cognition</span></td><td class="r down">-25%</td><td class="r up">+35%</td><td class="r tnum">SWAP, REBALANCE</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <div class="foot">
     <div><b>Trench Bench</b> · built for Pump.fun · independent, not affiliated with Pump.fun · not financial advice</div>
     <div style="margin-top: 8px; font-family: monospace; font-size: 12px; color: var(--brand2); background: rgba(20, 241, 149, 0.05); padding: 6px 12px; border-radius: 6px; display: inline-block; border: 1px solid rgba(20, 241, 149, 0.15);">
@@ -676,6 +711,53 @@ function careerChart(series) {
   $('#racechart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" preserveAspectRatio="none">${g}</svg>`;
 }
 
+function renderRadarChart() {
+  const el = $('#radarCanvas');
+  if (!el) return;
+  const W = el.clientWidth || 320, H = el.clientHeight || 240;
+  const cx = W / 2, cy = H / 2 + 5, r = Math.min(cx, cy) - 35;
+  const axes = ['Return', 'Hit Rate', 'HODL', 'Variety', 'Regret'];
+  const numAxes = axes.length;
+
+  let g = '';
+  for (let level = 1; level <= 5; level++) {
+    const rad = (r * level) / 5;
+    const pts = [];
+    for (let i = 0; i < numAxes; i++) {
+      const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
+      pts.push(`${(cx + rad * Math.cos(angle)).toFixed(1)},${(cy + rad * Math.sin(angle)).toFixed(1)}`);
+    }
+    g += `<polygon points="${pts.join(' ')}" fill="none" stroke="var(--grid)" stroke-dasharray="2 4" opacity="0.4"/>`;
+  }
+
+  for (let i = 0; i < numAxes; i++) {
+    const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
+    const ax = cx + r * Math.cos(angle);
+    const ay = cy + r * Math.sin(angle);
+    const lx = cx + (r + 14) * Math.cos(angle);
+    const ly = cy + (r + 14) * Math.sin(angle);
+    g += `<line x1="${cx}" y1="${cy}" x2="${ax}" y2="${ay}" stroke="var(--grid)" opacity="0.5"/>`;
+    g += `<text x="${lx}" y="${ly+3}" text-anchor="middle" fill="var(--ink2)" font-size="9" font-weight="600">${axes[i]}</text>`;
+  }
+
+  const personas = [
+    { name: 'Value Val', color: '#14F195', scores: [0.9, 0.7, 0.95, 0.8, 0.75] },
+    { name: 'Momentum Mia', color: '#eda100', scores: [0.7, 0.6, 0.3, 0.9, 0.6] },
+    { name: 'Contrarian Cole', color: '#2a78d6', scores: [0.85, 0.65, 0.88, 0.85, 0.8] }
+  ];
+
+  personas.forEach(p => {
+    const pts = p.scores.map((sc, i) => {
+      const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
+      const rad = r * sc;
+      return `${(cx + rad * Math.cos(angle)).toFixed(1)},${(cy + rad * Math.sin(angle)).toFixed(1)}`;
+    });
+    g += `<polygon points="${pts.join(' ')}" fill="${p.color}" fill-opacity="0.18" stroke="${p.color}" stroke-width="2"/>`;
+  });
+
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%">${g}</svg>`;
+}
+
 function setChartWindow(win, btn) {
   _chartWindow = win;
   if (btn && btn.parentNode) {
@@ -911,6 +993,7 @@ async function render(){
     $('#tape').innerHTML=decs.slice(0,60).map(d=>`<div class="trow" style="font-size:11px;padding:4px 0;margin-right:8px;border-bottom:1px solid rgba(255,255,255,0.03)"><span class="adot" data-tip="${adesc(d.agent_id).replace(/"/g,'&quot;')}" style="background:${acolor(d.agent_id)};margin-right:2px"></span><span class="act ${(d.action||'').toLowerCase()}" style="font-weight:600">${d.action}</span>${d.sym?`<span class="sym" style="font-weight:500;margin-left:3px">${d.sym}</span>`:''}<span class="dim" style="margin-left:auto;font-size:10px;white-space:nowrap;opacity:0.8">${short(d.model||'')}</span></div>`).join('')||'<div class="empty">decisions appear as the session runs</div>';
 
     loadGlobals();
+    renderRadarChart();
     clearTimeout(S.timer);
     S.timer=setTimeout(()=>{S.list=[];render()}, live?2500:8000);
   }catch(e){
