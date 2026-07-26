@@ -1468,8 +1468,10 @@ async function loadGlobals(){
     if(allTokens) {
       for(const row of allTokens) {
         if(!row.sym) continue;
-        if(['USDC','USDT','DAI','USDE','FDUSD'].includes(row.sym.toUpperCase())) continue;
-        cAll[row.sym] = { n: row.calls, pnl: row.realized_pnl || 0 };
+        const cleanSym = row.sym.trim();
+        if(!cleanSym || cleanSym === 'null' || cleanSym === 'undefined') continue;
+        if(['USDC','USDT','DAI','USDE','FDUSD'].includes(cleanSym.toUpperCase())) continue;
+        cAll[cleanSym] = { n: row.calls, pnl: row.realized_pnl || 0 };
       }
     }
 
@@ -1479,8 +1481,10 @@ async function loadGlobals(){
     if(chunk) {
       for(const o of chunk) {
         if(!o.sym || o.outcome==='void') continue;
-        if(['USDC','USDT','DAI','USDE','FDUSD'].includes(o.sym.toUpperCase())) continue;
-        const bR = cRecent[o.sym] = cRecent[o.sym] || {n:0, pnl:0};
+        const cleanSym = o.sym.trim();
+        if(!cleanSym || cleanSym === 'null' || cleanSym === 'undefined') continue;
+        if(['USDC','USDT','DAI','USDE','FDUSD'].includes(cleanSym.toUpperCase())) continue;
+        const bR = cRecent[cleanSym] = cRecent[cleanSym] || {n:0, pnl:0};
         bR.n++; bR.pnl += (+o.realized_pnl||0);
       }
     }
