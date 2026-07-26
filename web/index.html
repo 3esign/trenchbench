@@ -362,7 +362,7 @@
       <div class="foot-note">The bar under each agent shows <b>which models have run that strategy</b>. Hover a name for what the strategy actually does.</div>
     </div>
 
-    <div class="card">
+    <div class="card" style="display:flex; flex-direction:column; height:100%;">
       <h3><span class="star">★</span> Top tokens<span class="scope all" id="tokscope">all sessions</span></h3>
       <div class="sub" id="gtoksub">which tokens the agents actually made money on</div>
       <div class="segs sm" id="toktabs">
@@ -370,10 +370,12 @@
         <button class="seg" data-t="winners" title="All-time highest compounding tokens">Top Winners</button>
         <button class="seg" data-t="losers" title="All-time worst performing tokens">Top Losers</button>
       </div>
-      <div class="fill">
-        <table class="lb"><thead><tr><th class="rank">#</th><th>Token</th><th class="r"><span class="hint" data-tip="calls">Calls</span></th><th class="r" style="cursor:pointer;" onclick="toggleTokenSortDirection()"><span class="hint" data-tip="tokenpnl" id="gtokcolh" style="color:var(--brand);text-decoration:underline dotted;">Realised P&amp;L ⇅</span></th></tr></thead><tbody id="gTokens"></tbody></table>
+      <div class="fill" style="position:relative; flex:1 1 auto; min-height:0; overflow:hidden;">
+        <div style="position:absolute; inset:0; overflow-y:auto; padding-right:4px;">
+          <table class="lb"><thead><tr><th class="rank">#</th><th>Token</th><th class="r"><span class="hint" data-tip="calls">Calls</span></th><th class="r" style="cursor:pointer;" onclick="toggleTokenSortDirection()"><span class="hint" data-tip="tokenpnl" id="gtokcolh" style="color:var(--brand);text-decoration:underline dotted;">Realised P&amp;L ⇅</span></th></tr></thead><tbody id="gTokens"></tbody></table>
+        </div>
       </div>
-      <div class="foot-note">Click the header column to toggle sort order between highest profit and highest loss.</div>
+      <div class="foot-note" style="margin-top:auto;">Click the header column to toggle sort order. Scroll to view more.</div>
     </div>
   </div>
 
@@ -1507,7 +1509,7 @@ async function loadGlobals(){
         } else {
           arr.sort((a, b) => b[1].pnl - a[1].pnl);
         }
-        const t = arr.slice(0, 18);
+        const t = arr.slice(0, 100);
         const mx = Math.max(1,...t.map(([,v])=>Math.abs(v.pnl)));
         
         const scopeLbl = tab === 'recent' ? 'recent trades' : 'all sessions';
@@ -1532,7 +1534,9 @@ async function loadGlobals(){
         toktabs.dataset.bound = '1';
         toktabs.onclick = e => {
           if(!e.target.classList.contains('seg')) return;
-          window.topTokensActiveTab = e.target.dataset.t;
+          const tab = e.target.dataset.t;
+          window.topTokensActiveTab = tab;
+          window.topTokensSortDirection = tab === 'losers' ? 'asc' : 'desc';
           paintTokens();
         };
       }
