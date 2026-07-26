@@ -666,10 +666,56 @@ const TIPS={
     if(x+r.width>innerWidth-8) x=Math.max(8,e.clientX-r.width-14);
     if(y+r.height>innerHeight-8) y=Math.max(8,e.clientY-r.height-14);
     tip.style.left=x+'px'; tip.style.top=y+'px'; };
-  document.addEventListener('mouseover',e=>{ const t=e.target.closest&&e.target.closest('[data-tip]'); if(!t)return;
-    tip.innerHTML=TIPS[t.dataset.tip]||t.dataset.tip; tip.style.display='block'; place(e); });
+  
+  document.addEventListener('mouseover',e=>{
+    const t=e.target.closest&&e.target.closest('[data-tip]');
+    if(t) {
+      tip.innerHTML=TIPS[t.dataset.tip]||t.dataset.tip;
+      tip.style.display='block';
+      place(e);
+    }
+    
+    // Legend Hover Highlight for Radar Chart
+    const leg=e.target.closest&&e.target.closest('.radar-leg');
+    if(leg) {
+      const key=leg.dataset.persona;
+      document.querySelectorAll('.rpoly').forEach(poly => {
+        if(poly.id === `rpoly-${key}`) {
+          poly.setAttribute('fill-opacity', '0.6');
+          poly.setAttribute('stroke-width', '3.5');
+          poly.style.opacity = '1';
+        } else {
+          poly.setAttribute('fill-opacity', '0.02');
+          poly.setAttribute('stroke-width', '0.5');
+          poly.style.opacity = '0.15';
+        }
+      });
+    }
+  });
+  
   document.addEventListener('mousemove',e=>{ if(tip.style.display==='block') place(e); });
-  document.addEventListener('mouseout',e=>{ if(e.target.closest&&e.target.closest('[data-tip]')) tip.style.display='none'; });
+  
+  document.addEventListener('mouseout',e=>{
+    const t=e.target.closest&&e.target.closest('[data-tip]');
+    if(t) {
+      const next=e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('[data-tip]');
+      if(next === t) return;
+      tip.style.display='none';
+    }
+    
+    // Reset Legend Highlight on Mouse Out
+    const leg=e.target.closest&&e.target.closest('.radar-leg');
+    if(leg) {
+      const next=e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('.radar-leg');
+      if(next === leg) return;
+      document.querySelectorAll('.rpoly').forEach(poly => {
+        poly.setAttribute('fill-opacity', '0.2');
+        poly.setAttribute('stroke-width', '2');
+        poly.style.opacity = '1';
+      });
+    }
+  });
+  
   document.addEventListener('scroll',()=>{ tip.style.display='none'; },true);
   window.addEventListener('blur',()=>{ tip.style.display='none'; });
   document.addEventListener('mouseleave',()=>{ tip.style.display='none'; });
@@ -849,19 +895,21 @@ function renderRadarChart() {
   ];
 
   personas.forEach(p => {
+    const key = p.name.split(' ')[1];
     const pts = p.scores.map((sc, i) => {
       const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
       const rad = r * sc;
       return `${(cx + rad * Math.cos(angle)).toFixed(1)},${(cy + rad * Math.sin(angle)).toFixed(1)}`;
     });
-    const tipKey = 'radar' + p.name.split(' ')[1];
-    g += `<polygon points="${pts.join(' ')}" fill="${p.color}" fill-opacity="0.2" stroke="${p.color}" stroke-width="2" class="hint" data-tip="${tipKey}" style="cursor:pointer;"/>`;
+    const tipKey = 'radar' + key;
+    g += `<polygon id="rpoly-${key}" points="${pts.join(' ')}" fill="${p.color}" fill-opacity="0.2" stroke="${p.color}" stroke-width="2" class="hint rpoly" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer; transition: fill-opacity 0.2s, stroke-width 0.2s, opacity 0.2s;"/>`;
   });
 
   g += `<g transform="translate(10, ${H - 8})">`;
   personas.forEach((p, idx) => {
-    const tipKey = 'radar' + p.name.split(' ')[1];
-    g += `<g class="hint" data-tip="${tipKey}" style="cursor:pointer;"><circle cx="${idx * 102 + 6}" cy="0" r="4" fill="${p.color}"/><text x="${idx * 102 + 14}" y="3" fill="var(--ink2)" font-size="9" font-weight="600">${p.name}</text></g>`;
+    const key = p.name.split(' ')[1];
+    const tipKey = 'radar' + key;
+    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><circle cx="${idx * 102 + 6}" cy="0" r="4" fill="${p.color}"/><text x="${idx * 102 + 14}" y="3" fill="var(--ink2)" font-size="9" font-weight="600">${p.name}</text></g>`;
   });
   g += `</g>`;
 
