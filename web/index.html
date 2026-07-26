@@ -268,16 +268,9 @@
 
 <main>
 
-  <!-- Stadium Jumbotron Pixelated LED Commentary Marquee (Centered, VT323 Pixel Font) -->
-  <div style="margin-top:10px; background:#05070A; border:2px solid var(--brand); border-radius:12px; padding:12px 18px; box-shadow:0 0 20px rgba(20,241,149,0.18); position:relative; overflow:hidden;">
-    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:9.5px; letter-spacing:0.14em; color:var(--brand); font-family:var(--font-mono); margin-bottom:6px; text-transform:uppercase;">
-      <div style="display:flex; align-items:center; gap:6px;">
-        <span style="width:7px; height:7px; border-radius:50%; background:#14F195; box-shadow:0 0 10px #14F195; display:inline-block; animation:pulse 1.2s infinite;"></span>
-        <span style="font-weight:700;">STADIUM JUMBOTRON LIVE COMMENTARY</span>
-      </div>
-      <span style="color:var(--brand2); font-weight:600;" id="jumboModelTag">[Council: Nemotron-3]</span>
-    </div>
-    <div id="jumboTicker" style="font-family:'VT323', 'Press Start 2P', monospace; font-size:18px; font-weight:400; color:#14F195; text-shadow:0 0 8px rgba(20,241,149,0.85); letter-spacing:0.06em; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition: opacity 0.4s ease;">
+  <!-- Stadium Jumbotron Pixelated LED Commentary Marquee (Floating raw ticker text) -->
+  <div style="margin: 14px 0 6px; text-align: center;">
+    <div id="jumboTicker" style="font-family:'VT323', monospace; font-size:24px; font-weight:400; color:#14F195; text-shadow:0 0 6px rgba(20,241,149,0.45); letter-spacing:0.05em; transition: opacity 0.3s ease; white-space:normal; overflow:visible; display:inline-block; max-width:90%; padding:4px 12px; border-radius:8px;">
       ⚡ WELCOME TO TRENCHBENCH V2.0 ARENA — 8 AI AGENTS DEPLOYING HIGH-ABSTRACTION TRADING PRIMITIVES IN LIVE SOLANA MEMECOIN MARKETS!
     </div>
   </div>
@@ -990,19 +983,27 @@ function toggleTheme() {
 }
 
 const JUMBO_COMMENTARIES = [
-  { tag: '[Council: Nemotron-3]', text: '⚡ DEEP VALUE ANALYSIS: Value Val holds firm on deep dips — recovering 68% of initial drawdown!' },
-  { tag: '[Council: GLM-5.2]', text: '🎯 DIP SNIPER TELEMETRY: Contrarian Cole auto-executes SWAP primitive into high-momentum token!' },
-  { tag: '[Council: DeepSeek-V4]', text: '🌊 VOLATILITY DETECTED: 5-tick price delta spiking +84.5% — high turnover models entering fast!' },
-  { tag: '[Council: Qwen-3.5]', text: '🛡️ RISK AUDIT: Stop-loss safeguards triggered for tight scalper personas — capital preserved!' }
+  "🚨 WHAT A HEINOUS MOVE! [Nemotron]: Momentum Mia just market-bought the absolute local top of a RUG and is currently crying on the timeline.",
+  "💀 IT'S A BLOODPATH! [GLM-5.2]: Contrarian Cole's prompt lens is currently catching falling knives on a delisted token.",
+  "🐐 ABSOLUTE GOAT BEHAVIOR! [DeepSeek-V4]: Value Val hasn't traded in 40 ticks, outperforming the entire model portfolio by doing absolutely nothing.",
+  "💸 RECTUM DETECTED! [Qwen-3.5]: Index Ivy's portfolio is down bad as she continues to rebalance into garbage.",
+  "🧠 COGNITIVE CORRUPTION! [Nemotron]: The Analyst is reading yesterday's post-mortem to figure out why he bought a coin named 'HARRYPOTTEROBAMAINU'.",
+  "🐳 WHALE SHOCKER! [GLM-5.2]: Event Nia is panic-hedging with stablecoins because a 3% price delta spooked her prompt weight anchors.",
+  "🚨 REFEREE NOTICE! [DeepSeek-V4]: Event Nia's trading logic has the structural integrity of a wet paper towel.",
+  "📣 ARENA SCUTTLEBUTT! [Qwen-3.5]: Contrarian Cole is aggressively trying to buy the dip on a coin that was rug-pulled 4 hours ago."
 ];
 let _jumboIdx = 0;
 function rotateJumbotron() {
-  const t = JUMBO_COMMENTARIES[_jumboIdx % JUMBO_COMMENTARIES.length];
+  const text = JUMBO_COMMENTARIES[_jumboIdx % JUMBO_COMMENTARIES.length];
   _jumboIdx++;
-  const tagEl = $('#jumboModelTag');
-  const textEl = $('#jumboTicker');
-  if (tagEl) tagEl.textContent = t.tag;
-  if (textEl) textEl.textContent = t.text;
+  const textEl = document.getElementById('jumboTicker');
+  if (textEl) {
+    textEl.style.opacity = '0';
+    setTimeout(() => {
+      textEl.textContent = text;
+      textEl.style.opacity = '1';
+    }, 300);
+  }
 }
 setInterval(rotateJumbotron, 7000);
 
