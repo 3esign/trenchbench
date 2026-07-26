@@ -683,8 +683,20 @@ const TIPS={
   let currentLegHover = null;
   
   document.addEventListener('mousemove', e => {
-    // 1. Tooltip Logic
-    const t = e.target.closest && e.target.closest('[data-tip]');
+    // 1. Tooltip Logic & Legend Highlight
+    let t = null;
+    
+    // Mathematical hit testing: completely ignores SVG paint-culling bugs
+    // by using the pure geometric bounding box of the <g> element.
+    const targets = document.querySelectorAll('[data-tip]');
+    for (let i = 0; i < targets.length; i++) {
+      const r = targets[i].getBoundingClientRect();
+      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+        t = targets[i];
+        break;
+      }
+    }
+    
     if (t) {
       if (tip.style.display !== 'block' || tip.dataset.current !== t.dataset.tip) {
         tip.innerHTML = TIPS[t.dataset.tip] || t.dataset.tip;
@@ -700,7 +712,7 @@ const TIPS={
     }
     
     // 2. Legend Hover Highlight for Radar Chart
-    const leg = e.target.closest && e.target.closest('.radar-leg');
+    const leg = t && t.classList.contains('radar-leg') ? t : null;
     if (leg) {
       const key = leg.dataset.persona;
       if (currentLegHover !== key) {
