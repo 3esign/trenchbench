@@ -105,7 +105,7 @@
   .htile .hs{font-weight:600;font-size:11px}.htile .hp{font-size:11px;color:var(--ink2)}
   
   .statrow{display:flex;gap:18px;align-items:center;margin-left:24px}
-  .stat{display:flex;flex-direction:row;align-items:baseline;gap:6px}
+  .stat{display:flex;flex-direction:row;align-items:baseline;gap:6px;white-space:nowrap}
   .stat .n{font-size:16px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1;color:var(--ink)}
   .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
   /* a baseline is not a model and must never look like one */
@@ -240,10 +240,10 @@
   <div class="logo"><b>◆</b> TRENCH BENCH</div>
   <div class="chainchip">Pump.fun AI Arena</div>
   <div class="statrow">
-    <div class="stat"><div class="n" id="stSessions">—</div><div class="k">sessions</div></div>
-    <div class="stat"><div class="n" id="stDecisions">—</div><div class="k">decisions</div></div>
-    <div class="stat"><div class="n" id="stModels">—</div><div class="k">models</div></div>
-    <div class="stat"><div class="n" id="stLive">—</div><div class="k">live tokens</div></div>
+    <div class="stat hint" data-tip="sessions"><div class="n" id="stSessions">—</div><div class="k">sessions</div></div>
+    <div class="stat hint" data-tip="decisions"><div class="n" id="stDecisions">—</div><div class="k">decisions</div></div>
+    <div class="stat hint" data-tip="models"><div class="n" id="stModels">—</div><div class="k">models</div></div>
+    <div class="stat hint" data-tip="livetokens"><div class="n" id="stLive">—</div><div class="k">live tokens</div></div>
   </div>
   <div class="status">
     <span class="pill" id="pill"><span class="dot"></span><span id="statustxt">connecting…</span></span>
@@ -373,11 +373,10 @@
         <button class="seg" data-t="winners" title="All-time highest compounding tokens">Top Winners</button>
         <button class="seg" data-t="losers" title="All-time worst performing tokens">Top Losers</button>
       </div>
-      <div class="fill" style="position:relative; min-height:0; flex:1 1 auto; overflow:visible;">
-        <div style="position:absolute; top:0; left:0; right:-4px; bottom:0; overflow-y:auto; padding-right:4px;">
-          <table class="lb"><thead><tr><th class="rank">#</th><th>Token</th><th class="r"><span class="hint" data-tip="calls">Calls</span></th><th class="r" style="cursor:pointer;" onclick="toggleTokenSortDirection()"><span class="hint" data-tip="tokenpnl" id="gtokcolh" style="color:var(--brand);text-decoration:underline dotted;">Realised P&amp;L ⇅</span></th></tr></thead><tbody id="gTokens"></tbody></table>
-        </div>
+      <div class="fill">
+        <table class="lb"><thead><tr><th class="rank">#</th><th>Token</th><th class="r"><span class="hint" data-tip="calls">Calls</span></th><th class="r" style="cursor:pointer;" onclick="toggleTokenSortDirection()"><span class="hint" data-tip="tokenpnl" id="gtokcolh" style="color:var(--brand);text-decoration:underline dotted;">Realised P&amp;L ⇅</span></th></tr></thead><tbody id="gTokens"></tbody></table>
       </div>
+      <div class="foot-note">Click the header column to toggle sort order between highest profit and highest loss.</div>
     </div>
   </div>
 
@@ -563,6 +562,26 @@ const adesc=id=>(AGENTS[id]&&AGENTS[id][2])||'';
 const SUPA='https://jydrysrqfqdpadnljnbk.supabase.co', ANON='sb_publishable_abJ2zefe3e5875inLIScHg_twk-mTms';
 async function q(p){const r=await fetch(`${SUPA}/rest/v1/${p}`,{headers:{apikey:ANON,Authorization:`Bearer ${ANON}`}});if(!r.ok)throw new Error(r.status+' '+p);return r.json()}
 async function qTry(a,b){ try{ return await q(a); }catch(e){ if(!b)return null; try{ return await q(b); }catch(e2){ return null; } } }
+async function getTableCount(table) {
+  try {
+    const r = await fetch(`${SUPA}/rest/v1/${table}?select=id&limit=1`, {
+      headers: {
+        apikey: ANON,
+        Authorization: `Bearer ${ANON}`,
+        Prefer: 'count=exact'
+      }
+    });
+    if (!r.ok) return null;
+    const cr = r.headers.get('Content-Range');
+    if (cr) {
+      const parts = cr.split('/');
+      if (parts.length > 1) return parseInt(parts[1], 10);
+    }
+  } catch (e) {
+    console.error('count failed for ' + table, e);
+  }
+  return null;
+}
 function mchip(m){if(!m)return'';const c=modelColor(m);return`<span class="mchip" style="border-color:${c}66;color:${c};background:${c}12" data-tip="Model: <b>${m}</b>">${short(m)}</span>`}
 const avg=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:null;
 
@@ -590,6 +609,10 @@ pulse('connecting to the arena…');
 
 // ---------- hover explanations ----------
 const TIPS={
+  sessions:'<b>Sessions</b><br>The total number of completed trading sessions logged in the database.',
+  decisions:'<b>Decisions</b><br>The total number of Buy, Sell, and Hold calls made by all AI trading agents across all active and completed sessions.',
+  models:'<b>Models</b><br>The total number of unique LLM reasoning engines (e.g. Claude 3.5 Sonnet, GPT-4o, Llama 3) that have run sessions in the Arena.',
+  livetokens:'<b>Live Tokens</b><br>The number of active memecoins currently being tracked and traded in this session.',
   hit:'<b>Hit rate</b><br>Share of this agent\'s <i>trades</i> that beat the market over the next few rounds. Holds are not counted — they outnumber trades about ten to one and would drown the signal.<br><br>An agent can have a high hit rate and still lose money: right often, wrong when it mattered. That gap is the interesting part.',
   pnl:'<b>P&L</b><br>Percentage change from the money the agent started with. Every agent starts on the same capital, so these are directly comparable.',
   avgpnl:'<b>Average P&L</b><br>Mean return across every counted session. Read it next to <b>Runs</b> — an average over one session is not a ranking.',
@@ -1164,8 +1187,8 @@ async function render(){
 
     // ---- tape ----
     const setS=(id,v)=>{const e=$('#'+id); if(e)e.textContent=v;};
-    setS('stLive', tiles.filter(t=>!t.q&&t.chg!=null).length||'—');
-    setS('stDecisions', (S.totalScored!=null?S.totalScored:decs.length).toLocaleString());
+    setS('stLive', tiles.length||'—');
+    setS('stDecisions', (window._totalDecisions != null ? window._totalDecisions : (S.totalScored!=null?S.totalScored:decs.length)).toLocaleString());
     $('#tapesub').textContent=`${Math.min(decs.length,60)} most recent decisions · newest first`;
     $('#tape').innerHTML=decs.slice(0,60).map(d=>`<div class="trow" style="font-size:11px;padding:4px 0;margin-right:8px;border-bottom:1px solid rgba(255,255,255,0.03)"><span class="adot" data-tip="${adesc(d.agent_id).replace(/"/g,'&quot;')}" style="background:${acolor(d.agent_id)};margin-right:2px"></span><span class="act ${(d.action||'').toLowerCase()}" style="font-weight:600">${d.action}</span>${d.sym?`<span class="sym" style="font-weight:500;margin-left:3px">${d.sym}</span>`:''}<span class="dim" style="margin-left:auto;font-size:10px;white-space:nowrap;opacity:0.8">${short(d.model||'')}</span></div>`).join('')||'<div class="empty">decisions appear as the session runs</div>';
 
@@ -1258,6 +1281,9 @@ function paintBench(){
 
 async function loadGlobals(){
   try{
+    const totalSessions = await getTableCount('sessions');
+    const totalDecisions = await getTableCount('decisions');
+    if (totalDecisions != null) window._totalDecisions = totalDecisions;
     // only sessions long enough to be evidence are allowed to rank anything
     // Both queries MUST be ordered. Unordered, PostgREST returns an unspecified
     // 500 rows, so the two windows covered different sets of sessions and the
@@ -1342,7 +1368,8 @@ async function loadGlobals(){
     if(B.models.length&&B.models.every(r=>r.n<2)) B.note+=' · one run each so far — too little to call this a ranking';
     // the lede stats. Sample size is the argument, so it gets the big type.
     const setStat=(id,v)=>{const e=$('#'+id); if(e)e.textContent=v;};
-    setStat('stSessions', usedIds.size||'0');
+    setStat('stSessions', totalSessions != null ? totalSessions : (usedIds.size||'0'));
+    setStat('stDecisions', totalDecisions != null ? totalDecisions.toLocaleString() : (S.totalScored||'0'));
     setStat('stModels', B.models.length||'0');
     const enough=B.models.length&&B.models.some(r=>r.n>=3);
     const h=$('#honest');
@@ -1380,16 +1407,15 @@ async function loadGlobals(){
       }
     }
 
-    // Fetch Recent tokens with a single fast query
-    if(recentSessIds.length > 0) {
-      const chunk = await qTry(`decision_outcomes?select=sym,realized_pnl,outcome&session_id=in.(${recentSessIds.join(',')})&limit=500`);
-      if(chunk) {
-        for(const o of chunk) {
-          if(!o.sym || o.outcome==='void') continue;
-          if(['USDC','USDT','DAI','USDE','FDUSD'].includes(o.sym.toUpperCase())) continue;
-          const bR = cRecent[o.sym] = cRecent[o.sym] || {n:0, pnl:0};
-          bR.n++; bR.pnl += (+o.realized_pnl||0);
-        }
+    // Fetch last 1500 traded outcomes to find the hottest recent tokens regardless of session limits
+    const chunk = await qTry('decision_outcomes?select=sym,realized_pnl,outcome&order=id.desc&limit=1500',
+                            'decision_outcomes?select=sym,realized_pnl,outcome&limit=1500');
+    if(chunk) {
+      for(const o of chunk) {
+        if(!o.sym || o.outcome==='void') continue;
+        if(['USDC','USDT','DAI','USDE','FDUSD'].includes(o.sym.toUpperCase())) continue;
+        const bR = cRecent[o.sym] = cRecent[o.sym] || {n:0, pnl:0};
+        bR.n++; bR.pnl += (+o.realized_pnl||0);
       }
     }
       
@@ -1419,11 +1445,11 @@ async function loadGlobals(){
         } else {
           arr.sort((a, b) => b[1].pnl - a[1].pnl);
         }
-        const t = arr.slice(0, 10);
+        const t = arr.slice(0, 16);
         const mx = Math.max(1,...t.map(([,v])=>Math.abs(v.pnl)));
         
-        const scopeLbl = tab === 'recent' ? 'last 5 sessions' : 'all sessions';
-        const subLbl = tab === 'recent' ? 'hottest tokens traded in recent sessions' : (tab === 'winners' ? 'all-time highest compounding tokens' : 'all-time worst performing tokens');
+        const scopeLbl = tab === 'recent' ? 'recent trades' : 'all sessions';
+        const subLbl = tab === 'recent' ? 'hottest tokens traded recently' : (tab === 'winners' ? 'all-time highest compounding tokens' : 'all-time worst performing tokens');
         
         const scp = $('#tokscope'); if(scp) scp.textContent = scopeLbl;
         const sub = $('#gtoksub'); if(sub) sub.textContent = subLbl;
