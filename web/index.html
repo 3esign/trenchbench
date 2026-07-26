@@ -1276,20 +1276,16 @@ async function loadGlobals(){
       }
     }
 
-    // Fetch Recent tokens just for the last 5 valid sessions
+    // Fetch Recent tokens with a single fast query
     if(recentSessIds.length > 0) {
-      let offset = 0;
-      while(true) {
-        const chunk = await qTry(`decision_outcomes?select=sym,realized_pnl,outcome,session_id&session_id=in.(${recentSessIds.join(',')})&limit=1000&offset=${offset}`);
-        if(!chunk || !chunk.length) break;
+      const chunk = await qTry(`decision_outcomes?select=sym,realized_pnl,outcome&session_id=in.(${recentSessIds.join(',')})&limit=500`);
+      if(chunk) {
         for(const o of chunk) {
           if(!o.sym || o.outcome==='void') continue;
           if(['USDC','USDT','DAI','USDE','FDUSD'].includes(o.sym.toUpperCase())) continue;
           const bR = cRecent[o.sym] = cRecent[o.sym] || {n:0, pnl:0};
           bR.n++; bR.pnl += (+o.realized_pnl||0);
         }
-        if(chunk.length < 1000 || offset >= 20000) break;
-        offset += 1000;
       }
     }
       
