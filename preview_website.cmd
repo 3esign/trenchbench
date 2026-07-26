@@ -1,5 +1,5 @@
 @echo off
-REM ===== Benchhood - view the site locally (no deploy) =====
+REM ===== trenchbench - view the site locally (no deploy) =====
 cd /d "%~dp0web"
 echo Opening a local preview at http://localhost:3000
 echo (close this window to stop the preview)

@@ -1,0 +1,422 @@
+{
+  "session_id": "ba7a00b3-5f47-4167-9c58-197c60ea1469",
+  "created_at": "2026-07-26T00:21:44.900Z",
+  "lessons": [
+    {
+      "session_id": "ba7a00b3-5f47-4167-9c58-197c60ea1469",
+      "agent_id": "val",
+      "agent_name": "Value Val",
+      "model": "qwen3.5:cloud",
+      "ret": -1.85,
+      "lesson": "Avoid entering on weak momentum by requiring a minimum 2% five-minute price surge before committing capital."
+    },
+    {
+      "session_id": "ba7a00b3-5f47-4167-9c58-197c60ea1469",
+      "agent_id": "mom",
+      "agent_name": "Momentum Mia",
+      "model": "nemotron-3-super:cloud",
+      "ret": -4.87,
+      "lesson": "Trim losses early, let winners run—only 1 in 4 trades beat market; protect capital by cutting losers fast, holding winners longer."
+    },
+    {
+      "session_id": "ba7a00b3-5f47-4167-9c58-197c60ea1469",
+      "agent_id": "degen",
+      "agent_name": "Degen Dex",
+      "model": "minimax-m3:cloud",
+      "ret": -0.93,
+      "lesson": "Or:"
+    },
+    {
+      "session_id": "ba7a00b3-5f47-4167-9c58-197c60ea1469",
+      "agent_id": "contra",
+      "agent_name": "Contrarian Cole",
+      "model": "kimi-k2.7-code:cloud",
+      "ret": -9.75,
+      "lesson": "Buy deeper pullbacks in fewer, higher-conviction setups; cut losers faster and let winners run through full rounds."
+    },
+    {
+      "session_id": "ba7a00b3-5f47-4167-9c58-197c60ea1469",
+      "agent_id": "mrev",
+      "agent_name": "Mean-Reverter Mara",
+      "model": "glm-5.2:cloud",
+      "ret": -10.56,
+      "lesson": "Cap holding rounds to 3 and cut losses at 1.5% drawdown before fading momentum exceeding 3%."
+    },
+    {
+      "session_id": "ba7a00b3-5f47-4167-9c58-197c60ea1469",
+      "agent_id": "index",
+      "agent_name": "Index Ivy",
+      "model": "gemma4:31b-cloud",
+      "ret": -0.24,
+      "lesson": "Reduce trade frequency and tighten momentum entry requirements to improve the win rate over market benchmarks."
+    },
+    {
+      "session_id": "ba7a00b3-5f47-4167-9c58-197c60ea1469",
+      "agent_id": "event",
+      "agent_name": "Event Nia",
+      "model": "deepseek-v4-flash:cloud",
+      "ret": -2.94,
+      "lesson": "Cut losses early when 5m momentum drops below 2% to preserve capital."
+    },
+    {
+      "session_id": "ba7a00b3-5f47-4167-9c58-197c60ea1469",
+      "agent_id": "rand",
+      "agent_name": "Random Randy",
+      "model": "qwen3.5:cloud",
+      "ret": -0.23,
+      "lesson": "Cut losing positions faster when five-minute momentum reverses to preserve capital for higher-probability setups."
+    }
+  ],
+  "agents": [
+    {
+      "id": "val",
+      "name": "Value Val",
+      "model": "qwen3.5:cloud",
+      "start_cash": 8808,
+      "final_equity": 8645,
+      "trades_count": 3,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "promise",
+          "px": 0.000001051,
+          "tick": 15
+        },
+        {
+          "action": "BUY",
+          "sym": "Hospital",
+          "px": 0.000007182,
+          "tick": 49
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00002933,
+          "tick": 81
+        }
+      ]
+    },
+    {
+      "id": "mom",
+      "name": "Momentum Mia",
+      "model": "nemotron-3-super:cloud",
+      "start_cash": 8808,
+      "final_equity": 8379,
+      "trades_count": 48,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Jimothy",
+          "px": 0.000002083,
+          "tick": 97
+        },
+        {
+          "action": "BUY",
+          "sym": "Lucy",
+          "px": 0.00003059,
+          "tick": 99
+        },
+        {
+          "action": "SELL",
+          "sym": "JIMSEM",
+          "px": 0.000002526,
+          "tick": 107
+        },
+        {
+          "action": "BUY",
+          "sym": "JIMSEM",
+          "px": 0.000002526,
+          "tick": 109
+        },
+        {
+          "action": "BUY",
+          "sym": "cuuuuupsey",
+          "px": 0.00003061,
+          "tick": 112
+        },
+        {
+          "action": "BUY",
+          "sym": "Hospital",
+          "px": 0.000007211,
+          "tick": 113
+        }
+      ]
+    },
+    {
+      "id": "degen",
+      "name": "Degen Dex",
+      "model": "minimax-m3:cloud",
+      "start_cash": 8808,
+      "final_equity": 8726,
+      "trades_count": 43,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Cog",
+          "px": 0.00003062,
+          "tick": 109
+        },
+        {
+          "action": "SELL",
+          "sym": "cuuuuupsey",
+          "px": 0.00003061,
+          "tick": 110
+        },
+        {
+          "action": "BUY",
+          "sym": "Elon",
+          "px": 0.00003059,
+          "tick": 111
+        },
+        {
+          "action": "SELL",
+          "sym": "USDP",
+          "px": 0.00005452,
+          "tick": 112
+        },
+        {
+          "action": "SELL",
+          "sym": "JIMSEM",
+          "px": 0.000002526,
+          "tick": 115
+        },
+        {
+          "action": "BUY",
+          "sym": "cuuuuupsey",
+          "px": 0.00003061,
+          "tick": 122
+        }
+      ]
+    },
+    {
+      "id": "contra",
+      "name": "Contrarian Cole",
+      "model": "kimi-k2.7-code:cloud",
+      "start_cash": 8808,
+      "final_equity": 7949,
+      "trades_count": 31,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Hospital",
+          "px": 0.000007211,
+          "tick": 112
+        },
+        {
+          "action": "BUY",
+          "sym": "Hospital",
+          "px": 0.000007093,
+          "tick": 114
+        },
+        {
+          "action": "SELL",
+          "sym": "Hospital",
+          "px": 0.000007093,
+          "tick": 117
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00002648,
+          "tick": 118
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00002648,
+          "tick": 119
+        },
+        {
+          "action": "BUY",
+          "sym": "Hospital",
+          "px": 0.000007093,
+          "tick": 121
+        }
+      ]
+    },
+    {
+      "id": "mrev",
+      "name": "Mean-Reverter Mara",
+      "model": "glm-5.2:cloud",
+      "start_cash": 8808,
+      "final_equity": 7878,
+      "trades_count": 55,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "USDP",
+          "px": 0.00005452,
+          "tick": 109
+        },
+        {
+          "action": "BUY",
+          "sym": "USDP",
+          "px": 0.00005452,
+          "tick": 110
+        },
+        {
+          "action": "BUY",
+          "sym": "Lucy",
+          "px": 0.00003059,
+          "tick": 113
+        },
+        {
+          "action": "SELL",
+          "sym": "promise",
+          "px": 0.000001051,
+          "tick": 116
+        },
+        {
+          "action": "BUY",
+          "sym": "promise",
+          "px": 0.000001051,
+          "tick": 117
+        },
+        {
+          "action": "SELL",
+          "sym": "Jimothy",
+          "px": 0.000002083,
+          "tick": 118
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "name": "Index Ivy",
+      "model": "gemma4:31b-cloud",
+      "start_cash": 8808,
+      "final_equity": 8787,
+      "trades_count": 8,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Rex",
+          "px": 0.0000306,
+          "tick": 3
+        },
+        {
+          "action": "BUY",
+          "sym": "Hospital",
+          "px": 0.000007316,
+          "tick": 4
+        },
+        {
+          "action": "BUY",
+          "sym": "COD",
+          "px": 0.00003059,
+          "tick": 5
+        },
+        {
+          "action": "BUY",
+          "sym": "GUS",
+          "px": 0.0000306,
+          "tick": 7
+        },
+        {
+          "action": "BUY",
+          "sym": "Thumbelina",
+          "px": 0.0000306,
+          "tick": 9
+        },
+        {
+          "action": "BUY",
+          "sym": "Lucy",
+          "px": 0.00003059,
+          "tick": 10
+        }
+      ]
+    },
+    {
+      "id": "event",
+      "name": "Event Nia",
+      "model": "deepseek-v4-flash:cloud",
+      "start_cash": 8808,
+      "final_equity": 8549,
+      "trades_count": 73,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "USDP",
+          "px": 0.00005452,
+          "tick": 118
+        },
+        {
+          "action": "BUY",
+          "sym": "USDP",
+          "px": 0.00005452,
+          "tick": 119
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00002648,
+          "tick": 120
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00002486,
+          "tick": 123
+        },
+        {
+          "action": "SELL",
+          "sym": "USDP",
+          "px": 0.00005452,
+          "tick": 124
+        },
+        {
+          "action": "BUY",
+          "sym": "USDP",
+          "px": 0.00005452,
+          "tick": 125
+        }
+      ]
+    },
+    {
+      "id": "rand",
+      "name": "Random Randy",
+      "model": "qwen3.5:cloud",
+      "start_cash": 8808,
+      "final_equity": 8788,
+      "trades_count": 24,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "USDP",
+          "px": 0.00005452,
+          "tick": 63
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00003134,
+          "tick": 65
+        },
+        {
+          "action": "SELL",
+          "sym": "cuuuuupsey",
+          "px": 0.00003061,
+          "tick": 75
+        },
+        {
+          "action": "BUY",
+          "sym": "USDP",
+          "px": 0.00005452,
+          "tick": 76
+        },
+        {
+          "action": "SELL",
+          "sym": "JIMSEM",
+          "px": 0.000002526,
+          "tick": 78
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00002718,
+          "tick": 104
+        }
+      ]
+    }
+  ]
+}

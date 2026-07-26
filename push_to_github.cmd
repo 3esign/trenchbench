@@ -1,19 +1,19 @@
 @echo off
 setlocal enabledelayedexpansion
 REM ==============================================================
-REM  BENCHHOOD - push this folder to github.com/3esign/benchhood
+REM  trenchbench - push this folder to github.com/3esign/trenchbench
 REM  Safe to double-click. Safe to run again and again.
 REM  It refuses to push if a secret file ever ends up staged.
 REM ==============================================================
 cd /d "%~dp0"
 
-set "REPO_URL=https://github.com/3esign/benchhood.git"
-set "REPO_SLUG=3esign/benchhood"
+set "REPO_URL=https://github.com/3esign/trenchbench.git"
+set "REPO_SLUG=3esign/trenchbench"
 set "BRANCH=main"
 
 echo.
 echo  ============================================================
-echo   BENCHHOOD  -  push to GitHub  (%REPO_SLUG%)
+echo   trenchbench  -  push to GitHub  (%REPO_SLUG%)
 echo  ============================================================
 echo.
 
@@ -82,7 +82,7 @@ echo       OK - no secrets staged.
 
 REM ---------- 5. commit ------------------------------------------
 set "MSG=%*"
-if "%MSG%"=="" set "MSG=update: benchhood session runner + arena"
+if "%MSG%"=="" set "MSG=update: trenchbench session runner + arena"
 git diff --cached --quiet
 if errorlevel 1 (
   echo  [5/6] Committing: %MSG%

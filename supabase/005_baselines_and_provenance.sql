@@ -1,5 +1,5 @@
 -- ============================================================
---  BENCHHOOD — 005: baselines, model share, and the fixed career ledger
+--  trenchbench — 005: baselines, model share, and the fixed career ledger
 --
 --  Run this ONCE on an existing database. It is additive and safe: it adds
 --  columns, replaces views, and touches no rows.

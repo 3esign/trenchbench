@@ -1,0 +1,440 @@
+{
+  "session_id": "55979a54-91b1-493e-aae6-afb380cae57e",
+  "created_at": "2026-07-26T01:45:21.882Z",
+  "lessons": [
+    {
+      "session_id": "55979a54-91b1-493e-aae6-afb380cae57e",
+      "agent_id": "val",
+      "agent_name": "Value Val",
+      "model": "deepseek-v4-flash:cloud",
+      "ret": 5.53,
+      "lesson": "Hold longer when momentum aligns with low drawdowns to capture outsized gains."
+    },
+    {
+      "session_id": "55979a54-91b1-493e-aae6-afb380cae57e",
+      "agent_id": "mom",
+      "agent_name": "Momentum Mia",
+      "model": "qwen3.5:cloud",
+      "ret": -2.91,
+      "lesson": "Cut losing positions immediately when 5-minute momentum flips negative to preserve capital for high-probability setups."
+    },
+    {
+      "session_id": "55979a54-91b1-493e-aae6-afb380cae57e",
+      "agent_id": "degen",
+      "agent_name": "Degen Dex",
+      "model": "nemotron-3-super:cloud",
+      "ret": -0.61,
+      "lesson": "Wait for price to hold above 5m momentum lows for 3+ rounds before increasing exposure after drawdowns exceed 1%."
+    },
+    {
+      "session_id": "55979a54-91b1-493e-aae6-afb380cae57e",
+      "agent_id": "contra",
+      "agent_name": "Contrarian Cole",
+      "model": "minimax-m3:cloud",
+      "ret": -7.28,
+      "lesson": "Count:"
+    },
+    {
+      "session_id": "55979a54-91b1-493e-aae6-afb380cae57e",
+      "agent_id": "mrev",
+      "agent_name": "Mean-Reverter Mara",
+      "model": "kimi-k2.7-code:cloud",
+      "ret": 5.58,
+      "lesson": "Fade momentum spikes beyond 2 rounds unless drawdown exceeds prior support."
+    },
+    {
+      "session_id": "55979a54-91b1-493e-aae6-afb380cae57e",
+      "agent_id": "index",
+      "agent_name": "Index Ivy",
+      "model": "glm-5.2:cloud",
+      "ret": -0.29,
+      "lesson": "Capitalize on 5m momentum shifts after drawdowns exceed 3%, and cut trades exceeding 15 holding rounds to protect capital."
+    },
+    {
+      "session_id": "55979a54-91b1-493e-aae6-afb380cae57e",
+      "agent_id": "event",
+      "agent_name": "Event Nia",
+      "model": "gemma4:31b-cloud",
+      "ret": -7.98,
+      "lesson": "Reduce holding duration and tighten drawdown limits to avoid momentum decay during high-volatility reversals."
+    },
+    {
+      "session_id": "55979a54-91b1-493e-aae6-afb380cae57e",
+      "agent_id": "rand",
+      "agent_name": "Random Randy",
+      "model": "gemma4:31b-cloud",
+      "ret": -6.41,
+      "lesson": "Reduce holding time and tighten drawdown limits to avoid momentum decay during low-probability trade setups."
+    }
+  ],
+  "agents": [
+    {
+      "id": "val",
+      "name": "Value Val",
+      "model": "deepseek-v4-flash:cloud",
+      "start_cash": 62879,
+      "final_equity": 66357,
+      "trades_count": 10,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "QuietGPT",
+          "px": 0.000002094,
+          "tick": 7
+        },
+        {
+          "action": "BUY",
+          "sym": "TCM",
+          "px": 0.000002522,
+          "tick": 9
+        },
+        {
+          "action": "BUY",
+          "sym": "Pumpcat",
+          "px": 0.000007796,
+          "tick": 10
+        },
+        {
+          "action": "BUY",
+          "sym": "Beluga",
+          "px": 0.000003407,
+          "tick": 11
+        },
+        {
+          "action": "SELL",
+          "sym": "QuietGPT",
+          "px": 0.000002094,
+          "tick": 12
+        },
+        {
+          "action": "SELL",
+          "sym": "BINGO",
+          "px": 0.000003635,
+          "tick": 13
+        }
+      ]
+    },
+    {
+      "id": "mom",
+      "name": "Momentum Mia",
+      "model": "qwen3.5:cloud",
+      "start_cash": 62879,
+      "final_equity": 61048,
+      "trades_count": 13,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "PUMPE",
+          "px": 0.00001696,
+          "tick": 8
+        },
+        {
+          "action": "BUY",
+          "sym": "rocketman",
+          "px": 0.00000761,
+          "tick": 9
+        },
+        {
+          "action": "BUY",
+          "sym": "PUMPE",
+          "px": 0.00001696,
+          "tick": 10
+        },
+        {
+          "action": "SELL",
+          "sym": "PUMPE",
+          "px": 0.00001545,
+          "tick": 11
+        },
+        {
+          "action": "SELL",
+          "sym": "rocketman",
+          "px": 0.000007284,
+          "tick": 12
+        },
+        {
+          "action": "BUY",
+          "sym": "PUMPE",
+          "px": 0.00001545,
+          "tick": 13
+        }
+      ]
+    },
+    {
+      "id": "degen",
+      "name": "Degen Dex",
+      "model": "nemotron-3-super:cloud",
+      "start_cash": 62879,
+      "final_equity": 62495,
+      "trades_count": 12,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "BINGO",
+          "px": 0.000003638,
+          "tick": 7
+        },
+        {
+          "action": "SELL",
+          "sym": "GHOST",
+          "px": 0.00001015,
+          "tick": 8
+        },
+        {
+          "action": "BUY",
+          "sym": "rocketman",
+          "px": 0.00000761,
+          "tick": 9
+        },
+        {
+          "action": "BUY",
+          "sym": "Beluga",
+          "px": 0.000004546,
+          "tick": 10
+        },
+        {
+          "action": "BUY",
+          "sym": "QuitGPT",
+          "px": 0.000002499,
+          "tick": 12
+        },
+        {
+          "action": "BUY",
+          "sym": "BINGO",
+          "px": 0.000003635,
+          "tick": 13
+        }
+      ]
+    },
+    {
+      "id": "contra",
+      "name": "Contrarian Cole",
+      "model": "minimax-m3:cloud",
+      "start_cash": 62879,
+      "final_equity": 58301,
+      "trades_count": 10,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "GHOST",
+          "px": 0.00001015,
+          "tick": 6
+        },
+        {
+          "action": "BUY",
+          "sym": "QuitGPT",
+          "px": 0.000002499,
+          "tick": 7
+        },
+        {
+          "action": "BUY",
+          "sym": "PUMPE",
+          "px": 0.00001696,
+          "tick": 10
+        },
+        {
+          "action": "SELL",
+          "sym": "qcrow",
+          "px": 0.000002186,
+          "tick": 11
+        },
+        {
+          "action": "BUY",
+          "sym": "BEE",
+          "px": 0.0000304,
+          "tick": 12
+        },
+        {
+          "action": "SELL",
+          "sym": "QuitGPT",
+          "px": 0.000002499,
+          "tick": 13
+        }
+      ]
+    },
+    {
+      "id": "mrev",
+      "name": "Mean-Reverter Mara",
+      "model": "kimi-k2.7-code:cloud",
+      "start_cash": 62879,
+      "final_equity": 66390,
+      "trades_count": 12,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Pumpcat",
+          "px": 0.000007796,
+          "tick": 8
+        },
+        {
+          "action": "BUY",
+          "sym": "rocketman",
+          "px": 0.00000761,
+          "tick": 9
+        },
+        {
+          "action": "SELL",
+          "sym": "Scarface",
+          "px": 0.000004816,
+          "tick": 10
+        },
+        {
+          "action": "BUY",
+          "sym": "Beluga",
+          "px": 0.000003407,
+          "tick": 11
+        },
+        {
+          "action": "SELL",
+          "sym": "rocketman",
+          "px": 0.000007284,
+          "tick": 12
+        },
+        {
+          "action": "BUY",
+          "sym": "GHOST",
+          "px": 0.000009861,
+          "tick": 13
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "name": "Index Ivy",
+      "model": "glm-5.2:cloud",
+      "start_cash": 62879,
+      "final_equity": 62698,
+      "trades_count": 13,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "QuietGPT",
+          "px": 0.000002094,
+          "tick": 8
+        },
+        {
+          "action": "SELL",
+          "sym": "BINGO",
+          "px": 0.000003638,
+          "tick": 9
+        },
+        {
+          "action": "SELL",
+          "sym": "Beluga",
+          "px": 0.000004546,
+          "tick": 10
+        },
+        {
+          "action": "BUY",
+          "sym": "BINGO",
+          "px": 0.000003635,
+          "tick": 11
+        },
+        {
+          "action": "BUY",
+          "sym": "GHOST",
+          "px": 0.000009861,
+          "tick": 12
+        },
+        {
+          "action": "BUY",
+          "sym": "Beluga",
+          "px": 0.000003407,
+          "tick": 13
+        }
+      ]
+    },
+    {
+      "id": "event",
+      "name": "Event Nia",
+      "model": "gemma4:31b-cloud",
+      "start_cash": 62879,
+      "final_equity": 57860,
+      "trades_count": 13,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "BINGO",
+          "px": 0.000003638,
+          "tick": 8
+        },
+        {
+          "action": "SELL",
+          "sym": "PUMPE",
+          "px": 0.00001696,
+          "tick": 9
+        },
+        {
+          "action": "SELL",
+          "sym": "BINGO",
+          "px": 0.000003638,
+          "tick": 10
+        },
+        {
+          "action": "BUY",
+          "sym": "PUMPE",
+          "px": 0.00001545,
+          "tick": 11
+        },
+        {
+          "action": "SELL",
+          "sym": "Pumpcat",
+          "px": 0.000006901,
+          "tick": 12
+        },
+        {
+          "action": "SELL",
+          "sym": "Beluga",
+          "px": 0.000003407,
+          "tick": 13
+        }
+      ]
+    },
+    {
+      "id": "rand",
+      "name": "Random Randy",
+      "model": "gemma4:31b-cloud",
+      "start_cash": 62879,
+      "final_equity": 58851,
+      "trades_count": 13,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "PUMPE",
+          "px": 0.00001696,
+          "tick": 8
+        },
+        {
+          "action": "SELL",
+          "sym": "BINGO",
+          "px": 0.000003638,
+          "tick": 9
+        },
+        {
+          "action": "BUY",
+          "sym": "BINGO",
+          "px": 0.000003638,
+          "tick": 10
+        },
+        {
+          "action": "SELL",
+          "sym": "BINGO",
+          "px": 0.000003635,
+          "tick": 11
+        },
+        {
+          "action": "BUY",
+          "sym": "TCM",
+          "px": 0.000002522,
+          "tick": 12
+        },
+        {
+          "action": "SELL",
+          "sym": "PUMPE",
+          "px": 0.00001545,
+          "tick": 13
+        }
+      ]
+    }
+  ]
+}

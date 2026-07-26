@@ -175,7 +175,7 @@ export class LiveFeed {
     this.isTracking = false;
   }
 
-  // Benchhood drop-in interface compatibility methods
+  // trenchbench drop-in interface compatibility methods
   async seed() {
     this.startDiscovery();
     

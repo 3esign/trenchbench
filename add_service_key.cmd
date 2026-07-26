@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 REM ==============================================================
-REM  BENCHHOOD - add your Supabase service_role key to config.txt
+REM  trenchbench - add your Supabase service_role key to config.txt
 REM  The key goes straight from your clipboard into the file.
 REM  It is never printed in full and never leaves this machine.
 REM ==============================================================
@@ -22,7 +22,7 @@ echo   Then right-click here to paste it, and press Enter.
 echo.
 
 if not exist "config.txt" (
-  echo  [X] config.txt not found. Are you running this from the benchhood folder?
+  echo  [X] config.txt not found. Are you running this from the trenchbench folder?
   echo.
   pause & exit /b 1
 )

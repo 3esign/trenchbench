@@ -1,0 +1,440 @@
+{
+  "session_id": "91a0554e-23fe-4984-99cc-d05b11cf4fda",
+  "created_at": "2026-07-26T00:07:55.274Z",
+  "lessons": [
+    {
+      "session_id": "91a0554e-23fe-4984-99cc-d05b11cf4fda",
+      "agent_id": "val",
+      "agent_name": "Value Val",
+      "model": "gemma4:31b-cloud",
+      "ret": 0.89,
+      "lesson": "Reduce trade frequency and extend holding rounds to capture momentum and minimize noise-driven losses."
+    },
+    {
+      "session_id": "91a0554e-23fe-4984-99cc-d05b11cf4fda",
+      "agent_id": "mom",
+      "agent_name": "Momentum Mia",
+      "model": "deepseek-v4-flash:cloud",
+      "ret": -0.21,
+      "lesson": "Cut losses faster when 5m momentum drops below 2% to avoid drawdowns."
+    },
+    {
+      "session_id": "91a0554e-23fe-4984-99cc-d05b11cf4fda",
+      "agent_id": "degen",
+      "agent_name": "Degen Dex",
+      "model": "qwen3.5:cloud",
+      "ret": 0,
+      "lesson": "Stop overtrading noise; only enter when 5m momentum exceeds drawdown risk."
+    },
+    {
+      "session_id": "91a0554e-23fe-4984-99cc-d05b11cf4fda",
+      "agent_id": "contra",
+      "agent_name": "Contrarian Cole",
+      "model": "nemotron-3-super:cloud",
+      "ret": -0.42,
+      "lesson": "Trade with the trend: hold winners longer, cut losers fast, and only add when momentum confirms strength."
+    },
+    {
+      "session_id": "91a0554e-23fe-4984-99cc-d05b11cf4fda",
+      "agent_id": "mrev",
+      "agent_name": "Mean-Reverter Mara",
+      "model": "minimax-m3:cloud",
+      "ret": -10.2,
+      "lesson": "Count: Wait(1) for(2) strong(3) 5m(4) momentum(5) divergence;(6) reduce(7) trade(8) count(9) and(10"
+    },
+    {
+      "session_id": "91a0554e-23fe-4984-99cc-d05b11cf4fda",
+      "agent_id": "index",
+      "agent_name": "Index Ivy",
+      "model": "kimi-k2.7-code:cloud",
+      "ret": -4.14,
+      "lesson": "Cut losing positions faster than winners compound; time spent underwater erodes capital and opportunity."
+    },
+    {
+      "session_id": "91a0554e-23fe-4984-99cc-d05b11cf4fda",
+      "agent_id": "event",
+      "agent_name": "Event Nia",
+      "model": "glm-5.2:cloud",
+      "ret": 1.11,
+      "lesson": "Cut losses faster when 5m momentum reverses within two rounds; let winners ride only when drawdown stays under 1.5%."
+    },
+    {
+      "session_id": "91a0554e-23fe-4984-99cc-d05b11cf4fda",
+      "agent_id": "rand",
+      "agent_name": "Random Randy",
+      "model": "kimi-k2.7-code:cloud",
+      "ret": -1.4,
+      "lesson": "Cut losing positions faster than winners; momentum fades within three rounds."
+    }
+  ],
+  "agents": [
+    {
+      "id": "val",
+      "name": "Value Val",
+      "model": "gemma4:31b-cloud",
+      "start_cash": 27751,
+      "final_equity": 27999,
+      "trades_count": 11,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "AE",
+          "px": 0.000002095,
+          "tick": 8
+        },
+        {
+          "action": "BUY",
+          "sym": "USDT",
+          "px": 0.000002085,
+          "tick": 9
+        },
+        {
+          "action": "BUY",
+          "sym": "pearl",
+          "px": 0.000006221,
+          "tick": 19
+        },
+        {
+          "action": "BUY",
+          "sym": "Hospital",
+          "px": 0.000007173,
+          "tick": 54
+        },
+        {
+          "action": "SELL",
+          "sym": "pearl",
+          "px": 0.000007205,
+          "tick": 56
+        },
+        {
+          "action": "SELL",
+          "sym": "USDP",
+          "px": 0.00004019,
+          "tick": 60
+        }
+      ]
+    },
+    {
+      "id": "mom",
+      "name": "Momentum Mia",
+      "model": "deepseek-v4-flash:cloud",
+      "start_cash": 27751,
+      "final_equity": 27694,
+      "trades_count": 42,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "pearl",
+          "px": 0.000007339,
+          "tick": 69
+        },
+        {
+          "action": "BUY",
+          "sym": "pearl",
+          "px": 0.000007339,
+          "tick": 70
+        },
+        {
+          "action": "SELL",
+          "sym": "USDP",
+          "px": 0.00004187,
+          "tick": 71
+        },
+        {
+          "action": "BUY",
+          "sym": "USDP",
+          "px": 0.00004187,
+          "tick": 72
+        },
+        {
+          "action": "BUY",
+          "sym": "JIMSEM",
+          "px": 0.000002524,
+          "tick": 78
+        },
+        {
+          "action": "SELL",
+          "sym": "USDP",
+          "px": 0.00004174,
+          "tick": 83
+        }
+      ]
+    },
+    {
+      "id": "degen",
+      "name": "Degen Dex",
+      "model": "qwen3.5:cloud",
+      "start_cash": 27751,
+      "final_equity": 27752,
+      "trades_count": 37,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "GUS",
+          "px": 0.0000306,
+          "tick": 50
+        },
+        {
+          "action": "BUY",
+          "sym": "Cog",
+          "px": 0.00003062,
+          "tick": 52
+        },
+        {
+          "action": "SELL",
+          "sym": "pearl",
+          "px": 0.000007205,
+          "tick": 54
+        },
+        {
+          "action": "BUY",
+          "sym": "pearl",
+          "px": 0.000007339,
+          "tick": 61
+        },
+        {
+          "action": "BUY",
+          "sym": "USDT",
+          "px": 0.000002085,
+          "tick": 64
+        },
+        {
+          "action": "SELL",
+          "sym": "JIMSEM",
+          "px": 0.000002524,
+          "tick": 84
+        }
+      ]
+    },
+    {
+      "id": "contra",
+      "name": "Contrarian Cole",
+      "model": "nemotron-3-super:cloud",
+      "start_cash": 27751,
+      "final_equity": 27633,
+      "trades_count": 54,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "pearl",
+          "px": 0.000007339,
+          "tick": 72
+        },
+        {
+          "action": "SELL",
+          "sym": "cuuuuupsey",
+          "px": 0.00003061,
+          "tick": 73
+        },
+        {
+          "action": "SELL",
+          "sym": "JIMSEM",
+          "px": 0.000002524,
+          "tick": 74
+        },
+        {
+          "action": "BUY",
+          "sym": "Jimothy",
+          "px": 0.000002083,
+          "tick": 78
+        },
+        {
+          "action": "BUY",
+          "sym": "JIMSEM",
+          "px": 0.000002524,
+          "tick": 82
+        },
+        {
+          "action": "BUY",
+          "sym": "GUS",
+          "px": 0.0000306,
+          "tick": 84
+        }
+      ]
+    },
+    {
+      "id": "mrev",
+      "name": "Mean-Reverter Mara",
+      "model": "minimax-m3:cloud",
+      "start_cash": 27751,
+      "final_equity": 24920,
+      "trades_count": 71,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Cog",
+          "px": 0.00003062,
+          "tick": 79
+        },
+        {
+          "action": "SELL",
+          "sym": "cuuuuupsey",
+          "px": 0.00003061,
+          "tick": 80
+        },
+        {
+          "action": "BUY",
+          "sym": "cuuuuupsey",
+          "px": 0.00003061,
+          "tick": 81
+        },
+        {
+          "action": "BUY",
+          "sym": "Hospital",
+          "px": 0.000007078,
+          "tick": 82
+        },
+        {
+          "action": "SELL",
+          "sym": "USDT",
+          "px": 0.000002085,
+          "tick": 83
+        },
+        {
+          "action": "SELL",
+          "sym": "Jimothy",
+          "px": 0.000002083,
+          "tick": 84
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "name": "Index Ivy",
+      "model": "kimi-k2.7-code:cloud",
+      "start_cash": 27751,
+      "final_equity": 26603,
+      "trades_count": 12,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00003003,
+          "tick": 19
+        },
+        {
+          "action": "SELL",
+          "sym": "Hospital",
+          "px": 0.000007173,
+          "tick": 54
+        },
+        {
+          "action": "SELL",
+          "sym": "pearl",
+          "px": 0.000007339,
+          "tick": 60
+        },
+        {
+          "action": "SELL",
+          "sym": "USDP",
+          "px": 0.0000412,
+          "tick": 65
+        },
+        {
+          "action": "BUY",
+          "sym": "pearl",
+          "px": 0.000007339,
+          "tick": 68
+        },
+        {
+          "action": "BUY",
+          "sym": "AE",
+          "px": 0.00000212,
+          "tick": 76
+        }
+      ]
+    },
+    {
+      "id": "event",
+      "name": "Event Nia",
+      "model": "glm-5.2:cloud",
+      "start_cash": 27751,
+      "final_equity": 28058,
+      "trades_count": 34,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00003143,
+          "tick": 58
+        },
+        {
+          "action": "SELL",
+          "sym": "pearl",
+          "px": 0.000007339,
+          "tick": 61
+        },
+        {
+          "action": "BUY",
+          "sym": "pearl",
+          "px": 0.000007339,
+          "tick": 63
+        },
+        {
+          "action": "BUY",
+          "sym": "COD",
+          "px": 0.00003059,
+          "tick": 64
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00003162,
+          "tick": 68
+        },
+        {
+          "action": "SELL",
+          "sym": "JIMSEM",
+          "px": 0.000002522,
+          "tick": 70
+        }
+      ]
+    },
+    {
+      "id": "rand",
+      "name": "Random Randy",
+      "model": "kimi-k2.7-code:cloud",
+      "start_cash": 27751,
+      "final_equity": 27363,
+      "trades_count": 35,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Lucy",
+          "px": 0.00003059,
+          "tick": 60
+        },
+        {
+          "action": "BUY",
+          "sym": "pearl",
+          "px": 0.000007339,
+          "tick": 61
+        },
+        {
+          "action": "SELL",
+          "sym": "pearl",
+          "px": 0.000007339,
+          "tick": 62
+        },
+        {
+          "action": "BUY",
+          "sym": "USDP",
+          "px": 0.0000412,
+          "tick": 63
+        },
+        {
+          "action": "BUY",
+          "sym": "pearl",
+          "px": 0.000007339,
+          "tick": 65
+        },
+        {
+          "action": "SELL",
+          "sym": "USDP",
+          "px": 0.00004187,
+          "tick": 72
+        }
+      ]
+    }
+  ]
+}

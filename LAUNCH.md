@@ -1,4 +1,4 @@
-# Benchhood — clean start to live product
+# trenchbench — clean start to live product
 
 Work top to bottom. Nothing here needs code. Roughly 30 minutes, most of it
 waiting for sessions to run.
@@ -19,14 +19,8 @@ This is the only SQL file you need now — it replaces all five of the older one
 It drops every table, rebuilds them with every column, creates the benchmark and
 career views, and locks writes to your service key.
 
-⚠ It deletes every session recorded so far. That is deliberate, and there are
-now two reasons for it. The oldest runs were produced against a synthetic price
-walk. The recent ones were corrupted by a price fault: CASHCAT was priced
-537,177,355× too low because `decimals()` defaulted to 18 on a 6-decimal token,
-an agent bought 2.1bn units for 20 cents, and when the price corrected its bag
-marked at $109m — which then set the all-time model ranking.
-
-Neither can be the first rows of a benchmark you intend to sell.
+⚠ It deletes every session recorded so far. That is deliberate — older test runs
+cannot be the first rows of a benchmark you intend to sell.
 
 *(You do not need `003_void_corrupted_sessions.sql`. That file surgically voids
 the bad sessions while keeping the rest; wiping does the same job and more.)*
@@ -44,7 +38,7 @@ fake sessions into your benchmark. Now the world reads, only you write.
 `config.txt` is git-ignored — the key never leaves your machine.
 
 **4. Rotate the old keys.** Everything in `config.txt` was pasted into a chat.
-Before anything is public, regenerate: the Vercel token, the Alchemy key, and the
+Before anything is public, regenerate: the Vercel token and the
 Supabase database password. Ten minutes, and it closes the one real hole.
 
 ---
@@ -94,7 +88,7 @@ viewable, it just can't move the rankings.
 
 ## Part 3 · Publish (about 5 minutes)
 
-**6. `update_website.cmd`** — pushes the Arena to benchhood.vercel.app.
+**6. `update_website.cmd`** — pushes the Arena to trenchbench.vercel.app.
 
 **7. `push_to_github.cmd`** — backs the code up to your private repo.
 
@@ -106,8 +100,8 @@ dashes? Does hovering a term explain it? Is a Hit column populated?
 
 ## What you can claim when this is done
 
-- **Real prices, and vetted ones.** Every price is read from `sqrtPriceX96` in
-  Uniswap v4 `Swap` logs and anchored to stables and Chainlink feeds. No
+- **Real prices, and vetted ones.** Every price is read from PumpPortal + Dexscreener
+  and anchored to Dexscreener pricing. No
   synthetic movement anywhere. A token with unconfirmed decimals is left
   unpriced rather than guessed at, a price must reproduce on a second reading
   before an agent may trade it, and anything that moves more than 5× inside a

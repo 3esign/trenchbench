@@ -1,12 +1,12 @@
 // ============================================================
-//  BENCHHOOD — session runner (runs on your PC)
-//  • Real Robinhood-Chain tokens + live prices (from the chain explorer),
-//    refreshed during the session. Falls back to simulation only if the
-//    chain is unreachable.
+//  trenchbench — session runner (runs on your PC)
+//  • Real Pump.fun tokens + live prices (PumpPortal + Dexscreener),
+//    refreshed during the session. Falls back to simulation only if
+//    the feed is unreachable.
 //  • Every agent thinks every round, in parallel, via your Ollama models
 //    (local + Ollama Cloud) — each call printed so you SEE it, continuously.
 //  • Survival game: bust to ~$0 = eliminated; last one holding money wins.
-//  Saves locally AND pushes to Supabase. Zero npm installs (Node 18+).
+//  Saves locally AND pushes to Supabase. Zero npm installs (Node 21+).
 // ============================================================
 import fs from 'node:fs';
 import crypto from 'node:crypto';
@@ -45,15 +45,9 @@ const MAX_MODELS = +(ENV.MAX_MODELS || 8);
 // Not one provider — a pool. A keyed endpoint leads while it has quota, then
 // the free public ones carry the session rather than ending it. Set RPC_URLS in
 // config.txt (comma-separated) to add more.
-const HAS_RPC = !!(ENV.ALCHEMY_RPC_URL || ENV.RPC_URLS || String(ENV.USE_PUBLIC_RPC || 'on').toLowerCase() !== 'off');
-const RPC = null; // Removed poolFromEnv for Trench Bench
-const POOL_MANAGER = ENV.POOL_MANAGER || '0x8366a39CC670B4001A1121B8F6A443A643e40951';
-const USE_POOLS = (ENV.USE_POOL_PRICES || 'on').toLowerCase() !== 'off';
-let FEEDS = {}; try { FEEDS = JSON.parse(fs.readFileSync(new URL('worker/feeds.json', ROOT), 'utf8')); } catch {}
-const EXPLORER = (ENV.EXPLORER_API || 'https://robinhoodchain.blockscout.com/api/v2').replace(/\/$/, '');
 const PRICE_MODE = (ENV.PRICE_MODE || 'real').toLowerCase();
 const NUM_TOKENS = +(ENV.NUM_TOKENS || 20);
-const CONTROL = (ENV.CONTROL_TOKENS || 'USDG,NVDA,TSLA,WETH').split(',').map(s => s.trim()).filter(Boolean);
+const CONTROL = (ENV.CONTROL_TOKENS || 'SOL,USDC,WIF,BONK').split(',').map(s => s.trim()).filter(Boolean);
 const MODE = (process.argv[2] || ENV.ROSTER_MODE || 'mixed').toLowerCase();
 const FRESH_MIN = +(ENV.FRESH_TOKENS || 6);
 const REFRESH_MS = +(ENV.REFRESH_SECONDS || 10) * 1000;
@@ -273,16 +267,23 @@ function getPsychologicalRisk(ag, obs) {
   const gain = obs.equity / ag.start_cash;
   
   if (ag.id === 'degen') {
-    // Degens double down when losing (revenge trading / gambler's fallacy)
-    if (gain < 0.90) r = Math.min(0.55, r * 1.5);
-    // And increase sizes when winning (FOMO / overconfidence)
-    if (gain > 1.10) r = Math.min(0.55, r * 1.3);
+    // Degens go harder — always. Double down on losses, size up on wins.
+    r *= 1.4;
+    if (gain < 0.85) r = Math.min(0.70, r * 1.8);  // revenge trading
+    if (gain > 1.10) r = Math.min(0.70, r * 1.5);  // FOMO
+  } else if (ag.id === 'mom' || ag.id === 'event') {
+    // Momentum/Event traders size up when conviction is high
+    if (gain > 1.05) r = Math.min(0.50, r * 1.4);
+    if (gain < 0.90) r = r * 0.85;
+  } else if (ag.id === 'contra' || ag.id === 'mrev') {
+    // Mean-reverters and contrarians get bolder when things drop — that is their edge
+    if (gain < 0.90) r = Math.min(0.45, r * 1.3);
   } else if (ag.id === 'val' || ag.id === 'index') {
     // Conservative investors cut risk sizes when losing (capital preservation)
     if (gain < 0.90) r = r * 0.7;
   } else {
-    // Standard profiles scale up slightly on wins and scale down on losses
-    if (gain > 1.10) r = Math.min(0.35, r * 1.2);
+    // Standard profiles
+    if (gain > 1.10) r = Math.min(0.40, r * 1.2);
     if (gain < 0.90) r = r * 0.8;
   }
   return r;
@@ -370,13 +371,23 @@ const shortNum = v => {
   return '$' + Math.round(v);
 };
 async function think(ag, obs) {
-  const movers = obs.top.map(a => `${a.sym} ($${fmt(a.price)} | Cap ${shortNum(a.cap)} | Liq ${shortNum(a.liq)} | Vol ${shortNum(a.vol5m)} | 5m ${a.mom >= 0 ? '+' : ''}${a.mom.toFixed(1)}% | 1h ${a.mom1h >= 0 ? '+' : ''}${a.mom1h.toFixed(1)}%)`).join(', ');
+  const movers = obs.top.map(a => {
+    const signals = [];
+    signals.push(`$${fmt(a.price)}`);
+    if (a.cap) signals.push(`Cap ${shortNum(a.cap)}`);
+    if (a.liq) signals.push(`Liq ${shortNum(a.liq)}`);
+    if (a.vol5m) signals.push(`Vol5m ${shortNum(a.vol5m)}`);
+    signals.push(`5m ${a.mom >= 0 ? '+' : ''}${a.mom.toFixed(1)}%`);
+    signals.push(`1h ${a.mom1h >= 0 ? '+' : ''}${a.mom1h.toFixed(1)}%`);
+    if (a.isMigrated) signals.push('🎓 Raydium');
+    return `${a.sym} (${signals.join(' | ')})`;
+  }).join(', ');
   // Show the agent what it is ALREADY HOLDING, with entry price and unrealised
   // P&L. Without this the models simply never sold — 300 trades produced 13
   // closed round-trips — because nothing in the prompt asked them to look.
   const pos = obs.positions.length
     ? obs.positions.map(p => `${p.sym} x${p.qty < 1 ? p.qty.toPrecision(3) : Math.round(p.qty)} bought ${fmt(p.avg)} now ${fmt(p.px)} (${p.pnl >= 0 ? '+' : ''}${p.pnl.toFixed(1)}%)`).join('; ')
-    : 'none';
+    : 'none — you should BUY something';
   // What its own last few calls have done since. This is the feedback loop —
   // without it an agent repeats the same mistake for the whole session because
   // nothing ever tells it the last one lost money.
@@ -385,10 +396,14 @@ async function think(ag, obs) {
     const move = h.px > 0 ? (now / h.px - 1) * 100 : 0;
     const scored = h.action === 'BUY' ? move : -move;
     return `r${h.tick} ${h.action} ${h.sym} at ${fmt(h.px)} -> ${scored >= 0 ? '+' : ''}${scored.toFixed(1)}% ${scored >= 0 ? 'in your favour' : 'against you'}`;
-  }).join('; ') || 'none yet';
-  // Nudge, not a rule: an agent that has sat still for a long stretch is told
-  // so. Forcing trades would corrupt the measurement; naming the fact does not.
-  const idle = ag.holdStreak >= 8 ? `\nyou have not traded for ${ag.holdStreak} rounds.` : '';
+  }).join('; ') || 'none yet — make your first move!';
+  // Escalating nudge: the longer an agent sits idle, the harder the push.
+  // This is still information, not a forced trade — but it is loud.
+  const idle = ag.holdStreak >= 3
+    ? (ag.holdStreak >= 8
+      ? `\n⚠️ WARNING: you have done NOTHING for ${ag.holdStreak} rounds. Cash sitting idle loses to the market. ACT NOW or fall behind.`
+      : `\nyou have not traded for ${ag.holdStreak} rounds. Consider making a move.`)
+    : '';
   const learned = (ag.memory && ag.memory.length)
     ? `\nwhat this strategy learned in earlier sessions:\n${ag.memory.map(m => `- ${m}`).join('\n')}` : '';
   const used = obs.positions.length, room = (ag.maxPos ?? 5);
@@ -397,16 +412,17 @@ async function think(ag, obs) {
   const tradable = obs.top.map(a => a.sym);
   for (const p of obs.positions) if (!tradable.includes(p.sym)) tradable.push(p.sym);
   const sys = DEC_FORMAT === 'menu'
-    ? `You are ${ag.name}, a ${ag.role} trading on Pump.fun Memecoins.
+    ? `You are ${ag.name}, a ${ag.role} trading Pump.fun memecoins on Solana.
 ${ag.desc || ''}
-You will be shown your money, what you own, how your recent calls went, and a
-numbered list of the moves available to you right now.
-Choose exactly ONE. Reply with its number and NOTHING else — no explanation,
-no punctuation, no sentence. Just the digit. Doing nothing is one of the numbered
-options — pick its number if that is what you want.`
+You are in a competitive benchmark against other AI traders. SITTING STILL LOSES.
+You MUST actively trade to win — BUY tokens you believe in, SELL when you have a
+profit or need to cut losses. Holding cash earns nothing while the market moves.
+You will see your money, positions, recent results, and a numbered menu.
+Choose exactly ONE. Reply with its number and NOTHING else — just the digit.`
     : DEC_FORMAT === 'line'
-    ? `You are ${ag.name}, a ${ag.role} trading on Pump.fun Memecoins.
+    ? `You are ${ag.name}, a ${ag.role} trading Pump.fun memecoins on Solana.
 ${ag.desc || ''}
+You are in a competitive benchmark. SITTING STILL LOSES. Trade actively.
 Reply with ONE line and nothing else, exactly in this form:
 ACTION SYMBOL QTY | reason
 ACTION is BUY, SELL or HOLD. For HOLD write: HOLD | reason
@@ -414,8 +430,9 @@ QTY is a whole number of tokens. The reason is at most 8 words.
 Example: BUY WIF 12 | Raydium Migration
 Only use a SYMBOL from the tradable list. Review what you already own first —
 a gain only becomes money when you SELL.`
-    : `You are ${ag.name}, a ${ag.role} trading on Pump.fun Memecoins.
+    : `You are ${ag.name}, a ${ag.role} trading Pump.fun memecoins on Solana.
 ${ag.desc || ''}
+You are in a competitive benchmark. SITTING STILL LOSES. Trade actively.
 Pick ONE action: BUY, SELL or HOLD. Only use a symbol from the tradable list.
 Review what you already own first — a gain only becomes money when you SELL.
 comment must be at most 8 words.`;
@@ -489,18 +506,17 @@ your last note to yourself: ${ag.note || 'none'}${learned}${idle}`;
   } finally { clearTimeout(timer); INFLIGHT.delete(ctl); }
 }
 
-// ---------- REAL market: Robinhood-Chain tokens + live prices (Blockscout explorer) ----------
-const STOCKS = new Set(['AAPL','NVDA','TSLA','MSFT','META','AMZN','GOOGL','GME','MSTR','AMC','IONQ','RKLB','NBIS','SPY','QQQ','COIN','HOOD','PLTR','NFLX','AVGO']);
-const STABLES = new Set(['USDG','USDC','USDT','USDE','DAI','USDG.e','USDe']);
-const catOf = s => STABLES.has(s) ? 'stable' : STOCKS.has(s) ? 'bluechip' : 'memecoin';
-function classify(sym, name){ if (STABLES.has(sym) || /USD/i.test(sym)) return 'stable'; if (/Robinhood Token/i.test(name || '') || STOCKS.has(sym)) return 'bluechip'; return 'memecoin'; }
-const classLabel = c => ({ bluechip:'stock', memestock:'stock', smallcap:'stock', etf:'stock', memecoin:'memecoin', stable:'stable' }[c] || c);
+// ---------- REAL market: Pump.fun tokens + live prices (PumpPortal + Dexscreener) ----------
+const STABLES = new Set(['USDC','USDT','USDE','DAI','USDe']);
+const catOf = s => STABLES.has(s) ? 'stable' : 'memecoin';
+function classify(sym, name){ if (STABLES.has(sym) || /USD/i.test(sym)) return 'stable'; return 'memecoin'; }
+const classLabel = c => ({ memecoin:'memecoin', stable:'stable' }[c] || c);
 
 
 function recompute(a) { a.chg = (a.price / a.seed - 1) * 100; const w = a.hist.slice(-12), wr = a.hist.slice(-24); a.mom = (a.price / w[0] - 1) * 100; a.dev = (a.price / (wr.reduce((s, x) => s + x, 0) / wr.length) - 1) * 100; }
 
 // ---------- Simulated market (fallback) ----------
-const MEMEPOOL = ['CHILLGUY','PENGU','FARTCOIN','GOAT','ZEREBRO','FOREST','REAL','AIX','DEGN','MOONHD','PEPEHD','GIGA','WIFHD','BONKR','TENDIE','APEHD','CHADHD','FOMO','HOODOG','LAMBO','WAGMI','DOGE','SHIB','FLOKI','BONK','POPCAT','BOME','MEW','PNUT','ACT','SLERF','MYRO'];
+const MEMEPOOL = ['CHILLGUY','PENGU','FARTCOIN','GOAT','ZEREBRO','REAL','AIX','DEGN','GIGA','TENDIE','FOMO','WAGMI','DOGE','SHIB','FLOKI','BONK','POPCAT','BOME','MEW','PNUT','ACT','SLERF','MYRO','WIF','TRUMP','MELANIA','BODEN','MOTHER','DADDY','TREMP','MOODENG','BRETT'];
 function buildSimAssets() {
   const memes = []; 
   const p = [...MEMEPOOL]; 
@@ -520,14 +536,22 @@ function tickSim(A) { for (const a of A) { if (a.cat === 'memecoin' && Math.rand
 // tp / sl / maxPos give each persona its own exit discipline — the thing that
 // turns paper gains into realised money.
 const PERSONAS = [
-  { id: 'val', desc: 'You buy quality that has fallen below its own recent average, and you wait. You are the slowest hand at the table and you are fine with that.',   name: 'Value Val',          role: 'value investor',     risk: .15, tp: 10, sl: -7,  maxPos: 5 },
-  { id: 'mom', desc: 'You buy what is already rising hardest and ride it. You are brilliant in a trend and punished the moment one breaks.',   name: 'Momentum Mia',       role: 'trend chaser',       risk: .20, tp: 12, sl: -5,  maxPos: 4 },
-  { id: 'degen', desc: 'You chase the loudest memecoin on the board. Highest risk appetite here, widest outcomes, no apologies.', name: 'Degen Dex',          role: 'meme degen',         risk: .30, tp: 25, sl: -15, maxPos: 4 },
-  { id: 'contra', desc: 'You buy the biggest faller, betting the drop overshot. You catch real bottoms and falling knives in roughly equal measure.',name: 'Contrarian Cole',    role: 'buys the dip',       risk: .18, tp: 9,  sl: -9,  maxPos: 5 },
-  { id: 'mrev', desc: 'You fade anything stretched far from its own average, in either direction. You assume extremes snap back.',  name: 'Mean-Reverter Mara', role: 'fades extremes',     risk: .18, tp: 7,  sl: -8,  maxPos: 5 },
-  { id: 'index', desc: 'You spread small amounts across quality rather than picking winners. Boring on purpose.', name: 'Index Ivy',          role: 'diversified',        risk: .08, tp: 6,  sl: -5,  maxPos: 8 },
-  { id: 'event', desc: 'You wait for a violent move in either direction and jump on it. You trade rarely, then all at once.', name: 'Event Nia',          role: 'reacts to shocks',   risk: .20, tp: 14, sl: -10, maxPos: 4 },
-  { id: 'rand', desc: 'You flip a coin. You do not overthink it.',  name: 'Random Randy',       role: 'coin-flip persona', risk: .12, tp: 99, sl: -99, maxPos: 6 },
+  { id: 'val',   desc: 'You buy tokens that have DROPPED hard recently — they are cheap. You wait for recovery. You MUST have at least 2 positions open at all times. If you hold nothing, BUY the cheapest token on the board.',
+                 name: 'Value Val',          role: 'value investor',     risk: .25, tp: 12, sl: -8,  maxPos: 5 },
+  { id: 'mom',   desc: 'You buy whatever is PUMPING hardest right now. You ride momentum until it breaks. You trade EVERY round — either buying the biggest mover or selling a position that has stalled. Never sit idle.',
+                 name: 'Momentum Mia',       role: 'trend chaser',       risk: .35, tp: 15, sl: -6,  maxPos: 4 },
+  { id: 'degen', desc: 'You are a FULL DEGEN. You ape into EVERY pump, no hesitation. You MUST trade every single round — buy the spiciest token or sell for profit. Sitting in cash is losing. You would rather lose trading than win by doing nothing.',
+                 name: 'Degen Dex',          role: 'meme degen',         risk: .50, tp: 30, sl: -20, maxPos: 5 },
+  { id: 'contra',desc: 'You are a contrarian sniper. You buy the BIGGEST FALLER on the board — the redder the better. You bet on bounces. You MUST have 2-3 positions open. If nothing is red, sell your best winner to lock profits.',
+                 name: 'Contrarian Cole',    role: 'buys the dip',       risk: .30, tp: 10, sl: -10, maxPos: 5 },
+  { id: 'mrev',  desc: 'You fade extremes in BOTH directions. If something pumped too far, SELL or avoid it. If something dumped too far, BUY it. You always want to be positioned — 3+ slots filled.',
+                 name: 'Mean-Reverter Mara', role: 'fades extremes',     risk: .28, tp: 8,  sl: -9,  maxPos: 5 },
+  { id: 'index', desc: 'You spread across MANY tokens in small amounts. Buy a little of everything you do not already own. You should have 5-8 positions at all times. Diversification is your strategy — never concentrated.',
+                 name: 'Index Ivy',          role: 'diversified',        risk: .15, tp: 8,  sl: -6,  maxPos: 8 },
+  { id: 'event', desc: 'You are an event trader. You watch for ANY token that moved more than 3% in the last 5 minutes and JUMP on it immediately — buy the pump or buy the crash. When nothing is moving, sell your weakest position. You swing hard.',
+                 name: 'Event Nia',          role: 'reacts to shocks',   risk: .35, tp: 18, sl: -12, maxPos: 4 },
+  { id: 'rand',  desc: 'You flip a coin. You do not overthink it. Just pick something random every round.',
+                 name: 'Random Randy',       role: 'coin-flip persona',  risk: .20, tp: 99, sl: -99, maxPos: 6 },
 ];
 
 // ============================================================
@@ -599,13 +623,20 @@ function ruleFallback(ag, obs) {
   const sell = (sym, c) => { const q = obs.hold[sym] || 0; return q > 0 ? { action: 'SELL', symbol: sym, qty: q, comment: c } : { action: 'HOLD', symbol: null, qty: 0, comment: 'hold' }; };
   const by = (arr, f, d = 1) => [...arr].sort((a, b) => (f(b) - f(a)) * d);
   if (!A.length) return { action: 'HOLD', symbol: null, qty: 0, comment: 'no market' };
-  if (ag.id === 'degen') { const m = by(A.filter(a => a.cat === 'memecoin' || a.cat === 'memestock'), a => a.mom)[0]; return m && m.mom > 2 ? buy(m.sym, 'aping ' + m.sym) : { action: 'HOLD', symbol: null, qty: 0, comment: 'waiting' }; }
-  if (ag.id === 'mom') { const t = by(A, a => a.mom)[0]; return t.mom > 1.4 ? buy(t.sym, 'riding ' + t.sym) : { action: 'HOLD', symbol: null, qty: 0, comment: 'no trend' }; }
-  if (ag.id === 'contra') { const l = by(A, a => a.mom, -1)[0]; return l.mom < -2 ? buy(l.sym, 'fading drop') : { action: 'HOLD', symbol: null, qty: 0, comment: 'no dip' }; }
-  if (ag.id === 'val') { const c = by(A.filter(a => a.cat === 'bluechip' || a.cat === 'etf'), a => a.dev, -1)[0]; return c && c.dev < -1.2 ? buy(c.sym, c.sym + ' cheap') : { action: 'HOLD', symbol: null, qty: 0, comment: 'nothing cheap' }; }
-  if (ag.id === 'mrev') { const lo = by(A, a => a.dev, -1)[0]; return lo.dev < -2.5 ? buy(lo.sym, 'reverting') : { action: 'HOLD', symbol: null, qty: 0, comment: 'fair' }; }
-  if (ag.id === 'event') { const s = by(A, a => Math.abs(a.mom))[0]; return Math.abs(s.mom) > 3 ? buy(s.sym, 'shock ' + s.sym) : { action: 'HOLD', symbol: null, qty: 0, comment: 'quiet' }; }
-  if (ag.id === 'index') { const u = A.filter(a => (a.cat === 'bluechip' || a.cat === 'etf') && !obs.hold[a.sym]); return u.length ? buy(pick(u).sym, 'basket') : { action: 'HOLD', symbol: null, qty: 0, comment: 'balanced' }; }
+  // Degen ALWAYS trades — ape into the hottest meme, or pick random if nothing pumps
+  if (ag.id === 'degen') { const m = by(A, a => a.mom)[0]; return m ? buy(m.sym, 'aping ' + m.sym) : buy(pick(A).sym, 'yolo'); }
+  // Momentum chases hardest pumps — lower threshold so it actually fires
+  if (ag.id === 'mom') { const t = by(A, a => a.mom)[0]; return t.mom > 0.5 ? buy(t.sym, 'riding ' + t.sym) : (held.length ? sell(pick(held), 'stalled') : buy(pick(A).sym, 'scanning')); }
+  // Contrarian buys biggest dips — lower threshold
+  if (ag.id === 'contra') { const l = by(A, a => a.mom, -1)[0]; return l.mom < -0.5 ? buy(l.sym, 'fading drop') : (held.length ? sell(pick(held), 'no dip') : buy(pick(A).sym, 'nibbling')); }
+  // Value buys cheapest by deviation — any memecoin that dipped
+  if (ag.id === 'val') { const c = by(A, a => a.dev, -1)[0]; return c && c.dev < -0.5 ? buy(c.sym, c.sym + ' cheap') : (held.length > 0 ? { action: 'HOLD', symbol: null, qty: 0, comment: 'patient' } : buy(pick(A).sym, 'opening position')); }
+  // Mean-reverter fades extremes — lower threshold
+  if (ag.id === 'mrev') { const lo = by(A, a => a.dev, -1)[0]; return lo && lo.dev < -1 ? buy(lo.sym, 'reverting') : (held.length ? sell(pick(held), 'trimming') : buy(pick(A).sym, 'starting')); }
+  // Event reacts to ANY big move — much lower threshold
+  if (ag.id === 'event') { const s = by(A, a => Math.abs(a.mom))[0]; return Math.abs(s.mom) > 1 ? buy(s.sym, 'shock ' + s.sym) : (held.length ? sell(pick(held), 'no shock') : { action: 'HOLD', symbol: null, qty: 0, comment: 'watching' }); }
+  // Index buys everything it does not already hold
+  if (ag.id === 'index') { const u = A.filter(a => !obs.hold[a.sym]); return u.length ? buy(pick(u).sym, 'basket') : { action: 'HOLD', symbol: null, qty: 0, comment: 'balanced' }; }
   const r = Math.random(); if (r < .4) return buy(pick(A).sym, 'coin flip'); if (r < .7 && held.length) return sell(pick(held), 'coin flip'); return { action: 'HOLD', symbol: null, qty: 0, comment: 'coin flip' };
 }
 // Executes the order AND prices the exit against FIFO lots, so every SELL
@@ -666,7 +697,7 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
     const alive = (() => { try { process.kill(prev.pid, 0); return true; } catch { return false; } })();
     if (alive && prev.pid !== process.pid) {
       console.log('\n  ============================================================');
-      console.log('   ALREADY RUNNING — another Benchhood session is live.');
+      console.log('  ALREADY RUNNING — another session is live.');
       console.log('  ============================================================');
       console.log(`   It started at ${prev.started} (process ${prev.pid}).`);
       console.log('   Two runners would double your model spend, so this one is');
@@ -885,7 +916,7 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
   let sess = await sb('sessions', 'POST', sessRow, 'return=representation');
   if (!sess) { const { tokens, ...basic } = sessRow; sess = await sb('sessions', 'POST', basic, 'return=representation'); if (sess) console.log('  [db] saved without token opens — run supabase/002_outcomes_and_tokens.sql to turn on live token colours.'); }
   const session_id = (sess && sess[0] && sess[0].id) || crypto.randomUUID();
-  console.log(`\nSession ${session_id}\ncapital ${CAP_MODE === 'equal' ? `$${START_CAP.toLocaleString('en-US')} each (equal)` : `$${CMIN}-$${CMAX} per agent (random)`} · ${REALMODE ? 'REAL Robinhood-Chain prices' : 'simulated prices'} · roster ${MODE} · runs until you press Stop (safety cap ${SECONDS >= 60 ? Math.round(SECONDS / 60) + ' min' : SECONDS + ' s'})\n`);
+  console.log(`\nSession ${session_id}\ncapital ${CAP_MODE === 'equal' ? `$${START_CAP.toLocaleString('en-US')} each (equal)` : `$${CMIN}-$${CMAX} per agent (random)`} · ${REALMODE ? 'REAL Pump.fun memecoin prices' : 'simulated prices'} · roster ${MODE} · runs until you press Stop (safety cap ${SECONDS >= 60 ? Math.round(SECONDS / 60) + ' min' : SECONDS + ' s'})\n`);
 
   const decisions = [], equity = [], roundMs = []; let round = 0, flushedD = 0, flushedE = 0; const t0 = Date.now();
   while ((Date.now() - t0) / 1000 < SECONDS && !fs.existsSync(STOPFLAG) && !SHUTTING && CALLS < MAX_MODEL_CALLS) {
@@ -1212,7 +1243,7 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
   console.log('\n================ SESSION COMPLETE ================');
   ranked.forEach((r, i) => console.log(`  ${i + 1}. ${r.agent_name.padEnd(20)} ${String(r.model).padEnd(24)} $${r.start_cash} -> $${Math.round(r.end_value)}  (${r.ret >= 0 ? '+' : ''}${r.ret}%)  hit ${r.hit_rate == null ? '  -' : String(r.hit_rate).padStart(5) + '%'}  edge ${r.avg_edge == null ? '  -' : (r.avg_edge >= 0 ? '+' : '') + r.avg_edge}${r.summary.includes('[OUT]') ? '  ELIMINATED' : ''}`));
   const fbTot = agents.reduce((s2, a) => s2 + (a.fallbackCalls || 0), 0);
-  console.log(`\n  market: ${REALMODE ? `REAL Robinhood-Chain prices · ${refreshes} refresh${refreshes === 1 ? '' : 'es'}, ${priceMoves} price move${priceMoves === 1 ? '' : 's'}` : 'simulated'} · ${decisions.length} decisions · ${round} rounds`);
+  console.log(`\n  market: ${REALMODE ? `REAL Pump.fun memecoin prices · ${refreshes} refresh${refreshes === 1 ? '' : 'es'}, ${priceMoves} price move${priceMoves === 1 ? '' : 's'}` : 'simulated'} · ${decisions.length} decisions · ${round} rounds`);
   if (REALMODE && priceMoves === 0) console.log('  [warn] no price moved all session. If [pools] was active this means the roster tokens simply did not trade; otherwise the explorer cache was stale.');
   if (fbTot) {
     const why = {}; for (const d of decisions) if (d.brain !== 'model') why[d.brain] = (why[d.brain] || 0) + 1;
@@ -1232,7 +1263,6 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
   console.log(`  Supabase writes: decisions ${okD ? 'OK' : 'FAILED'} · equity ${okE ? 'OK' : 'FAILED'} · reports ${okR} · outcomes ${okO} · session closed ${reallyStopped ? 'OK' : 'FAILED'}`);
   if (suspectPrices) console.log(`  prices: ${suspectPrices} implausible jump(s) were held back pending confirmation.`);
   if (quarantined.size) console.log(`  quarantined: ${[...quarantined].join(', ')} — delisted mid-session, held at cost, excluded from scoring and from the market benchmark.`);
-  if (RPC && typeof RPC.report === 'function') console.log(RPC.report());
   console.log(counted
     ? `  benchmark: COUNTED — ${round} rounds, this run moves the all-time model rankings.`
     : !plausible
@@ -1299,6 +1329,46 @@ Write ONE sentence, under 20 words, for your next session. No preamble, just the
         console.error('  [research] error saving evolution tree log:', err.message);
       }
     } else console.log('  no lessons produced (models did not answer).');
+  }
+
+  // ---------- observer agent (market analyst) ----------
+  // Runs once at the very end of the session to provide objective performance analysis
+  // of the entire market and agent leaderboard. Useful for tracking system progress.
+  if (usingOllama && models.length && !SHUTTING) {
+    console.log('\n  running observer agent (performance analysis)...');
+    const obsModel = models[0];
+    const standings = ranked.map((r, i) => `${i + 1}. ${r.agent_name} (${r.model}) - Final Equity: $${Math.round(r.end_value)} (${r.ret >= 0 ? '+' : ''}${r.ret}%)`).join('\n');
+    const sys3 = `You are a quantitative trading analyst observing a benchmark session. You provide realistic, objective observation and performance analysis. Keep it strictly to 2-3 paragraphs.`;
+    const usr3 = `The trading session has ended after ${round} rounds.
+Starting Capital: $${session_cash}
+Market condition: ${priceMoves} price moves observed.
+
+Final Standings:
+${standings}
+
+Write an objective performance analysis of the strategies used. Identify which strategy worked best under these market conditions and why the losers failed. Do not mention specific token names. Focus on the personas and risk management.`;
+
+    try {
+      const ctl = new AbortController(); INFLIGHT.add(ctl);
+      const t = setTimeout(() => ctl.abort(), THINK_MS * 3);
+      const resp = await fetch(`${OLLAMA}/api/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal,
+        body: JSON.stringify({ model: obsModel, stream: false, think: false, options: { temperature: .7, num_predict: 800 }, messages: [{ role: 'system', content: sys3 }, { role: 'user', content: usr3 }] }) });
+      clearTimeout(t); INFLIGHT.delete(ctl);
+      if (resp.ok) {
+        const jj = await resp.json();
+        const commentary = String((jj.message && (jj.message.content || jj.message.thinking)) || '').trim();
+        if (commentary) {
+          console.log(`\n  [Observer Analyst - ${obsModel}]`);
+          console.log(`  ${commentary.split('\n').join('\n  ')}\n`);
+          const okObs = await sbInsertSafe('session_commentary', [{ session_id, model: obsModel, commentary }]);
+          console.log(`  observer commentary saved: ${okObs}`);
+        }
+      } else {
+        console.log('  observer agent failed to generate commentary (HTTP error).');
+      }
+    } catch (err) {
+      console.log(`  observer agent failed: ${err.message}`);
+    }
   }
 
   // ---------- career ledger ----------

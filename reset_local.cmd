@@ -1,7 +1,7 @@
 @echo off
 setlocal
 REM ==============================================================
-REM  BENCHHOOD - archive local session files for a clean start
+REM  trenchbench - archive local session files for a clean start
 REM  Nothing is deleted. Everything moves into sessions_archive\
 REM  so the old runs are still on disk if you ever want them.
 REM ==============================================================

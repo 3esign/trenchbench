@@ -1,5 +1,5 @@
 {
-  "$comment": "Benchhood — the two schemas. (1) what each Ollama call MUST return (kept tiny to save tokens across many agents). (2) what we log per decision (the tracked parameters).",
+  "$comment": "Trench Bench — the two schemas. (1) what each Ollama call MUST return (kept tiny to save tokens across many agents). (2) what we log per decision (the tracked parameters).",
 
   "model_output": {
     "description": "Forced via Ollama structured output. This is ALL the model returns — nothing else — so inference stays cheap.",

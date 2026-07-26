@@ -1,0 +1,440 @@
+{
+  "session_id": "fbd19577-27c4-4182-a72e-001b64f79ee1",
+  "created_at": "2026-07-26T01:03:30.800Z",
+  "lessons": [
+    {
+      "session_id": "fbd19577-27c4-4182-a72e-001b64f79ee1",
+      "agent_id": "val",
+      "agent_name": "Value Val",
+      "model": "minimax-m3:cloud",
+      "ret": 1.63,
+      "lesson": "Reduce trade frequency by requiring stronger 5m momentum confirmation and holding winners longer to improve market-beating rate."
+    },
+    {
+      "session_id": "fbd19577-27c4-4182-a72e-001b64f79ee1",
+      "agent_id": "mom",
+      "agent_name": "Momentum Mia",
+      "model": "kimi-k2.7-code:cloud",
+      "ret": 9.44,
+      "lesson": "Cut losing momentum trades faster than winners; let 5m breakouts compound, but exit on >2% drawdown."
+    },
+    {
+      "session_id": "fbd19577-27c4-4182-a72e-001b64f79ee1",
+      "agent_id": "degen",
+      "agent_name": "Degen Dex",
+      "model": "glm-5.2:cloud",
+      "ret": 9.31,
+      "lesson": "Cut losers faster under 2 rounds when 5m momentum flips negative; let winners ride through drawdowns exceeding entry momentum."
+    },
+    {
+      "session_id": "fbd19577-27c4-4182-a72e-001b64f79ee1",
+      "agent_id": "contra",
+      "agent_name": "Contrarian Cole",
+      "model": "gemma4:31b-cloud",
+      "ret": 8.85,
+      "lesson": "Scale into deep drawdowns during low-momentum phases and hold for multiple rounds to capture mean reversion."
+    },
+    {
+      "session_id": "fbd19577-27c4-4182-a72e-001b64f79ee1",
+      "agent_id": "mrev",
+      "agent_name": "Mean-Reverter Mara",
+      "model": "deepseek-v4-flash:cloud",
+      "ret": 4.34,
+      "lesson": "Fade sharp 5m momentum spikes; hold mean reversion trades for at least 3 rounds."
+    },
+    {
+      "session_id": "fbd19577-27c4-4182-a72e-001b64f79ee1",
+      "agent_id": "index",
+      "agent_name": "Index Ivy",
+      "model": "qwen3.5:cloud",
+      "ret": 0.81,
+      "lesson": "Prioritize 5-minute momentum spikes over holding duration to filter low-probability trades and protect capital."
+    },
+    {
+      "session_id": "fbd19577-27c4-4182-a72e-001b64f79ee1",
+      "agent_id": "event",
+      "agent_name": "Event Nia",
+      "model": "nemotron-3-super:cloud",
+      "ret": 7.7,
+      "lesson": "Trade with the trend, respect drawdowns, and size positions to survive volatility—let time and math, not emotion, guide entries and exits."
+    },
+    {
+      "session_id": "fbd19577-27c4-4182-a72e-001b64f79ee1",
+      "agent_id": "rand",
+      "agent_name": "Random Randy",
+      "model": "glm-5.2:cloud",
+      "ret": 5.33,
+      "lesson": "Cut losers faster under 2% drawdown; let 5m momentum winners ride past 3 rounds before trimming."
+    }
+  ],
+  "agents": [
+    {
+      "id": "val",
+      "name": "Value Val",
+      "model": "minimax-m3:cloud",
+      "start_cash": 11275,
+      "final_equity": 11459,
+      "trades_count": 118,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000007505,
+          "tick": 198
+        },
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000008261,
+          "tick": 200
+        },
+        {
+          "action": "SELL",
+          "sym": "Hiroo",
+          "px": 0.00003062,
+          "tick": 201
+        },
+        {
+          "action": "SELL",
+          "sym": "LJimothy",
+          "px": 0.00003058,
+          "tick": 203
+        },
+        {
+          "action": "BUY",
+          "sym": "kessler",
+          "px": 0.0000307,
+          "tick": 204
+        },
+        {
+          "action": "BUY",
+          "sym": "PATTY",
+          "px": 0.00003064,
+          "tick": 206
+        }
+      ]
+    },
+    {
+      "id": "mom",
+      "name": "Momentum Mia",
+      "model": "kimi-k2.7-code:cloud",
+      "start_cash": 11275,
+      "final_equity": 12339,
+      "trades_count": 64,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000007123,
+          "tick": 187
+        },
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000007123,
+          "tick": 191
+        },
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000007505,
+          "tick": 194
+        },
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000007505,
+          "tick": 195
+        },
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000008261,
+          "tick": 200
+        },
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000008261,
+          "tick": 201
+        }
+      ]
+    },
+    {
+      "id": "degen",
+      "name": "Degen Dex",
+      "model": "glm-5.2:cloud",
+      "start_cash": 11275,
+      "final_equity": 12325,
+      "trades_count": 125,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000008261,
+          "tick": 201
+        },
+        {
+          "action": "SELL",
+          "sym": "SEERDEX",
+          "px": 0.000002163,
+          "tick": 202
+        },
+        {
+          "action": "SELL",
+          "sym": "LJimothy",
+          "px": 0.00003058,
+          "tick": 203
+        },
+        {
+          "action": "SELL",
+          "sym": "Jimothy",
+          "px": 0.000002083,
+          "tick": 204
+        },
+        {
+          "action": "BUY",
+          "sym": "Jimothy",
+          "px": 0.000002083,
+          "tick": 205
+        },
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000008581,
+          "tick": 206
+        }
+      ]
+    },
+    {
+      "id": "contra",
+      "name": "Contrarian Cole",
+      "model": "gemma4:31b-cloud",
+      "start_cash": 11275,
+      "final_equity": 12273,
+      "trades_count": 8,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "SEERDEX",
+          "px": 0.000002163,
+          "tick": 58
+        },
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000004831,
+          "tick": 105
+        },
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000005694,
+          "tick": 116
+        },
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000005721,
+          "tick": 118
+        },
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000007042,
+          "tick": 164
+        },
+        {
+          "action": "BUY",
+          "sym": "JIMSEM",
+          "px": 0.000002501,
+          "tick": 188
+        }
+      ]
+    },
+    {
+      "id": "mrev",
+      "name": "Mean-Reverter Mara",
+      "model": "deepseek-v4-flash:cloud",
+      "start_cash": 11275,
+      "final_equity": 11764,
+      "trades_count": 142,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000007505,
+          "tick": 196
+        },
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000007505,
+          "tick": 197
+        },
+        {
+          "action": "BUY",
+          "sym": "BOSS",
+          "px": 0.00003069,
+          "tick": 198
+        },
+        {
+          "action": "SELL",
+          "sym": "BOSS",
+          "px": 0.00003069,
+          "tick": 199
+        },
+        {
+          "action": "BUY",
+          "sym": "BOSS",
+          "px": 0.00003069,
+          "tick": 201
+        },
+        {
+          "action": "SELL",
+          "sym": "BOSS",
+          "px": 0.00003069,
+          "tick": 202
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "name": "Index Ivy",
+      "model": "qwen3.5:cloud",
+      "start_cash": 11275,
+      "final_equity": 11366,
+      "trades_count": 27,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000004912,
+          "tick": 138
+        },
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000005709,
+          "tick": 148
+        },
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000006263,
+          "tick": 154
+        },
+        {
+          "action": "BUY",
+          "sym": "SEERDEX",
+          "px": 0.000002163,
+          "tick": 161
+        },
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000006907,
+          "tick": 171
+        },
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000006275,
+          "tick": 176
+        }
+      ]
+    },
+    {
+      "id": "event",
+      "name": "Event Nia",
+      "model": "nemotron-3-super:cloud",
+      "start_cash": 11275,
+      "final_equity": 12143,
+      "trades_count": 57,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000007123,
+          "tick": 188
+        },
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000007123,
+          "tick": 190
+        },
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000007505,
+          "tick": 194
+        },
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000007505,
+          "tick": 195
+        },
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000008261,
+          "tick": 200
+        },
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000008261,
+          "tick": 201
+        }
+      ]
+    },
+    {
+      "id": "rand",
+      "name": "Random Randy",
+      "model": "glm-5.2:cloud",
+      "start_cash": 11275,
+      "final_equity": 11876,
+      "trades_count": 114,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000007505,
+          "tick": 193
+        },
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000007505,
+          "tick": 195
+        },
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000007505,
+          "tick": 197
+        },
+        {
+          "action": "BUY",
+          "sym": "JIMSEM",
+          "px": 0.000002501,
+          "tick": 198
+        },
+        {
+          "action": "BUY",
+          "sym": "Pancake",
+          "px": 0.000008261,
+          "tick": 201
+        },
+        {
+          "action": "SELL",
+          "sym": "Pancake",
+          "px": 0.000008581,
+          "tick": 206
+        }
+      ]
+    }
+  ]
+}

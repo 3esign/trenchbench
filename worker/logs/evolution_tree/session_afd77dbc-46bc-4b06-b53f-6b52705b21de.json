@@ -1,0 +1,440 @@
+{
+  "session_id": "afd77dbc-46bc-4b06-b53f-6b52705b21de",
+  "created_at": "2026-07-25T22:39:57.399Z",
+  "lessons": [
+    {
+      "session_id": "afd77dbc-46bc-4b06-b53f-6b52705b21de",
+      "agent_id": "val",
+      "agent_name": "Value Val",
+      "model": "nemotron-3-super:cloud",
+      "ret": -5.54,
+      "lesson": "Wait for price to hold above recent lows with rising 5m momentum before adding capital, only after two consecutive up rounds confirm strength."
+    },
+    {
+      "session_id": "afd77dbc-46bc-4b06-b53f-6b52705b21de",
+      "agent_id": "mom",
+      "agent_name": "Momentum Mia",
+      "model": "minimax-m3:cloud",
+      "ret": -23.19,
+      "lesson": "Reduce trade frequency sharply; only enter when 5m momentum exceeds 2% with a holding window of 15+ rounds."
+    },
+    {
+      "session_id": "afd77dbc-46bc-4b06-b53f-6b52705b21de",
+      "agent_id": "degen",
+      "agent_name": "Degen Dex",
+      "model": "kimi-k2.7-code:cloud",
+      "ret": 6.88,
+      "lesson": "Cut losing 5m-momentum trades faster than winners compound, and size down after drawdowns exceed 2%."
+    },
+    {
+      "session_id": "afd77dbc-46bc-4b06-b53f-6b52705b21de",
+      "agent_id": "contra",
+      "agent_name": "Contrarian Cole",
+      "model": "glm-5.2:cloud",
+      "ret": 8.67,
+      "lesson": "Cut losers faster under 8 rounds; let winners ride past 20 rounds when 5m momentum exceeds 3%."
+    },
+    {
+      "session_id": "afd77dbc-46bc-4b06-b53f-6b52705b21de",
+      "agent_id": "mrev",
+      "agent_name": "Mean-Reverter Mara",
+      "model": "gemma4:31b-cloud",
+      "ret": 11.31,
+      "lesson": "Fade extreme 5m momentum spikes after three rounds of drawdown to capture mean-reversion alpha."
+    },
+    {
+      "session_id": "afd77dbc-46bc-4b06-b53f-6b52705b21de",
+      "agent_id": "index",
+      "agent_name": "Index Ivy",
+      "model": "deepseek-v4-flash:cloud",
+      "ret": -4.06,
+      "lesson": "Cut losses early when momentum fades; hold winners only through shallow drawdowns."
+    },
+    {
+      "session_id": "afd77dbc-46bc-4b06-b53f-6b52705b21de",
+      "agent_id": "event",
+      "agent_name": "Event Nia",
+      "model": "qwen3.5:cloud",
+      "ret": -7.98,
+      "lesson": "Cap drawdowns at 2% and exit momentum stalls within three rounds to preserve capital."
+    },
+    {
+      "session_id": "afd77dbc-46bc-4b06-b53f-6b52705b21de",
+      "agent_id": "rand",
+      "agent_name": "Random Randy",
+      "model": "minimax-m3:cloud",
+      "ret": 2.94,
+      "lesson": "Count: Hold(1) winners("
+    }
+  ],
+  "agents": [
+    {
+      "id": "val",
+      "name": "Value Val",
+      "model": "nemotron-3-super:cloud",
+      "start_cash": 36438,
+      "final_equity": 34418,
+      "trades_count": 11,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Mouthpad",
+          "px": 0.000007955,
+          "tick": 49
+        },
+        {
+          "action": "BUY",
+          "sym": "Mouthpad",
+          "px": 0.000007955,
+          "tick": 51
+        },
+        {
+          "action": "SELL",
+          "sym": "Cog",
+          "px": 0.00001016,
+          "tick": 54
+        },
+        {
+          "action": "SELL",
+          "sym": "Mouthpad",
+          "px": 0.000006425,
+          "tick": 89
+        },
+        {
+          "action": "SELL",
+          "sym": "bear",
+          "px": 0.000002631,
+          "tick": 130
+        },
+        {
+          "action": "BUY",
+          "sym": "bear",
+          "px": 0.000002631,
+          "tick": 133
+        }
+      ]
+    },
+    {
+      "id": "mom",
+      "name": "Momentum Mia",
+      "model": "minimax-m3:cloud",
+      "start_cash": 36438,
+      "final_equity": 27988,
+      "trades_count": 80,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Güiña",
+          "px": 0.00003061,
+          "tick": 140
+        },
+        {
+          "action": "BUY",
+          "sym": "bear",
+          "px": 0.000002631,
+          "tick": 141
+        },
+        {
+          "action": "SELL",
+          "sym": "María",
+          "px": 0.000005225,
+          "tick": 144
+        },
+        {
+          "action": "BUY",
+          "sym": "María",
+          "px": 0.000005225,
+          "tick": 145
+        },
+        {
+          "action": "BUY",
+          "sym": "BULLUP",
+          "px": 0.000001722,
+          "tick": 148
+        },
+        {
+          "action": "SELL",
+          "sym": "Güiña",
+          "px": 0.00003061,
+          "tick": 150
+        }
+      ]
+    },
+    {
+      "id": "degen",
+      "name": "Degen Dex",
+      "model": "kimi-k2.7-code:cloud",
+      "start_cash": 36438,
+      "final_equity": 38943,
+      "trades_count": 76,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Cog",
+          "px": 0.00001079,
+          "tick": 132
+        },
+        {
+          "action": "SELL",
+          "sym": "María",
+          "px": 0.000005225,
+          "tick": 133
+        },
+        {
+          "action": "BUY",
+          "sym": "María",
+          "px": 0.000005225,
+          "tick": 135
+        },
+        {
+          "action": "SELL",
+          "sym": "EUROFY",
+          "px": 0.000003058,
+          "tick": 150
+        },
+        {
+          "action": "SELL",
+          "sym": "bear",
+          "px": 0.000002738,
+          "tick": 153
+        },
+        {
+          "action": "BUY",
+          "sym": "bear",
+          "px": 0.000002738,
+          "tick": 154
+        }
+      ]
+    },
+    {
+      "id": "contra",
+      "name": "Contrarian Cole",
+      "model": "glm-5.2:cloud",
+      "start_cash": 36438,
+      "final_equity": 39596,
+      "trades_count": 63,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Cog",
+          "px": 0.00001059,
+          "tick": 144
+        },
+        {
+          "action": "SELL",
+          "sym": "Cog",
+          "px": 0.00001059,
+          "tick": 145
+        },
+        {
+          "action": "BUY",
+          "sym": "UNI",
+          "px": 0.00001732,
+          "tick": 147
+        },
+        {
+          "action": "BUY",
+          "sym": "Cog",
+          "px": 0.00001059,
+          "tick": 148
+        },
+        {
+          "action": "BUY",
+          "sym": "María",
+          "px": 0.000005225,
+          "tick": 152
+        },
+        {
+          "action": "SELL",
+          "sym": "bear",
+          "px": 0.000002738,
+          "tick": 153
+        }
+      ]
+    },
+    {
+      "id": "mrev",
+      "name": "Mean-Reverter Mara",
+      "model": "gemma4:31b-cloud",
+      "start_cash": 36438,
+      "final_equity": 40560,
+      "trades_count": 36,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "2027",
+          "px": 0.000021,
+          "tick": 106
+        },
+        {
+          "action": "SELL",
+          "sym": "Cog",
+          "px": 0.00001188,
+          "tick": 127
+        },
+        {
+          "action": "BUY",
+          "sym": "UNI",
+          "px": 0.000017,
+          "tick": 134
+        },
+        {
+          "action": "SELL",
+          "sym": "UNI",
+          "px": 0.0000181,
+          "tick": 136
+        },
+        {
+          "action": "BUY",
+          "sym": "Cog",
+          "px": 0.00001059,
+          "tick": 144
+        },
+        {
+          "action": "BUY",
+          "sym": "María",
+          "px": 0.000005141,
+          "tick": 153
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "name": "Index Ivy",
+      "model": "deepseek-v4-flash:cloud",
+      "start_cash": 36438,
+      "final_equity": 34957,
+      "trades_count": 52,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "OPUS5",
+          "px": 0.000009638,
+          "tick": 140
+        },
+        {
+          "action": "BUY",
+          "sym": "Cog",
+          "px": 0.00001076,
+          "tick": 142
+        },
+        {
+          "action": "SELL",
+          "sym": "OPUS5",
+          "px": 0.000008567,
+          "tick": 144
+        },
+        {
+          "action": "BUY",
+          "sym": "lineage",
+          "px": 0.00001498,
+          "tick": 146
+        },
+        {
+          "action": "SELL",
+          "sym": "Cog",
+          "px": 0.00001059,
+          "tick": 148
+        },
+        {
+          "action": "SELL",
+          "sym": "lineage",
+          "px": 0.00001331,
+          "tick": 153
+        }
+      ]
+    },
+    {
+      "id": "event",
+      "name": "Event Nia",
+      "model": "qwen3.5:cloud",
+      "start_cash": 36438,
+      "final_equity": 33531,
+      "trades_count": 15,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "UNI",
+          "px": 0.00001828,
+          "tick": 119
+        },
+        {
+          "action": "SELL",
+          "sym": "lineage",
+          "px": 0.00001511,
+          "tick": 120
+        },
+        {
+          "action": "SELL",
+          "sym": "UNI",
+          "px": 0.00001713,
+          "tick": 127
+        },
+        {
+          "action": "BUY",
+          "sym": "BULLUP",
+          "px": 0.000001722,
+          "tick": 132
+        },
+        {
+          "action": "SELL",
+          "sym": "Cog",
+          "px": 0.00001079,
+          "tick": 133
+        },
+        {
+          "action": "SELL",
+          "sym": "María",
+          "px": 0.000005225,
+          "tick": 139
+        }
+      ]
+    },
+    {
+      "id": "rand",
+      "name": "Random Randy",
+      "model": "minimax-m3:cloud",
+      "start_cash": 36438,
+      "final_equity": 37511,
+      "trades_count": 73,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "all red",
+          "px": 6.911e-7,
+          "tick": 139
+        },
+        {
+          "action": "SELL",
+          "sym": "EUROFY",
+          "px": 0.000003058,
+          "tick": 142
+        },
+        {
+          "action": "SELL",
+          "sym": "BULLUP",
+          "px": 0.000001722,
+          "tick": 144
+        },
+        {
+          "action": "BUY",
+          "sym": "BULLUP",
+          "px": 0.000001722,
+          "tick": 150
+        },
+        {
+          "action": "SELL",
+          "sym": "BULLUP",
+          "px": 0.000001722,
+          "tick": 152
+        },
+        {
+          "action": "BUY",
+          "sym": "EUROFY",
+          "px": 0.000003058,
+          "tick": 154
+        }
+      ]
+    }
+  ]
+}

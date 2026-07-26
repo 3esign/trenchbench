@@ -1,5 +1,5 @@
 -- ============================================================
---  BENCHHOOD - add token classification to the decision log.
+--  trenchbench - add token classification to the decision log.
 --  RUN THIS ONCE before using the new start scripts, or decision
 --  saving will error on the new "token_class" field.
 --    1. open  https://supabase.com/dashboard/project/ufceqgryldskaglseqjj/sql/new

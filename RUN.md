@@ -1,4 +1,4 @@
-# Benchhood — what to run, in order
+# trenchbench — what to run, in order
 
 Everything from tonight's audit is applied. This is the sequence.
 
@@ -16,12 +16,8 @@ work. *(If you would rather wipe and start clean instead, run
 `SETUP_FROM_SCRATCH.sql` — it now contains all of this already, and you can skip
 005.)*
 
-**3. `check_rpc.cmd`**
-Should show 2 endpoints, Alchemy first. Alchemy is the only one with
-`eth_newFilter`; the public node is the fallback for everything else.
-
-**4. Rotate your keys.** Still outstanding, still the one real hole: the Supabase
-DB password, the Vercel token and the Alchemy key were all pasted into chat, and
+**3. Rotate your keys.** Still outstanding, still the one real hole: the Supabase
+DB password and the Vercel token were all pasted into chat, and
 the Supabase project ref is published on the site. The password alone permits
 `update agent_reports set ret = …` with no audit trail.
 
@@ -56,7 +52,7 @@ rpc: N request(s) across 2 endpoint(s)               <- where your quota went
 quarantined: ...                                     <- only if it fired
 ```
 
-**If `[menu]` says "too few, offering the full roster"** the chain is too quiet
+**If `[menu]` says "too few, offering the full roster"** the Pump.fun feed is too quiet
 for the filter to help. That is a weekend problem more than a code problem.
 
 ---
@@ -74,13 +70,8 @@ name, and `sessions_archive/`) rather than one exact filename.
 
 | Script | Answers |
 |---|---|
-| `check_rpc.cmd` | which endpoints are alive and which support filters |
-| `check_prices.cmd` | are Chainlink feeds fresh, what are they saying |
-| `check_pools.cmd` | can we read swap logs, are pairs resolving |
-| `chain_clock.cmd` | real block time, and how big a Pons backfill would be |
-| `check_pons.cmd` | Pons factory: is it live, V3 or V4, a real launch inspected |
-| `check_pons_rate.cmd [hours]` | Pons graduation rate — the number that decides Launchbench |
-| `diagnose.cmd` | end-to-end: config, database, models, chain |
+| `check_prices.cmd` | is Dexscreener pricing fresh, what is it saying |
+| `diagnose.cmd` | end-to-end: config, database, models, Solana chain |
 
 ---
 
@@ -99,8 +90,8 @@ a number that was wrong, unverifiable, or meant less than the page implied.
   and that model compounded twice in the ledger.
 - **Silent write loss** — the flush cursor advanced before the insert, so one
   503 dropped those rounds permanently and the summary still said OK.
-- **Chainlink was read once per session**, pinning every tokenized equity to its
-  opening value. Benchhood was a memecoin benchmark describing itself as an
+- **Dexscreener pricing was read once per session**, pinning every tokenized equity to its
+  opening value. trenchbench was a memecoin benchmark describing itself as an
   equities one.
 
 ### Things that made the numbers meaningless

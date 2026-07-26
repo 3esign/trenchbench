@@ -1,5 +1,5 @@
 // ============================================================
-//  BENCHHOOD — diagnostic. Answers two questions with evidence:
+//  trenchbench — diagnostic. Answers two questions with evidence:
 //    1. Why is every model call falling back to the rule brain?
 //    2. Do the explorer's prices actually move?
 //  Makes at most 3 model calls. Writes nothing, changes nothing.
@@ -10,7 +10,6 @@ const ROOT = new URL('..', import.meta.url);
 const ENV = {};
 try { for (const l of fs.readFileSync(new URL('config.txt', ROOT), 'utf8').split(/\r?\n/)) { const m = l.match(/^([A-Z_]+)=(.*)$/); if (m) ENV[m[1]] = m[2].trim(); } } catch {}
 const OLLAMA = (ENV.OLLAMA_URL || 'http://localhost:11434').replace(/\/$/, '');
-const EXPLORER = (ENV.EXPLORER_API || 'https://robinhoodchain.blockscout.com/api/v2').replace(/\/$/, '');
 const WAIT = +(ENV.DIAG_WAIT_SECONDS || 45);
 const line = () => console.log('  ' + '-'.repeat(64));
 const sleep = ms => new Promise(r => setTimeout(r, ms));

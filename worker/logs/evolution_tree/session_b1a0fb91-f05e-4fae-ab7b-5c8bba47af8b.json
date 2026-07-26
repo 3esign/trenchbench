@@ -1,0 +1,434 @@
+{
+  "session_id": "b1a0fb91-f05e-4fae-ab7b-5c8bba47af8b",
+  "created_at": "2026-07-26T01:19:20.977Z",
+  "lessons": [
+    {
+      "session_id": "b1a0fb91-f05e-4fae-ab7b-5c8bba47af8b",
+      "agent_id": "val",
+      "agent_name": "Value Val",
+      "model": "kimi-k2.7-code:cloud",
+      "ret": 0.31,
+      "lesson": "Cut losing positions faster than winners; momentum fades, drawdowns compound."
+    },
+    {
+      "session_id": "b1a0fb91-f05e-4fae-ab7b-5c8bba47af8b",
+      "agent_id": "mom",
+      "agent_name": "Momentum Mia",
+      "model": "glm-5.2:cloud",
+      "ret": 1.02,
+      "lesson": "Cap holding rounds at 5 to prevent drawdowns from eroding 5m momentum gains below 1% profit threshold."
+    },
+    {
+      "session_id": "b1a0fb91-f05e-4fae-ab7b-5c8bba47af8b",
+      "agent_id": "degen",
+      "agent_name": "Degen Dex",
+      "model": "gemma4:31b-cloud",
+      "ret": -12.9,
+      "lesson": "Tighten stop-losses on 5m momentum fades to reduce drawdown during low-win-rate holding rounds."
+    },
+    {
+      "session_id": "b1a0fb91-f05e-4fae-ab7b-5c8bba47af8b",
+      "agent_id": "contra",
+      "agent_name": "Contrarian Cole",
+      "model": "deepseek-v4-flash:cloud",
+      "ret": -0.96,
+      "lesson": "Cut losing trades early; hold winners longer when 5m momentum exceeds 2%."
+    },
+    {
+      "session_id": "b1a0fb91-f05e-4fae-ab7b-5c8bba47af8b",
+      "agent_id": "mrev",
+      "agent_name": "Mean-Reverter Mara",
+      "model": "qwen3.5:cloud",
+      "ret": -0.27,
+      "lesson": "Avoid fading extremes during high momentum; wait for time to erode price deviations before entering."
+    },
+    {
+      "session_id": "b1a0fb91-f05e-4fae-ab7b-5c8bba47af8b",
+      "agent_id": "index",
+      "agent_name": "Index Ivy",
+      "model": "nemotron-3-super:cloud",
+      "ret": -6.6,
+      "lesson": "Reduce position size after consecutive losses; prioritize time-based exits over chasing momentum to preserve capital and improve win rate."
+    },
+    {
+      "session_id": "b1a0fb91-f05e-4fae-ab7b-5c8bba47af8b",
+      "agent_id": "event",
+      "agent_name": "Event Nia",
+      "model": "minimax-m3:cloud",
+      "ret": -5.52,
+      "lesson": "Let me count: Cut(1) trade(2) frequency(3) by(4) 80%(5) and(6) require(7) 3-bar(8) momentum(9) confirmation(10) before(11) entry(12) to(13) filter(14) out(15) the(16) 91%(17) of("
+    },
+    {
+      "session_id": "b1a0fb91-f05e-4fae-ab7b-5c8bba47af8b",
+      "agent_id": "rand",
+      "agent_name": "Random Randy",
+      "model": "deepseek-v4-flash:cloud",
+      "ret": -10.22,
+      "lesson": "Cut losses faster when 5m momentum drops below 10% and holding exceeds 3 rounds."
+    }
+  ],
+  "agents": [
+    {
+      "id": "val",
+      "name": "Value Val",
+      "model": "kimi-k2.7-code:cloud",
+      "start_cash": 35654,
+      "final_equity": 35765,
+      "trades_count": 22,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Scarface",
+          "px": 0.000007436,
+          "tick": 125
+        },
+        {
+          "action": "SELL",
+          "sym": "Scarface",
+          "px": 0.000008773,
+          "tick": 135
+        },
+        {
+          "action": "BUY",
+          "sym": "Scarface",
+          "px": 0.000008967,
+          "tick": 145
+        },
+        {
+          "action": "SELL",
+          "sym": "GLC",
+          "px": 0.00000209,
+          "tick": 149
+        },
+        {
+          "action": "SELL",
+          "sym": "Scarface",
+          "px": 0.000007772,
+          "tick": 150
+        },
+        {
+          "action": "BUY",
+          "sym": "GLC",
+          "px": 0.00000209,
+          "tick": 154
+        }
+      ]
+    },
+    {
+      "id": "mom",
+      "name": "Momentum Mia",
+      "model": "glm-5.2:cloud",
+      "start_cash": 35654,
+      "final_equity": 36016,
+      "trades_count": 43,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "HERBIE⁠",
+          "px": 0.00003072,
+          "tick": 109
+        },
+        {
+          "action": "BUY",
+          "sym": "Scarface",
+          "px": 0.000008773,
+          "tick": 137
+        },
+        {
+          "action": "SELL",
+          "sym": "Scarface",
+          "px": 0.000008967,
+          "tick": 140
+        },
+        {
+          "action": "BUY",
+          "sym": "Scarface",
+          "px": 0.000009923,
+          "tick": 170
+        },
+        {
+          "action": "SELL",
+          "sym": "Scarface",
+          "px": 0.00001046,
+          "tick": 172
+        },
+        {
+          "action": "BUY",
+          "sym": "Scarface",
+          "px": 0.00001046,
+          "tick": 173
+        }
+      ]
+    },
+    {
+      "id": "degen",
+      "name": "Degen Dex",
+      "model": "gemma4:31b-cloud",
+      "start_cash": 35654,
+      "final_equity": 31056,
+      "trades_count": 24,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Scarface",
+          "px": 0.00001081,
+          "tick": 45
+        },
+        {
+          "action": "BUY",
+          "sym": "QuitGPT",
+          "px": 0.000002603,
+          "tick": 89
+        },
+        {
+          "action": "SELL",
+          "sym": "HERBIE⁠",
+          "px": 0.00003072,
+          "tick": 108
+        },
+        {
+          "action": "BUY",
+          "sym": "HERBIE⁠",
+          "px": 0.00003072,
+          "tick": 109
+        },
+        {
+          "action": "BUY",
+          "sym": "SEERDEX",
+          "px": 0.000002164,
+          "tick": 125
+        },
+        {
+          "action": "BUY",
+          "sym": "promise",
+          "px": 0.000003525,
+          "tick": 132
+        }
+      ]
+    },
+    {
+      "id": "contra",
+      "name": "Contrarian Cole",
+      "model": "deepseek-v4-flash:cloud",
+      "start_cash": 35654,
+      "final_equity": 35310,
+      "trades_count": 37,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "HERBIE⁠",
+          "px": 0.00003072,
+          "tick": 108
+        },
+        {
+          "action": "SELL",
+          "sym": "promise",
+          "px": 0.000003525,
+          "tick": 113
+        },
+        {
+          "action": "BUY",
+          "sym": "promise",
+          "px": 0.000003525,
+          "tick": 114
+        },
+        {
+          "action": "SELL",
+          "sym": "QuitGPT",
+          "px": 0.00000249,
+          "tick": 129
+        },
+        {
+          "action": "BUY",
+          "sym": "HERBIE⁠",
+          "px": 0.00003072,
+          "tick": 150
+        },
+        {
+          "action": "BUY",
+          "sym": "QuitGPT",
+          "px": 0.00000249,
+          "tick": 172
+        }
+      ]
+    },
+    {
+      "id": "mrev",
+      "name": "Mean-Reverter Mara",
+      "model": "qwen3.5:cloud",
+      "start_cash": 35654,
+      "final_equity": 35559,
+      "trades_count": 48,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "GLC",
+          "px": 0.00000209,
+          "tick": 153
+        },
+        {
+          "action": "BUY",
+          "sym": "GLC",
+          "px": 0.00000209,
+          "tick": 160
+        },
+        {
+          "action": "SELL",
+          "sym": "promise",
+          "px": 0.000003525,
+          "tick": 165
+        },
+        {
+          "action": "BUY",
+          "sym": "promise",
+          "px": 0.000003525,
+          "tick": 167
+        },
+        {
+          "action": "SELL",
+          "sym": "Scarface",
+          "px": 0.000009923,
+          "tick": 168
+        },
+        {
+          "action": "BUY",
+          "sym": "Scarface",
+          "px": 0.00001046,
+          "tick": 172
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "name": "Index Ivy",
+      "model": "nemotron-3-super:cloud",
+      "start_cash": 35654,
+      "final_equity": 33300,
+      "trades_count": 5,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "H.E.R.B.I.E.",
+          "px": 0.000006577,
+          "tick": 14
+        },
+        {
+          "action": "BUY",
+          "sym": "qcrow",
+          "px": 0.000002218,
+          "tick": 15
+        },
+        {
+          "action": "BUY",
+          "sym": "SEERDEX",
+          "px": 0.000002164,
+          "tick": 39
+        },
+        {
+          "action": "SELL",
+          "sym": "H.E.R.B.I.E.",
+          "px": 0.000002093,
+          "tick": 65
+        },
+        {
+          "action": "BUY",
+          "sym": "QuitGPT",
+          "px": 0.00000249,
+          "tick": 141
+        }
+      ]
+    },
+    {
+      "id": "event",
+      "name": "Event Nia",
+      "model": "minimax-m3:cloud",
+      "start_cash": 35654,
+      "final_equity": 33687,
+      "trades_count": 88,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Bee",
+          "px": 0.00003072,
+          "tick": 166
+        },
+        {
+          "action": "BUY",
+          "sym": "HERBIE⁠",
+          "px": 0.00003072,
+          "tick": 167
+        },
+        {
+          "action": "SELL",
+          "sym": "promise",
+          "px": 0.000003525,
+          "tick": 168
+        },
+        {
+          "action": "BUY",
+          "sym": "QuietGPT",
+          "px": 0.000002094,
+          "tick": 171
+        },
+        {
+          "action": "BUY",
+          "sym": "promise",
+          "px": 0.000003525,
+          "tick": 172
+        },
+        {
+          "action": "BUY",
+          "sym": "qcrow",
+          "px": 0.000002195,
+          "tick": 174
+        }
+      ]
+    },
+    {
+      "id": "rand",
+      "name": "Random Randy",
+      "model": "deepseek-v4-flash:cloud",
+      "start_cash": 35654,
+      "final_equity": 32009,
+      "trades_count": 85,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "QuitGPT",
+          "px": 0.00000249,
+          "tick": 139
+        },
+        {
+          "action": "BUY",
+          "sym": "QuitGPT",
+          "px": 0.00000249,
+          "tick": 145
+        },
+        {
+          "action": "SELL",
+          "sym": "QuitGPT",
+          "px": 0.00000249,
+          "tick": 146
+        },
+        {
+          "action": "BUY",
+          "sym": "QuitGPT",
+          "px": 0.00000249,
+          "tick": 149
+        },
+        {
+          "action": "BUY",
+          "sym": "Scarface",
+          "px": 0.000009923,
+          "tick": 170
+        },
+        {
+          "action": "SELL",
+          "sym": "Scarface",
+          "px": 0.00001046,
+          "tick": 171
+        }
+      ]
+    }
+  ]
+}

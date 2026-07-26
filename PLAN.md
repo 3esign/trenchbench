@@ -1,6 +1,6 @@
-# Benchhood — Plan to Live
+# trenchbench — Plan to Live
 
-*The path from today's prototype to a live version, with the operating model locked in. Benchhood = a session-based benchmark where AI agents trade a real-price mirror of Robinhood Chain, learn within each run, and produce a dataset we can turn into products.*
+*The path from today's prototype to a live version, with the operating model locked in. trenchbench = a session-based benchmark where AI agents trade a real-price mirror of Pump.fun / Solana, learn within each run, and produce a dataset we can turn into products.*
 
 ---
 
@@ -9,7 +9,7 @@
 - **Session-based, not continuous.** You open Ollama, run the local script, hit **Start** → agents trade → hit **Stop**. That start→stop run is one **session**: named, acknowledged, fully recorded. No always-on trading.
 - **Dashboard is local, not online.** The Control Room runs on your machine (it controls the run). **Vercel serves only the public Arena** (`/`) — read-only.
 - **Each agent** has three things: a **thinking mechanism**, a **self-learning / changing mechanism**, and a **report**.
-- **Robinhood Chain branding + focus** — green brand accent, RH-Chain assets, "built for Robinhood Chain · independent."
+- **Pump.fun / Solana branding + focus** — green brand accent, Pump.fun assets, "built for Pump.fun · independent, not affiliated with Pump.fun."
 - **The database is the product.** Everything is logged to sell later.
 
 ---
@@ -68,14 +68,14 @@ The dashboard and the runner are the same local app; Vercel is just the shop win
 **For humans:**
 - **The Model Benchmark** *(flagship)* — "which LLM trades best on real markets," a public leaderboard + a paid deep report / API. Buyers: AI labs, researchers, media, curious traders.
 - **Licensed research dataset** — the decisions + reasoning + outcomes, versioned by model/prompt, for quant + academic + AI-lab research. It's uniquely yours because you generated it.
-- **Eval-as-a-service** — someone brings *their* model/agent; you run it through Benchhood and hand back a scored report card. B2B.
+- **Eval-as-a-service** — someone brings *their* model/agent; you run it through trenchbench and hand back a scored report card. B2B.
 - **Strategy insight reports** — periodic "what the winning agents/models are doing" research notes (framed as research, never as "buy this").
 
 **For agents / developers (machine buyers):**
 - **Experience / memory API** — other autonomous agents query your store ("how did agents handle an NVDA shock?") to inform their own trading.
 - **Benchmark API** — devs test their own strategy against the arena and fetch performance baselines.
 - **Training-data feed** — the decision→outcome dataset as fuel for training/fine-tuning trading agents.
-- **A portable "Benchhood score"** — a verifiable credential an agent carries as proof it can trade.
+- **A portable "trenchbench score"** — a verifiable credential an agent carries as proof it can trade.
 
 One rule across all of them: sell **research / benchmark / dataset**, not "signals" or advice — that keeps you clear of investment-adviser regulation and liability.
 
@@ -84,10 +84,10 @@ One rule across all of them: sell **research / benchmark / dataset**, not "signa
 ## 6. Design language — for your sign-off
 
 The prototype you're holding *is* the proposal:
-- **Terminal-grade dark** UI; **Robinhood green** (`#00d21e`) as the brand accent — logo, live pulse, active states, chips, links — used on *chrome only*.
+- **Terminal-grade dark** UI; **Pump.fun green** (`#00d21e`) as the brand accent — logo, live pulse, active states, chips, links — used on *chrome only*.
 - **Validated data colors** for the chart series (blue/orange/aqua/…), deliberately *different* from the brand, so brand ≠ data and the charts stay colorblind-safe.
 - System sans, tabular numerals, hairline-bordered cards, generous dark space.
-- "Robinhood Chain · 4663" chip + "built for Robinhood Chain · independent, not affiliated" — the ForestHood-style honest positioning.
+- "Pump.fun · Solana" chip + "built for Pump.fun · independent, not affiliated with Pump.fun" — the Pump.fun-style honest positioning.
 
 **Your call:** ship this direction, or push it warmer / more playful / more minimal / more "Bloomberg terminal"? This is the one thing to lock before I build the real UI.
 
@@ -99,20 +99,18 @@ The prototype you're holding *is* the proposal:
 |---|---|---|
 | M1 | Repo scaffold + Supabase schema + Vercel Arena reading the DB | the pipe works end-to-end |
 | M2 | Local session runner (rule-brains) + Start/Stop + writes sessions | you can run & record a session |
-| M3 | Real prices (Alchemy / RH Chain RPC) replace the sim | real market |
-| M4 | Real brains: Ollama multi-model, then Claude | real intelligence, real benchmark |
+| M3 | Real prices (PumpPortal / Dexscreener) replace the sim | real market |
+| M4 | Real brains: Ollama multi-model | real intelligence, real benchmark |
 | M5 | Per-agent memory + reflection + reports | agents that learn + session reports |
 | M6 | Cross-session model leaderboard + dataset export/API | the products |
 
 **What I need from you to finish:**
 1. **Confirm the design direction** (§6) — the only true blocker for the UI.
 2. A free **Supabase** project → paste its 2 keys into `.env` (I'll give exact steps).
-3. Your **Alchemy** key (you have it) for real prices at M3.
-4. **Claude access** decision — API key vs. Agent SDK (only matters at M4).
-5. Run ~5 **copy-paste commands** locally (Ollama + the runner) — I'll make them foolproof.
-6. Connect the repo to **Vercel** (one click, you already use it).
+3. Run ~5 **copy-paste commands** locally (Ollama + the runner) — I'll make them foolproof.
+4. Connect the repo to **Vercel** (one click, you already use it).
 
-Everything else — all the code (runner, agents, dashboard, Arena, schema, reports, export) — I write into `D:\Work\Software_Projects\benchhood`.
+Everything else — all the code (runner, agents, dashboard, Arena, schema, reports, export) — I write into `D:\Work\Software_Projects\trenchbench`.
 
 ---
 

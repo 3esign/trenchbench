@@ -1,5 +1,5 @@
 -- ============================================================
---  BENCHHOOD — FULL SETUP, FROM ZERO
+--  trenchbench — FULL SETUP, FROM ZERO
 --
 --  This ONE file replaces schema.sql + add_token_class + 002 + 003 + 004.
 --  It DELETES every session, decision, outcome and report, then rebuilds

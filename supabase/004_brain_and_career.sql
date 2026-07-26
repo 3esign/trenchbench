@@ -1,5 +1,5 @@
 -- ============================================================
---  BENCHHOOD — migration 004: honest attribution + the career ledger
+--  trenchbench — migration 004: honest attribution + the career ledger
 --
 --  WHY THIS MATTERS
 --   1. When a cloud model times out, the rule brain answers for it that round.

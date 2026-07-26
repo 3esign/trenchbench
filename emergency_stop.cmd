@@ -1,6 +1,6 @@
 @echo off
 REM ==============================================================
-REM  BENCHHOOD - EMERGENCY STOP
+REM  trenchbench - EMERGENCY STOP
 REM  Kills every running session immediately. Use this if you are
 REM  not sure whether something is still burning model calls.
 REM  Nothing is lost that was already written to Supabase.
@@ -9,7 +9,7 @@ cd /d "%~dp0"
 
 echo.
 echo  ============================================================
-echo   EMERGENCY STOP - killing every Benchhood runner
+echo   EMERGENCY STOP - killing every trenchbench runner
 echo  ============================================================
 echo.
 

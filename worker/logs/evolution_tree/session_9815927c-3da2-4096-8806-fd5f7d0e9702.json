@@ -1,0 +1,440 @@
+{
+  "session_id": "9815927c-3da2-4096-8806-fd5f7d0e9702",
+  "created_at": "2026-07-25T23:52:52.987Z",
+  "lessons": [
+    {
+      "session_id": "9815927c-3da2-4096-8806-fd5f7d0e9702",
+      "agent_id": "val",
+      "agent_name": "Value Val",
+      "model": "glm-5.2:cloud",
+      "ret": -7.09,
+      "lesson": "Cap losses at 5% drawdown before round 8; momentum above 4% fades past round 12, so exit earlier."
+    },
+    {
+      "session_id": "9815927c-3da2-4096-8806-fd5f7d0e9702",
+      "agent_id": "mom",
+      "agent_name": "Momentum Mia",
+      "model": "gemma4:31b-cloud",
+      "ret": 2.03,
+      "lesson": "Prioritize high-momentum entries with shorter holding rounds to increase the win rate against market benchmarks."
+    },
+    {
+      "session_id": "9815927c-3da2-4096-8806-fd5f7d0e9702",
+      "agent_id": "degen",
+      "agent_name": "Degen Dex",
+      "model": "deepseek-v4-flash:cloud",
+      "ret": -6.79,
+      "lesson": "Cut losing trades early; hold winners longer to let momentum compound."
+    },
+    {
+      "session_id": "9815927c-3da2-4096-8806-fd5f7d0e9702",
+      "agent_id": "contra",
+      "agent_name": "Contrarian Cole",
+      "model": "qwen3.5:cloud",
+      "ret": 1.38,
+      "lesson": "Ignore frequent small losses and aggressively buy deep 5-minute drawdowns to capture mean reversion."
+    },
+    {
+      "session_id": "9815927c-3da2-4096-8806-fd5f7d0e9702",
+      "agent_id": "mrev",
+      "agent_name": "Mean-Reverter Mara",
+      "model": "nemotron-3-super:cloud",
+      "ret": -3.59,
+      "lesson": "Hold positions with positive 5m momentum and shallow drawdowns; exit early if momentum fades or loss exceeds 1.5% per trade."
+    },
+    {
+      "session_id": "9815927c-3da2-4096-8806-fd5f7d0e9702",
+      "agent_id": "index",
+      "agent_name": "Index Ivy",
+      "model": "minimax-m3:cloud",
+      "ret": -3.18,
+      "lesson": "Actually, let me make it more specific to the lesson - the 26.67% beat rate suggests entries are mistimed, and"
+    },
+    {
+      "session_id": "9815927c-3da2-4096-8806-fd5f7d0e9702",
+      "agent_id": "event",
+      "agent_name": "Event Nia",
+      "model": "kimi-k2.7-code:cloud",
+      "ret": -3.86,
+      "lesson": "Cut losses when 5m momentum reverses before drawdown exceeds 1.5x your planned risk."
+    },
+    {
+      "session_id": "9815927c-3da2-4096-8806-fd5f7d0e9702",
+      "agent_id": "rand",
+      "agent_name": "Random Randy",
+      "model": "nemotron-3-super:cloud",
+      "ret": 0.16,
+      "lesson": "Use tight 5m momentum exits to limit drawdowns, hold only when price confirms trend, and scale risk with recent volatility."
+    }
+  ],
+  "agents": [
+    {
+      "id": "val",
+      "name": "Value Val",
+      "model": "glm-5.2:cloud",
+      "start_cash": 13106,
+      "final_equity": 12177,
+      "trades_count": 76,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "leng",
+          "px": 0.000002099,
+          "tick": 150
+        },
+        {
+          "action": "BUY",
+          "sym": "leng",
+          "px": 0.000002099,
+          "tick": 152
+        },
+        {
+          "action": "SELL",
+          "sym": "pearl",
+          "px": 0.000006884,
+          "tick": 156
+        },
+        {
+          "action": "BUY",
+          "sym": "pearl",
+          "px": 0.000006884,
+          "tick": 157
+        },
+        {
+          "action": "SELL",
+          "sym": "pearl",
+          "px": 0.000004881,
+          "tick": 163
+        },
+        {
+          "action": "BUY",
+          "sym": "pearl",
+          "px": 0.000004881,
+          "tick": 164
+        }
+      ]
+    },
+    {
+      "id": "mom",
+      "name": "Momentum Mia",
+      "model": "gemma4:31b-cloud",
+      "start_cash": 13106,
+      "final_equity": 13372,
+      "trades_count": 41,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Thumbelina",
+          "px": 0.00002692,
+          "tick": 132
+        },
+        {
+          "action": "BUY",
+          "sym": "Thumbelina",
+          "px": 0.00002692,
+          "tick": 133
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00003786,
+          "tick": 135
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00003786,
+          "tick": 136
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00004174,
+          "tick": 141
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00004174,
+          "tick": 142
+        }
+      ]
+    },
+    {
+      "id": "degen",
+      "name": "Degen Dex",
+      "model": "deepseek-v4-flash:cloud",
+      "start_cash": 13106,
+      "final_equity": 12216,
+      "trades_count": 53,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "pearl",
+          "px": 0.000007606,
+          "tick": 125
+        },
+        {
+          "action": "BUY",
+          "sym": "pearl",
+          "px": 0.000007606,
+          "tick": 128
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00003874,
+          "tick": 131
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00003874,
+          "tick": 132
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00004174,
+          "tick": 141
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00004174,
+          "tick": 142
+        }
+      ]
+    },
+    {
+      "id": "contra",
+      "name": "Contrarian Cole",
+      "model": "qwen3.5:cloud",
+      "start_cash": 13106,
+      "final_equity": 13287,
+      "trades_count": 39,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Thumbelina",
+          "px": 0.00002303,
+          "tick": 98
+        },
+        {
+          "action": "BUY",
+          "sym": "Thumbelina",
+          "px": 0.00002286,
+          "tick": 107
+        },
+        {
+          "action": "SELL",
+          "sym": "Thumbelina",
+          "px": 0.0000274,
+          "tick": 121
+        },
+        {
+          "action": "BUY",
+          "sym": "Thumbelina",
+          "px": 0.0000274,
+          "tick": 126
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00003874,
+          "tick": 134
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00004174,
+          "tick": 144
+        }
+      ]
+    },
+    {
+      "id": "mrev",
+      "name": "Mean-Reverter Mara",
+      "model": "nemotron-3-super:cloud",
+      "start_cash": 13106,
+      "final_equity": 12636,
+      "trades_count": 111,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Cog",
+          "px": 0.00003062,
+          "tick": 157
+        },
+        {
+          "action": "SELL",
+          "sym": "pearl",
+          "px": 0.000006884,
+          "tick": 158
+        },
+        {
+          "action": "BUY",
+          "sym": "pearl",
+          "px": 0.000006884,
+          "tick": 159
+        },
+        {
+          "action": "BUY",
+          "sym": "GUS",
+          "px": 0.0000306,
+          "tick": 161
+        },
+        {
+          "action": "SELL",
+          "sym": "Hospital",
+          "px": 0.000006791,
+          "tick": 163
+        },
+        {
+          "action": "SELL",
+          "sym": "pearl",
+          "px": 0.000004881,
+          "tick": 164
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "name": "Index Ivy",
+      "model": "minimax-m3:cloud",
+      "start_cash": 13106,
+      "final_equity": 12690,
+      "trades_count": 136,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Lucy",
+          "px": 0.00003059,
+          "tick": 158
+        },
+        {
+          "action": "BUY",
+          "sym": "GUS",
+          "px": 0.0000306,
+          "tick": 160
+        },
+        {
+          "action": "SELL",
+          "sym": "GUS",
+          "px": 0.0000306,
+          "tick": 161
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00004237,
+          "tick": 162
+        },
+        {
+          "action": "BUY",
+          "sym": "Lucy",
+          "px": 0.00003059,
+          "tick": 163
+        },
+        {
+          "action": "BUY",
+          "sym": "leng",
+          "px": 0.000002099,
+          "tick": 164
+        }
+      ]
+    },
+    {
+      "id": "event",
+      "name": "Event Nia",
+      "model": "kimi-k2.7-code:cloud",
+      "start_cash": 13106,
+      "final_equity": 12601,
+      "trades_count": 46,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00003786,
+          "tick": 138
+        },
+        {
+          "action": "SELL",
+          "sym": "Cog",
+          "px": 0.00003062,
+          "tick": 141
+        },
+        {
+          "action": "BUY",
+          "sym": "Thumbelina",
+          "px": 0.00002692,
+          "tick": 143
+        },
+        {
+          "action": "SELL",
+          "sym": "Thumbelina",
+          "px": 0.00002692,
+          "tick": 153
+        },
+        {
+          "action": "BUY",
+          "sym": "Cog",
+          "px": 0.00003062,
+          "tick": 154
+        },
+        {
+          "action": "BUY",
+          "sym": "cat",
+          "px": 0.000002092,
+          "tick": 155
+        }
+      ]
+    },
+    {
+      "id": "rand",
+      "name": "Random Randy",
+      "model": "nemotron-3-super:cloud",
+      "start_cash": 13106,
+      "final_equity": 13127,
+      "trades_count": 112,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "leng",
+          "px": 0.000002099,
+          "tick": 158
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00004237,
+          "tick": 159
+        },
+        {
+          "action": "SELL",
+          "sym": "cat",
+          "px": 0.000002092,
+          "tick": 161
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00004237,
+          "tick": 162
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00004237,
+          "tick": 163
+        },
+        {
+          "action": "BUY",
+          "sym": "leng",
+          "px": 0.000002099,
+          "tick": 164
+        }
+      ]
+    }
+  ]
+}

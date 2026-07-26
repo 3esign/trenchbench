@@ -1,6 +1,6 @@
 @echo off
 REM ==============================================================
-REM  BENCHHOOD - diagnostic
+REM  trenchbench - diagnostic
 REM  Finds out WHY the models are not answering and whether the
 REM  chain prices actually move. Makes at most 3 model calls.
 REM  Changes nothing, saves nothing.

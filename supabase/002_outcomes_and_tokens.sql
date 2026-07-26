@@ -1,5 +1,5 @@
 -- ============================================================
---  BENCHHOOD — migration 002: outcome labels + live token colours
+--  trenchbench — migration 002: outcome labels + live token colours
 --
 --  WHY THIS MATTERS
 --  Until now the database stored what each agent DID, but not whether it

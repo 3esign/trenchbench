@@ -1,0 +1,416 @@
+{
+  "session_id": "99f8e03f-6dbd-4cc8-9a34-34625468b24b",
+  "created_at": "2026-07-26T00:39:30.699Z",
+  "lessons": [
+    {
+      "session_id": "99f8e03f-6dbd-4cc8-9a34-34625468b24b",
+      "agent_id": "val",
+      "agent_name": "Value Val",
+      "model": "nemotron-3-super:cloud",
+      "ret": -0.04,
+      "lesson": "Trade only when 5m momentum aligns with low drawdown and extended holding rounds to reduce noise and improve edge."
+    },
+    {
+      "session_id": "99f8e03f-6dbd-4cc8-9a34-34625468b24b",
+      "agent_id": "mom",
+      "agent_name": "Momentum Mia",
+      "model": "minimax-m3:cloud",
+      "ret": -25.56,
+      "lesson": "1-Only 2-5% 3-of 4-trades"
+    },
+    {
+      "session_id": "99f8e03f-6dbd-4cc8-9a34-34625468b24b",
+      "agent_id": "degen",
+      "agent_name": "Degen Dex",
+      "model": "kimi-k2.7-code:cloud",
+      "ret": -29.38,
+      "lesson": "Cut losses faster than winners run; momentum fades, but drawdowns compound."
+    },
+    {
+      "session_id": "99f8e03f-6dbd-4cc8-9a34-34625468b24b",
+      "agent_id": "contra",
+      "agent_name": "Contrarian Cole",
+      "model": "glm-5.2:cloud",
+      "ret": -15.26,
+      "lesson": "If 5m momentum exceeds 4% with drawdown under 1%, hold longer; otherwise cut at round 3."
+    },
+    {
+      "session_id": "99f8e03f-6dbd-4cc8-9a34-34625468b24b",
+      "agent_id": "mrev",
+      "agent_name": "Mean-Reverter Mara",
+      "model": "gemma4:31b-cloud",
+      "ret": -1.13,
+      "lesson": "Avoid fading momentum until price action exceeds three standard deviations of the 5-minute rolling average."
+    },
+    {
+      "session_id": "99f8e03f-6dbd-4cc8-9a34-34625468b24b",
+      "agent_id": "index",
+      "agent_name": "Index Ivy",
+      "model": "deepseek-v4-flash:cloud",
+      "ret": -0.61,
+      "lesson": "Cut losses early when 5m momentum drops below 2% to avoid deeper drawdowns."
+    },
+    {
+      "session_id": "99f8e03f-6dbd-4cc8-9a34-34625468b24b",
+      "agent_id": "event",
+      "agent_name": "Event Nia",
+      "model": "qwen3.5:cloud",
+      "ret": -0.74,
+      "lesson": "Cut momentum trades faster when drawdowns exceed time-based holding thresholds to preserve capital."
+    },
+    {
+      "session_id": "99f8e03f-6dbd-4cc8-9a34-34625468b24b",
+      "agent_id": "rand",
+      "agent_name": "Random Randy",
+      "model": "minimax-m3:cloud",
+      "ret": 46.09,
+      "lesson": "Enter only on confirmed 5m momentum breakouts with strict drawdown caps, and hold winners longer to let the few high-conviction trades drive returns."
+    }
+  ],
+  "agents": [
+    {
+      "id": "val",
+      "name": "Value Val",
+      "model": "nemotron-3-super:cloud",
+      "start_cash": 40827,
+      "final_equity": 40812,
+      "trades_count": 2,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "bernoulli",
+          "px": 0.00003079,
+          "tick": 76
+        },
+        {
+          "action": "BUY",
+          "sym": "SEERDEX",
+          "px": 5.632e-8,
+          "tick": 79
+        }
+      ]
+    },
+    {
+      "id": "mom",
+      "name": "Momentum Mia",
+      "model": "minimax-m3:cloud",
+      "start_cash": 40827,
+      "final_equity": 30393,
+      "trades_count": 77,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "JIMSEM",
+          "px": 0.000002538,
+          "tick": 112
+        },
+        {
+          "action": "SELL",
+          "sym": "COD",
+          "px": 0.00003059,
+          "tick": 114
+        },
+        {
+          "action": "BUY",
+          "sym": "JIMSEM",
+          "px": 0.00000254,
+          "tick": 118
+        },
+        {
+          "action": "SELL",
+          "sym": "bernoulli",
+          "px": 0.00003079,
+          "tick": 119
+        },
+        {
+          "action": "SELL",
+          "sym": "Rex",
+          "px": 0.0000306,
+          "tick": 121
+        },
+        {
+          "action": "BUY",
+          "sym": "bernoulli",
+          "px": 0.00003079,
+          "tick": 123
+        }
+      ]
+    },
+    {
+      "id": "degen",
+      "name": "Degen Dex",
+      "model": "kimi-k2.7-code:cloud",
+      "start_cash": 40827,
+      "final_equity": 28833,
+      "trades_count": 25,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "Hospital",
+          "px": 0.000007124,
+          "tick": 81
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00002593,
+          "tick": 100
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00002593,
+          "tick": 101
+        },
+        {
+          "action": "SELL",
+          "sym": "Hospital",
+          "px": 0.000007091,
+          "tick": 104
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00002585,
+          "tick": 113
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00002574,
+          "tick": 118
+        }
+      ]
+    },
+    {
+      "id": "contra",
+      "name": "Contrarian Cole",
+      "model": "glm-5.2:cloud",
+      "start_cash": 40827,
+      "final_equity": 34599,
+      "trades_count": 77,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "Bryn ",
+          "px": 0.000002094,
+          "tick": 116
+        },
+        {
+          "action": "BUY",
+          "sym": "Bryn ",
+          "px": 0.000002094,
+          "tick": 117
+        },
+        {
+          "action": "SELL",
+          "sym": "Hospital",
+          "px": 0.000007855,
+          "tick": 118
+        },
+        {
+          "action": "SELL",
+          "sym": "JIMSEM",
+          "px": 0.00000254,
+          "tick": 120
+        },
+        {
+          "action": "SELL",
+          "sym": "SEERDEX",
+          "px": 5.632e-8,
+          "tick": 121
+        },
+        {
+          "action": "BUY",
+          "sym": "SEERDEX",
+          "px": 5.632e-8,
+          "tick": 122
+        }
+      ]
+    },
+    {
+      "id": "mrev",
+      "name": "Mean-Reverter Mara",
+      "model": "gemma4:31b-cloud",
+      "start_cash": 40827,
+      "final_equity": 40367,
+      "trades_count": 17,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "SEERDEX",
+          "px": 5.166e-7,
+          "tick": 26
+        },
+        {
+          "action": "BUY",
+          "sym": "bernoulli",
+          "px": 0.00003079,
+          "tick": 30
+        },
+        {
+          "action": "SELL",
+          "sym": "SEERDEX",
+          "px": 5.632e-8,
+          "tick": 34
+        },
+        {
+          "action": "BUY",
+          "sym": "SEERDEX",
+          "px": 5.632e-8,
+          "tick": 35
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00002822,
+          "tick": 43
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00002593,
+          "tick": 99
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "name": "Index Ivy",
+      "model": "deepseek-v4-flash:cloud",
+      "start_cash": 40827,
+      "final_equity": 40578,
+      "trades_count": 35,
+      "trades": [
+        {
+          "action": "SELL",
+          "sym": "bernoulli",
+          "px": 0.00003079,
+          "tick": 108
+        },
+        {
+          "action": "BUY",
+          "sym": "JIMSEM",
+          "px": 0.000002538,
+          "tick": 109
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00002593,
+          "tick": 110
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00002585,
+          "tick": 113
+        },
+        {
+          "action": "SELL",
+          "sym": "JIMSEM",
+          "px": 0.00000254,
+          "tick": 116
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00002574,
+          "tick": 117
+        }
+      ]
+    },
+    {
+      "id": "event",
+      "name": "Event Nia",
+      "model": "qwen3.5:cloud",
+      "start_cash": 40827,
+      "final_equity": 40523,
+      "trades_count": 7,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00002646,
+          "tick": 32
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00002822,
+          "tick": 46
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.0000286,
+          "tick": 70
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00002736,
+          "tick": 78
+        },
+        {
+          "action": "BUY",
+          "sym": "KADENSE",
+          "px": 0.00002736,
+          "tick": 96
+        },
+        {
+          "action": "SELL",
+          "sym": "KADENSE",
+          "px": 0.00002593,
+          "tick": 101
+        }
+      ]
+    },
+    {
+      "id": "rand",
+      "name": "Random Randy",
+      "model": "minimax-m3:cloud",
+      "start_cash": 40827,
+      "final_equity": 59644,
+      "trades_count": 74,
+      "trades": [
+        {
+          "action": "BUY",
+          "sym": "JIMSEM",
+          "px": 0.000002538,
+          "tick": 109
+        },
+        {
+          "action": "SELL",
+          "sym": "GUS",
+          "px": 0.0000306,
+          "tick": 110
+        },
+        {
+          "action": "BUY",
+          "sym": "Bryn ",
+          "px": 0.000002094,
+          "tick": 111
+        },
+        {
+          "action": "SELL",
+          "sym": "Rex",
+          "px": 0.0000306,
+          "tick": 114
+        },
+        {
+          "action": "SELL",
+          "sym": "JIMSEM",
+          "px": 0.00000254,
+          "tick": 115
+        },
+        {
+          "action": "BUY",
+          "sym": "GUS",
+          "px": 0.0000306,
+          "tick": 116
+        }
+      ]
+    }
+  ]
+}

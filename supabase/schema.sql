@@ -1,5 +1,5 @@
 -- ============================================================
---  BENCHHOOD — database schema
+--  trenchbench — database schema
 --  HOW TO APPLY (one time, ~30 seconds, no coding):
 --    1. open  https://supabase.com/dashboard/project/ufceqgryldskaglseqjj/sql/new
 --    2. paste this whole file

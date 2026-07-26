@@ -1,4 +1,4 @@
-# Benchhood — launch thread
+# trenchbench — launch thread
 
 The strongest thing you have is not "we built an AI trading benchmark." Everyone
 has one of those and crypto Twitter is numb to it. The strongest thing you have
@@ -19,19 +19,16 @@ is a **war story with numbers in it** — that's what devs repost.
 
 **Tweet 2**
 
-> Fix: stop asking the explorer. Read `sqrtPriceX96` straight out of Uniswap v4
-> `Swap` logs.
+> Fix: stream straight from PumpPortal WebSocket + Dexscreener API.
 >
-> Every trade stamps the pool price into its own event. That's a live price per
-> block — no indexer, no paid API, no subgraph.
+> Every trade updates the market price in real-time. That's a live price per
+> tick — no paid RPC, no expensive subgraph.
 
 **Tweet 3**
 
-> Catch: the free RPC tier caps `eth_getLogs` at a 10-block range. Historical
-> scanning is dead on arrival.
+> Catch: RPC WebSocket limits can drop connections or stall.
 >
-> But `eth_newFilter` has no range limit. One filter, polled every few seconds.
-> A price feed doesn't want history — it wants the next trade.
+> But PumpPortal WebSocket + Dexscreener REST fallback keep state clean. A price feed doesn't want history — it wants the next trade.
 
 **Tweet 4**
 
@@ -52,41 +49,40 @@ is a **war story with numbers in it** — that's what devs repost.
 
 **Tweet 6**
 
-> Bonus discovery: there are 40+ ERC-20s called GME on this chain.
+> Bonus discovery: there are 40+ SPL tokens called GME on Solana.
 >
-> One is GameStop's Robinhood Token. The rest are clones, several with vanity
-> addresses ending `...4ba3`.
+> One is the primary coin. The rest are clones, several with vanity
+> mint addresses.
 >
 > Pick your roster by ticker and your agents trade a counterfeit.
 
 **Tweet 7**
 
-> What it's all for: 8 AI agents, 7 models, trading real Robinhood Chain markets.
+> What it's all for: 8 AI agents, 7 models, trading real Pump.fun / Solana markets.
 > Every decision scored against what the market actually did next.
 >
 > The pairing rotates each session — otherwise "best model" and "best strategy"
 > are the same number and neither means anything.
 >
-> benchhood.vercel.app
+> trenchbench.vercel.app
 
 **Tweet 8 — credits**
 
-> Built on: @Uniswap v4 pools · @chainlink feeds · @Alchemy RPC · @blockscout
-> explorer · @ollama for the models · @supabase + @vercel
+> Built on: PumpPortal WebSocket · @dexscreener API · Solana · @ollama for the models · @supabase + @vercel
 >
-> Independent, not affiliated with Robinhood.
+> Independent, not affiliated with Pump.fun.
 
 ---
 
 ## Option B — single tweet, if you don't want a thread
 
 > The block explorer said prices hadn't moved in 15 minutes.
-> The chain was doing 1,138 swaps a minute.
+> Solana was doing 1,138 swaps a minute.
 >
-> So I read `sqrtPriceX96` straight off Uniswap v4 Swap logs instead. Live price
-> per block, no indexer, no paid API.
+> So I streamed straight from PumpPortal WebSocket + Dexscreener API instead. Live price
+> per tick, no paid indexer.
 >
-> 8 AI agents now trade Robinhood Chain on it → benchhood.vercel.app
+> 8 AI agents now trade Pump.fun on it → trenchbench.vercel.app
 
 ---
 
@@ -94,12 +90,12 @@ is a **war story with numbers in it** — that's what devs repost.
 
 > Everyone benchmarks LLMs on tests they might have memorised.
 >
-> So we put 7 of them on Robinhood Chain's stock-paired tokens — an instrument
+> So we put 7 of them on Pump.fun / Solana memecoins — instruments
 > that didn't exist when any of them were trained.
 >
 > No training data. No memorisation. Just judgement.
 >
-> benchhood.vercel.app
+> trenchbench.vercel.app
 
 ---
 
@@ -107,25 +103,20 @@ is a **war story with numbers in it** — that's what devs repost.
 
 | Who | What you actually used | Handle |
 |---|---|---|
-| **Uniswap** | v4 pools; every price comes from their Swap logs | `@Uniswap` |
-| **Chainlink** | tokenized-equity feeds via `latestRoundData()` | `@chainlink` |
-| **Alchemy** | the RPC everything reads through | `@Alchemy` |
+| **PumpPortal** | WebSocket stream for live feed & trades | `@pumpportal` |
+| **Dexscreener** | real-time token pricing API | `@dexscreener` |
+| **Solana** | the underlying blockchain | `@solana` |
 | **Ollama** | runs all seven models | `@ollama` |
-| **Blockscout** | token metadata and contract discovery | `@blockscout` |
 | **Supabase** | the database, which is the actual product | `@supabase` |
 | **Vercel** | hosts the Arena | `@vercel` |
-| **Bankr** | stock-paired tokens are their primitive | `@bankrbot` — verify |
-| **Robinhood** | the chain itself | mention, don't imply endorsement |
+| **Pump.fun** | the memecoin launchpad | mention, don't imply endorsement |
 
 Two notes on tagging:
 
-- **Verify `@bankrbot` and `@blockscout` before posting.** Both look right
-  (Bankr's GitHub org is `BankrBot`; Blockscout posts from `@blockscout`, though
-  `@blockscoutcom` also exists) but a wrong tag in a launch tweet is the kind of
-  thing people screenshot.
-- **Don't tag Robinhood in the main tweet.** You're unaffiliated and the site
+- **Verify `@pumpportal` and `@dexscreener` before posting.**
+- **Don't tag Pump.fun in the main tweet.** You're unaffiliated and the site
   says so; tagging them in a launch post reads as implying otherwise. Mention
-  the chain by name, credit them in the thread if at all.
+  Pump.fun by name, credit them in the thread if at all.
 
 ---
 

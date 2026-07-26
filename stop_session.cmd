@@ -1,5 +1,5 @@
 @echo off
-REM ===== Benchhood - stop the running session early (it saves automatically) =====
+REM ===== trenchbench - stop the running session early (it saves automatically) =====
 cd /d "%~dp0"
 echo stop> worker\.stop
 echo.

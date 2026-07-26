@@ -1,5 +1,5 @@
 -- ============================================================
---  BENCHHOOD — 003: void the sessions a price fault corrupted
+--  trenchbench — 003: void the sessions a price fault corrupted
 --
 --  WHY THIS EXISTS
 --  CASHCAT was priced at 9.4e-11 instead of 0.0505 — a factor of 537 million,

@@ -1,6 +1,6 @@
-# Benchhood
+# trenchbench
 
-A live benchmark where AI agents trade a Robinhood-Chain market, learn, and rank — built for Robinhood Chain, independent, not affiliated with Robinhood Markets.
+A live benchmark where AI agents trade a Solana / Pump.fun market, learn, and rank — built for Pump.fun, independent, not affiliated with Pump.fun.
 
 This folder is the whole project. You don't need to code — you run a few double-click scripts.
 
@@ -9,7 +9,7 @@ This folder is the whole project. You don't need to code — you run a few doubl
 ## What's inside
 
 ```
-benchhood/
+trenchbench/
 ├─ web/                 the public site (Arena) — deploys to Vercel
 ├─ worker/              the session runner (runs on your PC with Ollama)
 ├─ supabase/            the database — paste SETUP_FROM_SCRATCH.sql once
@@ -33,7 +33,7 @@ benchhood/
 ## First-time setup (about 10 minutes, done once)
 
 **1. Install the two free tools** (if you don't have them)
-- Node.js — https://nodejs.org (click the big "LTS" button, install)
+- Node.js (Node 21+) — https://nodejs.org (click the big "LTS" button, install)
 - Ollama — https://ollama.com/download (install), then open a terminal and run: `ollama pull qwen2.5`
 
 **2. Set up the database** (one paste, no coding)
@@ -51,7 +51,7 @@ checklist.**
 
 **3. Put the site live**
 - Double-click **update_website.cmd**. It prints your live URL when done.
-- One-time: on vercel.com, open the new project's Settings and rename it to **benchhood** so the address becomes **benchhood.vercel.app**.
+- One-time: on vercel.com, open the new project's Settings and rename it to **trenchbench** so the address becomes **trenchbench.vercel.app**.
 
 ---
 
@@ -60,7 +60,7 @@ checklist.**
 - **Run a session:** with Ollama running, double-click **start_session.cmd** (or
   `start_stocks` / `start_memes` / `start_fresh` for a different roster). All eight
   agents start on equal capital, the model↔persona pairing rotates from last time,
-  and prices come live from the chain. It runs **until you press Stop** —
+  and prices come live from the Pump.fun feed. It runs **until you press Stop** —
   `SESSION_SECONDS` is only a safety cap.
 - **Stop it:** **stop_session.cmd**. It finishes the round, scores every decision
   and saves. **emergency_stop.cmd** is the harder version if you're unsure what's
@@ -75,7 +75,7 @@ checklist.**
 
 ## Backing the code up to GitHub (private)
 
-Double-click **push_to_github.cmd**. It pushes to `github.com/3esign/benchhood`.
+Double-click **push_to_github.cmd**. It pushes to `github.com/3esign/trenchbench`.
 
 It will **not** push `config.txt`, any `.env`, `.vercel`, `.deploy`, or your
 `sessions/` folder — your keys and your data stay on this machine. If a secret
@@ -107,8 +107,8 @@ of the time and still lose money — that gap is the interesting part of the dat
 ## Notes
 
 - **Your keys** live only in `config.txt` (git-ignored). They were shared in chat,
-  so **rotate them** — Vercel token, Alchemy key, Supabase password.
-- **Prices are real.** Every price comes from the Robinhood-Chain explorer and is
+  so **rotate them** — Vercel token, Supabase password.
+- **Prices are real.** Every price comes from PumpPortal + Dexscreener and is
   refreshed during the session. `PRICE_MODE=sim` exists for offline testing only.
 - **Costs:** Vercel and Supabase free tiers are plenty. Ollama Cloud models are the
   only thing that costs money — hence the call ceiling.

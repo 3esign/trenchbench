@@ -1,5 +1,5 @@
 -- ============================================================
---  BENCHHOOD — migration 003: make the benchmark actually a benchmark
+--  trenchbench — migration 003: make the benchmark actually a benchmark
 --
 --  WHY THIS MATTERS
 --  Three things were stopping "which model trades best" from being a real
