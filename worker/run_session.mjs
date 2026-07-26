@@ -381,6 +381,16 @@ function getPsychologicalRisk(ag, obs) {
   }
   return r;
 }
+function calculateBondingCurveImpact(action, tradeValUsd, spotPx, liquidityPoolUsd = 10000) {
+  if (!spotPx || spotPx <= 0 || tradeValUsd <= 0) return { execPx: spotPx, priceImpactPct: 0, slippageFeeUsd: 0 };
+  const gamma = tradeValUsd / Math.max(1000, liquidityPoolUsd);
+  const impactSign = action === 'BUY' ? 1 : -1;
+  const execPx = spotPx * (1 + impactSign * (gamma / 2));
+  const priceImpactPct = impactSign * gamma * 100;
+  const slippageFeeUsd = tradeValUsd * (gamma / 2);
+  return { execPx, priceImpactPct, slippageFeeUsd };
+}
+
 function menuToOrder(opt, ag, obs) {
   if (!opt || opt.k === 'HOLD') return { action: 'HOLD', symbol: null, qty: 0 };
   if (opt.k === 'SELL') return { action: 'SELL', symbol: opt.sym, qty: obs.hold[opt.sym] || 0 };
@@ -388,7 +398,11 @@ function menuToOrder(opt, ag, obs) {
   if (opt.k === 'REBALANCE') return { action: 'REBALANCE', symbol: null, qty: 0 };
   const px = obs.M[opt.sym] ? obs.M[opt.sym].price : 0;
   const dynRisk = getPsychologicalRisk(ag, obs);
-  return { action: 'BUY', symbol: opt.sym, qty: px > 0 ? Math.floor((dynRisk * obs.cash) / (px * 1.001)) : 0 };
+  const tradeSizeUsd = dynRisk * obs.cash;
+  const liq = (obs.M[opt.sym] && obs.M[opt.sym].liq) || 10000;
+  const impact = calculateBondingCurveImpact('BUY', tradeSizeUsd, px, liq);
+  const execPx = impact.execPx;
+  return { action: 'BUY', symbol: opt.sym, qty: execPx > 0 ? Math.floor(tradeSizeUsd / (execPx * 1.001)) : 0, impactPct: impact.priceImpactPct };
 }
 function parseChoice(text, menu) {
   if (!text) return null;
