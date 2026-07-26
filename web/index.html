@@ -1081,6 +1081,16 @@ async function render(){
     S.timer=setTimeout(()=>{S.list=[];render()}, live?2500:8000);
   }catch(e){
     console.error('[trenchbench] render failed:', e);
+    let errBanner = document.getElementById('tbErrorBanner');
+    if (!errBanner) {
+      errBanner = document.createElement('div');
+      errBanner.id = 'tbErrorBanner';
+      errBanner.style = 'margin:10px 16px; background:#e0362c15; border:1px solid #e0362c33; border-radius:12px; padding:12px 16px; color:#e0362c; font-family:monospace; font-size:12.5px;';
+      const mainEl = document.querySelector('main');
+      if (mainEl) mainEl.prepend(errBanner);
+    }
+    errBanner.innerHTML = `<b>⚠️ TRENCHBENCH V2.0 CLIENT ERROR:</b><br>${e.message}<br><pre style="margin-top:6px; font-size:11px; white-space:pre-wrap; opacity:0.85;">${e.stack}</pre>`;
+
     if (S.pendingLive) {
       clearTimeout(S.timer);
       S.timer = setTimeout(render, 15000);
