@@ -916,14 +916,14 @@ async function loadList(){
 
 async function render(){
   try{
-    if(!S.list.length) await loadList();
+    await loadList();
     const sess=S.list[0];
     if(!sess){ $('#statustxt').textContent='no sessions yet'; $('#pill').classList.remove('live');
       $('#racechart').innerHTML='<div class="hero">No session running right now. The most recent completed session appears here — <b>agents, models, and the survival race.</b></div>';
       ['tape','heat','gModels','gAgents','gTokens'].forEach(i=>{const e=$('#'+i);if(e)e.innerHTML=''});
       $('#lbbody').innerHTML='<tr><td class="empty" colspan="5">no session yet</td></tr>';
       pulseState('idle · no sessions yet', false);
-      clearTimeout(S.timer); S.timer=setTimeout(()=>{S.list=[];render()},8000); return; }
+      clearTimeout(S.timer); S.timer=setTimeout(render,5000); return; }
 
     // status alone is not enough: if the runner is killed before it can mark the
     // session stopped, the row stays "running" forever and the site claims to be
@@ -936,7 +936,7 @@ async function render(){
     }
     const id=sess.id;
 
-    const decs=await q(`decisions?session_id=eq.${id}&select=tick,ts,agent_id,agent_name,model,start_cash,action,sym,qty,price,comment,equity&order=tick.desc&limit=300`);
+    const decs=await qTry(`decisions?session_id=eq.${id}&select=tick,ts,agent_id,agent_name,model,start_cash,action,sym,qty,price,comment,equity&order=tick.desc&limit=300`) || [];
     const lastTs=decs.reduce((mx,d)=>{const t=d.ts?Date.parse(d.ts):0;return t>mx?t:mx},0);
     const quietFor=lastTs?Math.round((Date.now()-lastTs)/1000):null;
     const stale=S.pendingLive && quietFor!=null && quietFor>90;
