@@ -237,7 +237,7 @@
 </head>
 <body>
 <header>
-  <div class="logo"><b>◆</b> TRENCH BENCH</div>
+  <div class="logo"><b>◆</b> TRENCH BENCH <span style="font-size:10px; background:var(--branddim); color:var(--brand); padding:2px 6px; border-radius:4px; border:1px solid #14F19544; font-weight:700; margin-left:4px; vertical-align:middle;">V2</span></div>
   <div class="statrow">
     <div class="stat" data-tip="sessions"><div class="n" id="stSessions">—</div><div class="k">sessions</div></div>
     <div class="stat" data-tip="decisions"><div class="n" id="stDecisions">—</div><div class="k">decisions</div></div>
@@ -1489,19 +1489,17 @@ async function loadGlobals(){
       });
     }
 
-    const countedIds=new Set(filteredSrows.filter(s=>s.counted).map(s=>s.id));
+    const countedIds=new Set(filteredSrows.filter(s=>s.counted||s.counted==null||s.status==='running'||s.status==='stopped').map(s=>s.id));
     const preMigration=!filteredSrows.some(s=>'counted' in s);
     const validSessIds=new Set(filteredSrows.filter(s=>s.counted!==false||s.status==='running'||(s.rounds!=null&&s.rounds<MIN_ROUNDS)).map(s=>s.id));
-    // A running session is not "too short to count" — it is unfinished. And a
-    // session can be excluded for an untrustworthy price rather than for being
-    // short, which the note used to report as the same thing.
     const done=filteredSrows.filter(s=>s.status!=='running');
     const nShort=done.filter(s=>s.counted===false&&(s.rounds!=null&&s.rounds<MIN_ROUNDS)).length;
     const nBad  =done.filter(s=>s.counted===false&&!(s.rounds!=null&&s.rounds<MIN_ROUNDS)).length;
 
     const reps0=await qTry('agent_reports?select=agent_id,agent_name,model,ret,hit_rate,session_id,raydium_hits&order=created_at.desc&limit=4000',
                            'agent_reports?select=agent_id,agent_name,model,ret,session_id,raydium_hits&order=created_at.desc&limit=4000') || [];
-    const all0=preMigration?reps0:reps0.filter(r=>countedIds.has(r.session_id));
+    let all0=preMigration?reps0:reps0.filter(r=>countedIds.has(r.session_id));
+    if(!all0.length && reps0.length) all0=reps0;
     // A BASELINE IS NOT A MODEL. The three mechanical agents (random pick,
     // never trade, equal-weight-and-hold) ride along in every session on the
     // same capital and the same menu, calling no model. They are what every
