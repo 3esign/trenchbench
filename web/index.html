@@ -243,7 +243,7 @@
 <div id="tokenBarContainer" style="position:sticky; top:59px; z-index:19; background:var(--card); border-bottom:1px solid var(--border); padding:6px 18px; display:flex; align-items:center; gap:10px; margin:0; width:100%;">
   <span style="font-size:11px; font-weight:700; color:var(--brand); white-space:nowrap;">🔥 LIVE TOKENS:</span>
   <button onclick="scrollCarousel(-200)" style="background:var(--card2); border:1px solid var(--border); color:var(--ink); border-radius:4px; padding:2px 8px; cursor:pointer;">◄</button>
-  <div id="tokenCarousel" style="display:flex; gap:10px; overflow-x:auto; scroll-behavior:smooth; white-space:nowrap; flex:1 1 auto; scrollbar-width:none; cursor:grab; user-select:none;">
+  <div id="tokenCarousel" style="display:flex; gap:10px; overflow-x:auto; scroll-behavior:auto; white-space:nowrap; flex:1 1 auto; scrollbar-width:none; cursor:grab; user-select:none;">
     <span class="dim" style="font-size:11.5px;">loading live token stream...</span>
   </div>
   <button onclick="scrollCarousel(200)" style="background:var(--card2); border:1px solid var(--border); color:var(--ink); border-radius:4px; padding:2px 8px; cursor:pointer;">►</button>
@@ -904,15 +904,15 @@ function startCarouselAutoScroll() {
   const slider = document.getElementById('tokenCarousel');
   if (!slider) return;
   
-  let lastScrollLeft = slider.scrollLeft;
   setInterval(() => {
     if (!_tcarAutoScroll) return;
     slider.scrollLeft += 1;
-    if (slider.scrollLeft === lastScrollLeft && slider.scrollLeft > 0) {
+    // If we scrolled past half of the content width, loop back to start seamlessly
+    const halfWidth = slider.scrollWidth / 2;
+    if (slider.scrollLeft >= halfWidth - 1) {
       slider.scrollLeft = 0;
     }
-    lastScrollLeft = slider.scrollLeft;
-  }, 35);
+  }, 30);
 
   slider.addEventListener('mouseenter', () => _tcarAutoScroll = false);
   slider.addEventListener('mouseleave', () => _tcarAutoScroll = true);
@@ -1078,13 +1078,14 @@ async function render(){
           });
         }
       }
-      carEl.innerHTML = carouselData.map(t => {
+      const itemsHTML = carouselData.map(t => {
         const url = t.addr ? ('https://pump.fun/coin/' + t.addr) : ('https://pump.fun/board?q=' + encodeURIComponent(t.sym));
         const pxt = t.live ? (t.live >= 1 ? '$' + t.live.toFixed(2) : '$' + (+t.live).toPrecision(3)) : 'recent';
         const chgTxt = t.chg == null ? '—' : pct(t.chg);
         const colCls = t.q ? '' : (t.chg == null ? '' : t.chg >= 0 ? 'up' : 'down');
         return `<a href="${url}" class="glitch-hover" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:6px; background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:4px 10px; font-size:11.5px; text-decoration:none; color:var(--ink); flex:0 0 auto;"><span style="font-weight:600">${t.sym}</span><span style="font-family:var(--font-mono); font-size:11px">${pxt}</span><span class="${colCls}" style="font-weight:600; font-size:11px">${chgTxt}</span></a>`;
-      }).join('') || '<span class="dim" style="font-size:11.5px;">no tokens</span>';
+      }).join('');
+      carEl.innerHTML = itemsHTML + itemsHTML;
     }
     
     const nUp=tiles.filter(t=>t.chg>0).length,nDn=tiles.filter(t=>t.chg<0).length,
