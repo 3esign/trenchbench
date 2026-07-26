@@ -385,19 +385,23 @@ async function think(ag, obs) {
     return `${a.sym} (${signals.join(' | ')})`;
   }).join(', ');
   // --- STATE VECTOR COMPRESSION ---
-  obs.menu = obs.menu || [];
   // 1. Compress menu items with dense telemetry
   for (const o of obs.menu) {
     if (o.k === 'HOLD') continue; // keep HOLD simple
-    const a = o.sym ? obs.top.find(x => x.sym === o.sym) || obs.positions.find(x => x.sym === o.sym) : null;
+    const inTop = o.sym ? obs.top.find(x => x.sym === o.sym) : null;
+    const a = inTop || (o.sym ? obs.positions.find(x => x.sym === o.sym) : null);
     if (a) {
       const sigs = [];
-      if (a.liq) sigs.push(`LQ:${shortNum(a.liq)}`);
-      if (a.vol5m) sigs.push(`V5:${shortNum(a.vol5m)}`);
-      if (a.mc) sigs.push(`MC:${shortNum(a.mc)}`);
-      sigs.push(`M1:${a.mom >= 0 ? '+' : ''}${a.mom.toFixed(1)}%`);
-      if (a.mom15m != null) sigs.push(`M15:${a.mom15m >= 0 ? '+' : ''}${a.mom15m.toFixed(1)}%`);
-      if (a.mom1h != null) sigs.push(`M60:${a.mom1h >= 0 ? '+' : ''}${a.mom1h.toFixed(1)}%`);
+      if (inTop) {
+        if (inTop.liq) sigs.push(`LQ:${shortNum(inTop.liq)}`);
+        if (inTop.vol5m) sigs.push(`V5:${shortNum(inTop.vol5m)}`);
+        if (inTop.mc) sigs.push(`MC:${shortNum(inTop.mc)}`);
+        if (inTop.mom != null) sigs.push(`M1:${inTop.mom >= 0 ? '+' : ''}${inTop.mom.toFixed(1)}%`);
+        if (inTop.mom15m != null) sigs.push(`M15:${inTop.mom15m >= 0 ? '+' : ''}${inTop.mom15m.toFixed(1)}%`);
+        if (inTop.mom1h != null) sigs.push(`M60:${inTop.mom1h >= 0 ? '+' : ''}${inTop.mom1h.toFixed(1)}%`);
+      } else {
+        sigs.push(`PNL:${a.pnl >= 0 ? '+' : ''}${a.pnl.toFixed(1)}%`);
+      }
       o.label = `${o.k} ${o.sym} [${sigs.join('|')}]`;
     }
   }
@@ -954,7 +958,7 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
         d = ag.kind ? baselineChoice(ag, obs)                       // null model, no prompt, no tokens
           : usingOllama ? await think(ag, obs)
           : { ...ruleFallback(ag, obs), brain: 'rules' };
-      } catch { d = { action: 'HOLD', symbol: null, qty: 0, comment: 'error', brain: 'error' }; }
+      } catch (e) { console.error('\\n\\n  [FATAL] THINK ERROR:', e); d = { action: 'HOLD', symbol: null, qty: 0, comment: 'error', brain: 'error' }; }
       const sym = d.symbol && OPEN[d.symbol] ? d.symbol : null; d.symbol = sym;
       // Fill at the price snapshotted when the ROUND opened, not at live M.
       // The poller mutates M while eight agents are still awaiting their models,

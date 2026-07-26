@@ -892,7 +892,18 @@ async function loadGlobals(){
     // Top tokens used to rank over EVERY session, including the ones the
     // benchmark threw out — so the session that minted $109m out of a bad price
     // was excluded from every other board and still set the token leader.
-    const outs=await qTry('decision_outcomes?select=sym,realized_pnl,outcome,session_id&order=created_at.desc&limit=50000');
+    
+    // Paginate to bypass the 1000-row limit in Supabase
+    let outs = [];
+    let offset = 0;
+    while(true) {
+      const chunk = await qTry(`decision_outcomes?select=sym,realized_pnl,outcome,session_id&order=created_at.desc&limit=1000&offset=${offset}`);
+      if(!chunk || !chunk.length) break;
+      outs.push(...chunk);
+      if(chunk.length < 1000 || outs.length >= 50000) break;
+      offset += 1000;
+    }
+
     if(outs&&outs.length){
       const cRecent={}, cAll={}; 
       const recentSessIds = Array.from(validSessIds).slice(0, 5);
@@ -901,6 +912,7 @@ async function loadGlobals(){
         if(!o.sym) continue;
         if(o.outcome==='void') continue;                                   // token was delisted; unscoreable
         if(!o.session_id) continue;
+        if(['USDC','USDT','DAI','USDE','USDE','FDUSD'].includes(o.sym.toUpperCase())) continue;
         
         // Accumulate all-time
         if(!preMigration && validSessIds.has(o.session_id)) {
