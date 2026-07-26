@@ -666,62 +666,72 @@ const TIPS={
   radarMara:'<b>Mean-Reverter Mara Skill Profile</b><br>• Return: 72%<br>• Hit Rate: 62%<br>• HODL: 60%<br>• Variety: 65%<br>• Regret: 70%<br><br>Extreme oscillator fader. Targets local deviation bands.'
 };
 (function(){
-  const tip=document.createElement('div'); tip.className='tip'; document.body.appendChild(tip);
-  const place=e=>{ const r=tip.getBoundingClientRect(); let x=e.clientX+14, y=e.clientY+16;
-    if(x+r.width>innerWidth-8) x=Math.max(8,e.clientX-r.width-14);
-    if(y+r.height>innerHeight-8) y=Math.max(8,e.clientY-r.height-14);
-    tip.style.left=x+'px'; tip.style.top=y+'px'; };
+  const tip = document.createElement('div');
+  tip.className = 'tip';
+  tip.style.pointerEvents = 'none'; // BULLETPROOF: No mouse interference
+  document.body.appendChild(tip);
   
-  document.addEventListener('mouseover',e=>{
-    const t=e.target.closest&&e.target.closest('[data-tip]');
-    if(t) {
-      tip.innerHTML=TIPS[t.dataset.tip]||t.dataset.tip;
-      tip.style.display='block';
+  const place = e => {
+    const r = tip.getBoundingClientRect();
+    let x = e.clientX + 14, y = e.clientY + 16;
+    if (x + r.width > innerWidth - 8) x = Math.max(8, e.clientX - r.width - 14);
+    if (y + r.height > innerHeight - 8) y = Math.max(8, e.clientY - r.height - 14);
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  };
+  
+  let currentLegHover = null;
+  
+  document.addEventListener('mousemove', e => {
+    // 1. Tooltip Logic
+    const t = e.target.closest && e.target.closest('[data-tip]');
+    if (t) {
+      if (tip.style.display !== 'block' || tip.dataset.current !== t.dataset.tip) {
+        tip.innerHTML = TIPS[t.dataset.tip] || t.dataset.tip;
+        tip.style.display = 'block';
+        tip.dataset.current = t.dataset.tip;
+      }
       place(e);
+    } else {
+      if (tip.style.display !== 'none') {
+        tip.style.display = 'none';
+        tip.dataset.current = '';
+      }
     }
     
-    // Legend Hover Highlight for Radar Chart
-    const leg=e.target.closest&&e.target.closest('.radar-leg');
-    if(leg) {
-      const key=leg.dataset.persona;
-      document.querySelectorAll('.rpoly').forEach(poly => {
-        if(poly.id === `rpoly-${key}`) {
-          poly.setAttribute('fill-opacity', '0.6');
-          poly.setAttribute('stroke-width', '3.5');
+    // 2. Legend Hover Highlight for Radar Chart
+    const leg = e.target.closest && e.target.closest('.radar-leg');
+    if (leg) {
+      const key = leg.dataset.persona;
+      if (currentLegHover !== key) {
+        currentLegHover = key;
+        document.querySelectorAll('.rpoly').forEach(poly => {
+          if (poly.id === `rpoly-${key}`) {
+            poly.setAttribute('fill-opacity', '0.6');
+            poly.setAttribute('stroke-width', '3.5');
+            poly.style.opacity = '1';
+          } else {
+            poly.setAttribute('fill-opacity', '0.02');
+            poly.setAttribute('stroke-width', '0.5');
+            poly.style.opacity = '0.15';
+          }
+        });
+      }
+    } else {
+      if (currentLegHover !== null) {
+        currentLegHover = null;
+        document.querySelectorAll('.rpoly').forEach(poly => {
+          poly.setAttribute('fill-opacity', '0.2');
+          poly.setAttribute('stroke-width', '2');
           poly.style.opacity = '1';
-        } else {
-          poly.setAttribute('fill-opacity', '0.02');
-          poly.setAttribute('stroke-width', '0.5');
-          poly.style.opacity = '0.15';
-        }
-      });
+        });
+      }
     }
   });
   
-  document.addEventListener('mousemove',e=>{ if(tip.style.display==='block') place(e); });
-  
-  document.addEventListener('mouseout',e=>{
-    const t=e.target.closest&&e.target.closest('[data-tip]');
-    if(t) {
-      if(e.relatedTarget && t.contains(e.relatedTarget)) return;
-      tip.style.display='none';
-    }
-    
-    // Reset Legend Highlight on Mouse Out
-    const leg=e.target.closest&&e.target.closest('.radar-leg');
-    if(leg) {
-      if(e.relatedTarget && leg.contains(e.relatedTarget)) return;
-      document.querySelectorAll('.rpoly').forEach(poly => {
-        poly.setAttribute('fill-opacity', '0.2');
-        poly.setAttribute('stroke-width', '2');
-        poly.style.opacity = '1';
-      });
-    }
-  });
-  
-  document.addEventListener('scroll',()=>{ tip.style.display='none'; },true);
-  window.addEventListener('blur',()=>{ tip.style.display='none'; });
-  document.addEventListener('mouseleave',()=>{ tip.style.display='none'; });
+  document.addEventListener('scroll', () => { tip.style.display = 'none'; }, true);
+  window.addEventListener('blur', () => { tip.style.display = 'none'; });
+  document.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
 })();
 
 
