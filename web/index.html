@@ -967,7 +967,7 @@ async function render(){
     // is fetched first and the standing is derived from the same array.
     // Order of preference: the runner's own final report > the equity curve >
     // the last decision. Never two of them at once.
-    const eq=await q(`equity_points?session_id=eq.${id}&select=agent_id,tick,value&order=tick.desc&limit=8000`);
+    const eq=await qTry(`equity_points?session_id=eq.${id}&select=agent_id,tick,value&order=tick.desc&limit=8000`) || [];
     const byA={}; for(const e of eq){ const a=(byA[e.agent_id]=byA[e.agent_id]||[]); a.push({t:+e.tick,v:+e.value}); }
     for(const k in byA) byA[k].sort((a,b)=>a.t-b.t);
     const fin=await qTry(`agent_reports?session_id=eq.${id}&select=agent_id,agent_name,model,start_cash,end_value,ret,hit_rate`,`agent_reports?session_id=eq.${id}&select=agent_id`);
