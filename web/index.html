@@ -161,7 +161,7 @@
   .aname{font-weight:600}
   .mchip{font-size:9px;border:1px solid;border-radius:20px;padding:1px 6px;margin-left:5px;font-weight:600;white-space:nowrap}
   .lb td,.lb th{padding:6px 4px}
-  .lb td.r,.lb th.r{white-space:nowrap}
+  .lb td.r,.lb th.r{white-space:nowrap;text-align:right}
   .tagw{font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;border-radius:20px;padding:1px 6px;margin-left:5px}
   .win{background:#14F19516;color:#14F195;border:1px solid #14F19555}.out{background:#e0362c12;color:#c0271e;border:1px solid #e0362c44}
   .up{color:var(--good)}.down{color:var(--bad)}.dead td{opacity:.5}
@@ -269,7 +269,7 @@
 <main>
 
   <!-- Stadium Jumbotron Pixelated LED Commentary Marquee (Floating raw ticker text) -->
-  <div style="margin: 14px 0 6px; text-align: center;">
+  <div style="margin: 14px 0 6px; text-align: center; height: 64px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
     <div id="jumboTicker" style="font-family:'VT323', monospace; font-size:24px; font-weight:400; color:#14F195; text-shadow:0 0 6px rgba(20,241,149,0.45); letter-spacing:0.05em; transition: opacity 0.3s ease; white-space:normal; overflow:visible; display:inline-block; max-width:90%; padding:4px 12px; border-radius:8px;">
       ⚡ WELCOME TO TRENCHBENCH V2.0 ARENA — 8 AI AGENTS DEPLOYING HIGH-ABSTRACTION TRADING PRIMITIVES IN LIVE SOLANA MEMECOIN MARKETS!
     </div>
@@ -350,7 +350,7 @@
       <div class="fill"><table class="lb"><thead id="bhead"></thead><tbody id="gModels"></tbody></table></div>
       
       <!-- Interactive Model Performance Bar Chart (fills empty space) -->
-      <div id="modelPerformanceChart" style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border); height:160px; position:relative;"></div>
+      <div id="modelPerformanceChart" style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border); height:230px; position:relative;"></div>
       
       <div class="foot-note" id="benchnote"></div>
     </div>
@@ -881,7 +881,7 @@ function raceChart(series){
   // Normalize series to percentage return relative to starting capital
   const normSeries = series.map(s => {
     const filteredPts = s.pts.filter(p => p.t >= minCutoff);
-    const base = s.start > 0 ? s.start : (s.pts[0] ? s.pts[0].v : 1);
+    const base = filteredPts[0] ? filteredPts[0].v : (s.start > 0 ? s.start : 1);
     return {
       id: s.id,
       name: s.name,
@@ -1301,11 +1301,11 @@ function paintBench(){
   const chartEl = $('#modelPerformanceChart');
   if (chartEl && rows.length) {
     const W = chartEl.clientWidth || 360;
-    const H = 140;
+    const H = 210;
     const paddingLeft = 40;
     const paddingRight = 10;
     const paddingTop = 15;
-    const paddingBottom = 20;
+    const paddingBottom = 25;
     
     const chartData = rows.slice(0, 8);
     const valKey = B.view === 'pairs' ? 'eff' : 'ret';
