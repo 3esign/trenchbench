@@ -24,6 +24,25 @@
   body{background:var(--plane);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased}
   body.maxed main,body.maxed .subbar{max-width:100%}.tnum{font-variant-numeric:tabular-nums}
   
+  /* Retro cyberpunk glitch effect */
+  @keyframes textGlitch {
+    0% { text-shadow: 1px 0 0 var(--brand), -1px 0 0 var(--bad); transform: skew(1deg); }
+    20% { text-shadow: -1px 0 0 var(--brand), 1px 0 0 var(--bad); transform: skew(-0.5deg); }
+    40% { text-shadow: 1px 1px 0 var(--brand), -1px -1px 0 var(--bad); transform: skew(0.5deg); }
+    60% { text-shadow: -1px 0 0 var(--brand), 1px 0 0 var(--bad); transform: skew(-1deg); }
+    80% { text-shadow: 1px -1px 0 var(--brand), -1px 1px 0 var(--bad); transform: skew(0.5deg); }
+    100% { text-shadow: 1px 0 0 var(--brand), -1px 0 0 var(--bad); transform: skew(0deg); }
+  }
+  .glitch-hover {
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .glitch-hover:hover {
+    animation: textGlitch 0.25s infinite linear;
+    border-color: var(--brand) !important;
+    background: var(--card) !important;
+    box-shadow: 0 0 10px rgba(20,241,149,0.15) !important;
+  }
+  
   /* Custom Scrollbars */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -220,11 +239,11 @@
   </div>
 </header>
 
-<!-- Token Carousel Marquee -->
-<div style="margin:10px 16px 0; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:6px 12px; display:flex; align-items:center; gap:10px;">
+<!-- Token Carousel Marquee (Stitched directly below header, zero gap, sticky) -->
+<div id="tokenBarContainer" style="position:sticky; top:59px; z-index:19; background:var(--card); border-bottom:1px solid var(--border); padding:6px 18px; display:flex; align-items:center; gap:10px; margin:0; width:100%;">
   <span style="font-size:11px; font-weight:700; color:var(--brand); white-space:nowrap;">🔥 LIVE TOKENS:</span>
   <button onclick="scrollCarousel(-200)" style="background:var(--card2); border:1px solid var(--border); color:var(--ink); border-radius:4px; padding:2px 8px; cursor:pointer;">◄</button>
-  <div id="tokenCarousel" style="display:flex; gap:10px; overflow-x:auto; scroll-behavior:smooth; white-space:nowrap; flex:1 1 auto; scrollbar-width:none;">
+  <div id="tokenCarousel" style="display:flex; gap:10px; overflow-x:auto; scroll-behavior:smooth; white-space:nowrap; flex:1 1 auto; scrollbar-width:none; cursor:grab; user-select:none;">
     <span class="dim" style="font-size:11.5px;">loading live token stream...</span>
   </div>
   <button onclick="scrollCarousel(200)" style="background:var(--card2); border:1px solid var(--border); color:var(--ink); border-radius:4px; padding:2px 8px; cursor:pointer;">►</button>
@@ -880,7 +899,31 @@ function setupCarouselDrag() {
     slider.scrollLeft = scrollLeft - walk;
   });
 }
-document.addEventListener('DOMContentLoaded', setupCarouselDrag);
+let _tcarAutoScroll = true;
+function startCarouselAutoScroll() {
+  const slider = document.getElementById('tokenCarousel');
+  if (!slider) return;
+  
+  let lastScrollLeft = slider.scrollLeft;
+  setInterval(() => {
+    if (!_tcarAutoScroll) return;
+    slider.scrollLeft += 1;
+    if (slider.scrollLeft === lastScrollLeft && slider.scrollLeft > 0) {
+      slider.scrollLeft = 0;
+    }
+    lastScrollLeft = slider.scrollLeft;
+  }, 35);
+
+  slider.addEventListener('mouseenter', () => _tcarAutoScroll = false);
+  slider.addEventListener('mouseleave', () => _tcarAutoScroll = true);
+  slider.addEventListener('touchstart', () => _tcarAutoScroll = false);
+  slider.addEventListener('touchend', () => _tcarAutoScroll = true);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupCarouselDrag();
+  startCarouselAutoScroll();
+});
 
 function toggleTheme() {
   document.body.classList.toggle('light-theme');
@@ -1017,15 +1060,30 @@ async function render(){
       }).join('')||'<div class="empty">—</div>';
     }
     
-    // Populate Token Carousel Marquee
+    // Populate Token Carousel Marquee (combining current session tiles & recent hot tokens)
     const carEl = $('#tokenCarousel');
     if (carEl) {
-      carEl.innerHTML = tiles.map(t => {
+      const recentList = (window.topTokensData && window.topTokensData.recent) || [];
+      const carouselData = [...tiles];
+      for (const [sym, v] of recentList) {
+        if (!carouselData.some(x => x.sym === sym)) {
+          carouselData.push({
+            sym,
+            live: null,
+            chg: v.pnl,
+            addr: null,
+            fresh: false,
+            isMigrated: false,
+            q: false
+          });
+        }
+      }
+      carEl.innerHTML = carouselData.map(t => {
         const url = t.addr ? ('https://pump.fun/coin/' + t.addr) : ('https://pump.fun/board?q=' + encodeURIComponent(t.sym));
-        const pxt = t.live ? (t.live >= 1 ? '$' + t.live.toFixed(2) : '$' + (+t.live).toPrecision(3)) : 'on chain';
-        const chgTxt = t.q ? 'held' : (t.chg == null ? '—' : pct(t.chg));
+        const pxt = t.live ? (t.live >= 1 ? '$' + t.live.toFixed(2) : '$' + (+t.live).toPrecision(3)) : 'recent';
+        const chgTxt = t.chg == null ? '—' : pct(t.chg);
         const colCls = t.q ? '' : (t.chg == null ? '' : t.chg >= 0 ? 'up' : 'down');
-        return `<a href="${url}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:6px; background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:4px 10px; font-size:11.5px; text-decoration:none; color:var(--ink); flex:0 0 auto;"><span style="font-weight:600">${t.sym}</span><span style="font-family:var(--font-mono); font-size:11px">${pxt}</span><span class="${colCls}" style="font-weight:600; font-size:11px">${chgTxt}</span></a>`;
+        return `<a href="${url}" class="glitch-hover" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:6px; background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:4px 10px; font-size:11.5px; text-decoration:none; color:var(--ink); flex:0 0 auto;"><span style="font-weight:600">${t.sym}</span><span style="font-family:var(--font-mono); font-size:11px">${pxt}</span><span class="${colCls}" style="font-weight:600; font-size:11px">${chgTxt}</span></a>`;
       }).join('') || '<span class="dim" style="font-size:11.5px;">no tokens</span>';
     }
     
