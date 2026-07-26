@@ -6,11 +6,13 @@ export class BondingCurveSim {
    * Initializes a virtual Pump.fun bonding curve.
    * Target: reaches 85 SOL virtual reserves to migrate to Raydium.
    * @param {string} symbol - Token symbol
+   * @param {string} archetype - Token archetype ('moonshot', 'rug', 'crab', 'slow_bleed')
    * @param {number} startSolReserves - Virtual SOL pool size (default: 30 SOL)
    * @param {number} startTokenReserves - Virtual token pool size (default: 1,073,000,000 tokens)
    */
-  constructor(symbol, startSolReserves = 30, startTokenReserves = 1073000000) {
+  constructor(symbol, archetype = 'moonshot', startSolReserves = 30, startTokenReserves = 1073000000) {
     this.symbol = symbol;
+    this.archetype = archetype;
     this.solReserves = startSolReserves;
     this.tokenReserves = startTokenReserves;
     this.k = startSolReserves * startTokenReserves; // Constant Product invariant
@@ -84,14 +86,46 @@ export class BondingCurveSim {
     if (this.graduated) return this.state();
 
     const actionRoll = Math.random();
-    if (actionRoll < 0.35) {
-      // Noise Buy (between 0.1 to 1.5 SOL)
-      const amt = 0.1 + Math.random() * 1.4;
-      this.buy(amt);
-    } else if (actionRoll < 0.6) {
-      // Noise Sell (selling 1% to 5% of tokens held by mock traders)
-      const tokenSellAmt = this.tokenReserves * (0.01 + Math.random() * 0.04);
-      this.sell(tokenSellAmt);
+    
+    if (this.archetype === 'moonshot') {
+      // Strong positive drift: 65% buy pressure, 20% sell
+      if (actionRoll < 0.65) {
+        this.buy(0.5 + Math.random() * 2.5);
+      } else if (actionRoll < 0.85) {
+        this.sell(this.tokenReserves * (0.01 + Math.random() * 0.02));
+      }
+    } else if (this.archetype === 'rug') {
+      // Pump phase: first 25 ticks are moonshot. Then instant rug dump!
+      if (this.ticks < 25) {
+        if (actionRoll < 0.70) {
+          this.buy(1.0 + Math.random() * 3.0);
+        }
+      } else {
+        // RUG! Dump mock-holder reserves instantly
+        const sellAmt = this.tokenReserves * 0.40;
+        this.sell(sellAmt);
+      }
+    } else if (this.archetype === 'crab') {
+      // Mean reverting: support and resistance bounds
+      const currentPrice = this.solReserves / this.tokenReserves;
+      const initialPrice = this.initialSol / (this.k / this.initialSol);
+      const deviation = (currentPrice - initialPrice) / initialPrice;
+      
+      if (deviation > 0.06) {
+        this.sell(this.tokenReserves * (0.02 + Math.random() * 0.04));
+      } else if (deviation < -0.06) {
+        this.buy(0.2 + Math.random() * 0.8);
+      } else {
+        if (actionRoll < 0.3) this.buy(0.1 + Math.random() * 0.4);
+        else if (actionRoll < 0.6) this.sell(this.tokenReserves * 0.01);
+      }
+    } else if (this.archetype === 'slow_bleed') {
+      // Steady decay
+      if (actionRoll < 0.20) {
+        this.buy(0.1 + Math.random() * 0.3);
+      } else if (actionRoll < 0.75) {
+        this.sell(this.tokenReserves * (0.005 + Math.random() * 0.015));
+      }
     }
     
     return this.state();
@@ -100,6 +134,7 @@ export class BondingCurveSim {
   state() {
     return {
       symbol: this.symbol,
+      archetype: this.archetype,
       solReserves: this.solReserves.toFixed(2),
       tokenReserves: Math.round(this.tokenReserves).toLocaleString(),
       price: (this.solReserves / this.tokenReserves).toPrecision(6),
