@@ -34,3 +34,4 @@ config*.txt
 # ---- archived runs are still raw data ----
 sessions_archive/
 worker/pools_cache.json
+worker/logs/

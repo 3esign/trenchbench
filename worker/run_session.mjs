@@ -11,6 +11,7 @@
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 import { LiveFeed } from './feeds.mjs';
+import { calculateBayesianRating, getSampleConfidence } from './scoring.mjs';
 
 const ROOT = new URL('..', import.meta.url);
 const ENV = {};
@@ -167,10 +168,84 @@ async function preflight() {
 }
 
 // ---------- Ollama (local + cloud, no downloads) ----------
+// ---------- Multi-Provider API Router (Ollama, OpenRouter, OpenAI, Groq) ----------
+const OPENROUTER_KEY = (ENV.OPENROUTER_API_KEY || '').trim();
+const OPENAI_KEY = (ENV.OPENAI_API_KEY || '').trim();
+const GROQ_KEY = (ENV.GROQ_API_KEY || '').trim();
+
 async function listModels() {
   if (PINNED.length) return PINNED;
-  try { const r = await fetch(`${OLLAMA}/api/tags`); if (!r.ok) return null; const j = await r.json(); return (j.models || []).map(m => m.name).filter(Boolean); } catch { return null; }
+  let discovered = [];
+  try { const r = await fetch(`${OLLAMA}/api/tags`); if (r.ok) { const j = await r.json(); discovered = (j.models || []).map(m => m.name).filter(Boolean); } } catch {}
+  if (OPENROUTER_KEY) {
+    const custom = (ENV.OPENROUTER_MODELS || 'anthropic/claude-3.7-sonnet,deepseek/deepseek-r1').split(',').map(s => s.trim()).filter(Boolean);
+    for (const m of custom) discovered.push(`openrouter:${m}`);
+  }
+  if (OPENAI_KEY) {
+    const custom = (ENV.OPENAI_MODELS || 'gpt-4o-mini').split(',').map(s => s.trim()).filter(Boolean);
+    for (const m of custom) discovered.push(`openai:${m}`);
+  }
+  if (GROQ_KEY) {
+    const custom = (ENV.GROQ_MODELS || 'llama-3.3-70b-versatile').split(',').map(s => s.trim()).filter(Boolean);
+    for (const m of custom) discovered.push(`groq:${m}`);
+  }
+  return discovered.length ? discovered : null;
 }
+
+async function askOpenRouter(model, sys, usr, { timeoutMs = 20000, temperature = 0.7 } = {}) {
+  if (!OPENROUTER_KEY) return { ok: false, why: 'No OpenRouter API key', text: '' };
+  const ctl = new AbortController(); INFLIGHT.add(ctl);
+  const t = setTimeout(() => ctl.abort(), timeoutMs || THINK_MS);
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${OPENROUTER_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': 'https://trenchbench.vercel.app', 'X-Title': 'TrenchBench AI Benchmark' },
+      signal: ctl.signal,
+      body: JSON.stringify({ model, temperature, messages: [{ role: 'system', content: sys }, { role: 'user', content: usr }] })
+    });
+    if (!res.ok) return { ok: false, why: 'OpenRouter HTTP ' + res.status, text: '' };
+    const j = await res.json(), text = (j.choices && j.choices[0] && j.choices[0].message) ? j.choices[0].message.content : '';
+    return { ok: !!text, why: text ? null : 'empty reply', text };
+  } catch (e) { return { ok: false, why: e.name === 'AbortError' ? 'timed out' : e.message, text: '' }; }
+  finally { clearTimeout(t); INFLIGHT.delete(ctl); }
+}
+
+async function askOpenAI(model, sys, usr, { timeoutMs = 20000, temperature = 0.7 } = {}) {
+  if (!OPENAI_KEY) return { ok: false, why: 'No OpenAI API key', text: '' };
+  const ctl = new AbortController(); INFLIGHT.add(ctl);
+  const t = setTimeout(() => ctl.abort(), timeoutMs || THINK_MS);
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${OPENAI_KEY}`, 'Content-Type': 'application/json' },
+      signal: ctl.signal,
+      body: JSON.stringify({ model, temperature, messages: [{ role: 'system', content: sys }, { role: 'user', content: usr }] })
+    });
+    if (!res.ok) return { ok: false, why: 'OpenAI HTTP ' + res.status, text: '' };
+    const j = await res.json(), text = (j.choices && j.choices[0] && j.choices[0].message) ? j.choices[0].message.content : '';
+    return { ok: !!text, why: text ? null : 'empty reply', text };
+  } catch (e) { return { ok: false, why: e.name === 'AbortError' ? 'timed out' : e.message, text: '' }; }
+  finally { clearTimeout(t); INFLIGHT.delete(ctl); }
+}
+
+async function askGroq(model, sys, usr, { timeoutMs = 20000, temperature = 0.7 } = {}) {
+  if (!GROQ_KEY) return { ok: false, why: 'No Groq API key', text: '' };
+  const ctl = new AbortController(); INFLIGHT.add(ctl);
+  const t = setTimeout(() => ctl.abort(), timeoutMs || THINK_MS);
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${GROQ_KEY}`, 'Content-Type': 'application/json' },
+      signal: ctl.signal,
+      body: JSON.stringify({ model, temperature, messages: [{ role: 'system', content: sys }, { role: 'user', content: usr }] })
+    });
+    if (!res.ok) return { ok: false, why: 'Groq HTTP ' + res.status, text: '' };
+    const j = await res.json(), text = (j.choices && j.choices[0] && j.choices[0].message) ? j.choices[0].message.content : '';
+    return { ok: !!text, why: text ? null : 'empty reply', text };
+  } catch (e) { return { ok: false, why: e.name === 'AbortError' ? 'timed out' : e.message, text: '' }; }
+  finally { clearTimeout(t); INFLIGHT.delete(ctl); }
+}
+
 // Reasoning models are inconsistent about where the answer lands. Try the
 // proper field, then the thinking trace, then any JSON object in the text.
 const NOTHINK = new Set();
@@ -185,10 +260,6 @@ function pickAnswer(msg) {
   };
   return tryOne(msg.content) || tryOne(msg.thinking) || tryOne(msg.reasoning) || null;
 }
-// One decision, however the model chooses to phrase it. JSON is tried first;
-// failing that, a single line like  BUY NVDA 12 | momentum building.
-// The symbol is then matched against what the agent may actually trade, so a
-// hallucinated ticker becomes a visible reject rather than a silent no-op.
 function normSym(raw, allowed) {
   if (!raw) return null;
   let x = String(raw).trim().replace(/^\$/, '').replace(/[^A-Za-z0-9._-]/g, '');
@@ -198,26 +269,24 @@ function normSym(raw, allowed) {
   const hit = Object.keys(allowed).find(k => k.toUpperCase() === up);
   return hit || null;
 }
-// ============================================================
-//  CONSTRAINED CHOICE
-//  Instead of asking a model to compose an order — which makes it compete on
-//  JSON compliance as much as on judgement — we hand it a numbered menu of
-//  moves that are all legal right now and ask for one number. Position sizing
-//  is done in code, identically for every model, so the benchmark measures the
-//  decision and nothing else. It also makes a hallucinated ticker impossible.
-// ============================================================
-// One call to a model. Returns the text it produced, whichever field it used.
-async function askOllama(model, sys, usr, { num_predict = 64, temperature = .7, stop, timeoutMs } = {}) {
+
+// One call to a model provider. Routes openrouter:, openai:, groq:, or defaults to Ollama.
+async function askOllama(model, sys, usr, options = {}) {
+  if (model.startsWith('openrouter:')) return askOpenRouter(model.replace(/^openrouter:/, ''), sys, usr, options);
+  if (model.startsWith('openai:')) return askOpenAI(model.replace(/^openai:/, ''), sys, usr, options);
+  if (model.startsWith('groq:')) return askGroq(model.replace(/^groq:/, ''), sys, usr, options);
+  const realModel = model.replace(/^ollama:/, '');
+  const { num_predict = 64, temperature = .7, stop, timeoutMs } = options;
   const ctl = new AbortController(); INFLIGHT.add(ctl);
   const t = setTimeout(() => ctl.abort(), timeoutMs || THINK_MS);
   try {
-    const body = { model, stream: false, options: { temperature, num_predict, ...(stop ? { stop } : {}) },
+    const body = { model: realModel, stream: false, options: { temperature, num_predict, ...(stop ? { stop } : {}) },
                    messages: [{ role: 'system', content: sys }, { role: 'user', content: usr }] };
-    if (!NOTHINK.has(model)) body.think = false;
+    if (!NOTHINK.has(realModel)) body.think = false;
     const r = await fetch(`${OLLAMA}/api/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal, body: JSON.stringify(body) });
     if (!r.ok) {
       const txt = (await r.text()).slice(0, 200);
-      if (!NOTHINK.has(model) && /think/i.test(txt)) NOTHINK.add(model);
+      if (!NOTHINK.has(realModel) && /think/i.test(txt)) NOTHINK.add(realModel);
       return { ok: false, why: 'HTTP ' + r.status, text: '' };
     }
     const j = await r.json(), msg = (j && j.message) || {};
@@ -239,29 +308,56 @@ async function askChoiceWithRetry(model, sys, usr, menu) {
   return { pick: null, text: (b.text || a.text || ''), why: a.why || b.why || 'unreadable', retried: true };
 }
 
+function calcRSI(hist) {
+  if (!hist || hist.length < 10) return 50;
+  let gains = 0, losses = 0;
+  const start = Math.max(0, hist.length - 14);
+  for (let i = start; i < hist.length - 1; i++) {
+    const diff = hist[i + 1] - hist[i];
+    if (diff >= 0) gains += diff;
+    else losses -= diff;
+  }
+  if (losses === 0) return 100;
+  const rs = gains / losses;
+  return Math.round(100 - (100 / (1 + rs)));
+}
+
 function buildMenu(ag, obs) {
   const menu = [{ k: 'HOLD', sym: null, label: 'HOLD - do nothing this round' }];
   for (const p of [...obs.positions].sort((a, b) => b.pnl - a.pnl).slice(0, 4))
     menu.push({ k: 'SELL', sym: p.sym, label: `SELL ${p.sym} - you hold ${p.qty < 1 ? p.qty.toPrecision(3) : Math.round(p.qty)}, ${p.pnl >= 0 ? '+' : ''}${p.pnl.toFixed(1)}% since you bought` });
   const held = new Set(obs.positions.map(p => p.sym));
   const afford = a => Math.floor((ag.risk * obs.cash) / (a.price * 1.001)) > 0;
-  // SELECTION BIAS: offering only the biggest movers means every buy is into a
-  // token that just spiked, and spikes mean-revert — so the choice set itself
-  // was dragging hit rate far below chance. Mix in quieter names so the agent
-  // is choosing from the market, not from a momentum screen.
-  // Vary both the mix and the size. A menu that is always "4 movers + 3 others,
-  // 8 rows long" is something an agent can pattern-match instead of read; and a
-  // fixed slice of the roster means the same handful of tokens forever.
   const nMove = 3 + Math.floor(Math.random() * 3);          // 3-5 movers
   const nRand = 2 + Math.floor(Math.random() * 4);          // 2-5 drawn at random
   const cands = obs.top.filter(x => !held.has(x.sym) && afford(x)).slice(0, nMove);
   const rest = shuffle(obs.assets.filter(a => !held.has(a.sym) && afford(a) && !cands.includes(a))).slice(0, nRand);
-  for (const a of [...cands, ...rest])
-    menu.push({ k: 'BUY', sym: a.sym, label: `BUY ${a.sym} - ${fmt(a.price)}, ${a.mom >= 0 ? '+' : ''}${a.mom.toFixed(1)}% lately` });
-  // Language models favour the first option they are shown. Leaving HOLD
-  // permanently at 0 would quietly bias every agent toward doing nothing and
-  // make "chose HOLD" indistinguishable from "chose the first thing".
-  // Shuffling per round means position averages out across the session.
+  for (const a of [...cands, ...rest]) {
+    const rsi = calcRSI(a.hist);
+    const rsiTag = rsi > 70 ? 'OVERBOUGHT' : rsi < 30 ? 'OVERSOLD' : 'NEUTRAL';
+    menu.push({ k: 'BUY', sym: a.sym, label: `BUY ${a.sym} - ${fmt(a.price)} | 5m: ${a.mom >= 0 ? '+' : ''}${a.mom.toFixed(1)}% | RSI(14): ${rsi} (${rsiTag})` });
+  }
+
+  // High-Abstraction Action: SWAP worst position for best candidate
+  if (obs.positions.length > 0 && cands.length > 0) {
+    const worstPos = [...obs.positions].sort((a, b) => a.pnl - b.pnl)[0];
+    const bestCand = cands[0];
+    menu.push({
+      k: 'SWAP',
+      sym: bestCand.sym,
+      sellSym: worstPos.sym,
+      label: `SWAP ${worstPos.sym} (PNL:${worstPos.pnl.toFixed(1)}%) -> ${bestCand.sym} (${fmt(bestCand.price)})`
+    });
+  }
+  // High-Abstraction Action: REBALANCE portfolio evenly
+  if (obs.positions.length >= 3) {
+    menu.push({
+      k: 'REBALANCE',
+      sym: null,
+      label: `REBALANCE PORTFOLIO - equalize capital across all ${obs.positions.length} holdings`
+    });
+  }
+
   return shuffle(menu);
 }
 function getPsychologicalRisk(ag, obs) {
@@ -269,31 +365,27 @@ function getPsychologicalRisk(ag, obs) {
   const gain = obs.equity / ag.start_cash;
   
   if (ag.id === 'degen') {
-    // Degens go harder — always. Double down on losses, size up on wins.
     r *= 1.4;
-    if (gain < 0.85) r = Math.min(0.70, r * 1.8);  // revenge trading
-    if (gain > 1.10) r = Math.min(0.70, r * 1.5);  // FOMO
+    if (gain < 0.85) r = Math.min(0.70, r * 1.8);
+    if (gain > 1.10) r = Math.min(0.70, r * 1.5);
   } else if (ag.id === 'mom' || ag.id === 'event') {
-    // Momentum/Event traders size up when conviction is high
     if (gain > 1.05) r = Math.min(0.50, r * 1.4);
     if (gain < 0.90) r = r * 0.85;
   } else if (ag.id === 'contra' || ag.id === 'mrev') {
-    // Mean-reverters and contrarians get bolder when things drop — that is their edge
     if (gain < 0.90) r = Math.min(0.45, r * 1.3);
   } else if (ag.id === 'val' || ag.id === 'index') {
-    // Conservative investors cut risk sizes when losing (capital preservation)
     if (gain < 0.90) r = r * 0.7;
   } else {
-    // Standard profiles
     if (gain > 1.10) r = Math.min(0.40, r * 1.2);
     if (gain < 0.90) r = r * 0.8;
   }
   return r;
 }
-// size is set by the persona's risk appetite, modified by dynamic psychology
 function menuToOrder(opt, ag, obs) {
   if (!opt || opt.k === 'HOLD') return { action: 'HOLD', symbol: null, qty: 0 };
   if (opt.k === 'SELL') return { action: 'SELL', symbol: opt.sym, qty: obs.hold[opt.sym] || 0 };
+  if (opt.k === 'SWAP') return { action: 'SWAP', symbol: opt.sym, sellSymbol: opt.sellSym, qty: 0 };
+  if (opt.k === 'REBALANCE') return { action: 'REBALANCE', symbol: null, qty: 0 };
   const px = obs.M[opt.sym] ? obs.M[opt.sym].price : 0;
   const dynRisk = getPsychologicalRisk(ag, obs);
   return { action: 'BUY', symbol: opt.sym, qty: px > 0 ? Math.floor((dynRisk * obs.cash) / (px * 1.001)) : 0 };
@@ -431,8 +523,9 @@ async function think(ag, obs) {
   const menu = obs.menu;
   const sys = `You are ${ag.name}, a ${ag.role} trading Pump.fun memecoins on Solana.
 ${ag.desc || ''}
-You are in a competitive benchmark against other AI traders. SITTING STILL LOSES.
-You MUST actively trade to win. You will receive dense telemetry data.
+CRITICAL DIRECTIVE: You are an active fund manager mandated to generate alpha.
+Idle cash (>50%) incurs a mandatory CASH DRAG PENALTY (-0.05%/tick). SITTING STILL DECAYS CAPITAL.
+You MUST actively evaluate tokens, buy dips, ride momentum, and rotate capital.
 Choose exactly ONE option from the menu. Reply with its integer number and NOTHING else.`;
 
   const usr = `[STATE]
@@ -528,22 +621,22 @@ function tickSim(A) { for (const a of A) { if (a.cat === 'memecoin' && Math.rand
 // tp / sl / maxPos give each persona its own exit discipline — the thing that
 // turns paper gains into realised money.
 const PERSONAS = [
-  { id: 'val',   desc: 'You buy tokens that have DROPPED hard recently — they are cheap. You wait for recovery. You MUST have at least 2 positions open at all times. If you hold nothing, BUY the cheapest token on the board.',
-                 name: 'Value Val',          role: 'value investor',     risk: .25, tp: 12, sl: -8,  maxPos: 5 },
-  { id: 'mom',   desc: 'You buy whatever is PUMPING hardest right now. You ride momentum until it breaks. You trade EVERY round — either buying the biggest mover or selling a position that has stalled. Never sit idle.',
-                 name: 'Momentum Mia',       role: 'trend chaser',       risk: .35, tp: 15, sl: -6,  maxPos: 4 },
-  { id: 'degen', desc: 'You are a FULL DEGEN. You ape into EVERY pump, no hesitation. You MUST trade every single round — buy the spiciest token or sell for profit. Sitting in cash is losing. You would rather lose trading than win by doing nothing.',
-                 name: 'Degen Dex',          role: 'meme degen',         risk: .50, tp: 30, sl: -20, maxPos: 5 },
-  { id: 'contra',desc: 'You are a contrarian sniper. You buy the BIGGEST FALLER on the board — the redder the better. You bet on bounces. You MUST have 2-3 positions open. If nothing is red, sell your best winner to lock profits.',
-                 name: 'Contrarian Cole',    role: 'buys the dip',       risk: .30, tp: 10, sl: -10, maxPos: 5 },
-  { id: 'mrev',  desc: 'You fade extremes in BOTH directions. If something pumped too far, SELL or avoid it. If something dumped too far, BUY it. You always want to be positioned — 3+ slots filled.',
-                 name: 'Mean-Reverter Mara', role: 'fades extremes',     risk: .28, tp: 8,  sl: -9,  maxPos: 5 },
-  { id: 'index', desc: 'You spread across MANY tokens in small amounts. Buy a little of everything you do not already own. You should have 5-8 positions at all times. Diversification is your strategy — never concentrated.',
-                 name: 'Index Ivy',          role: 'diversified',        risk: .15, tp: 8,  sl: -6,  maxPos: 8 },
-  { id: 'event', desc: 'You are an event trader. You watch for ANY token that moved more than 3% in the last 5 minutes and JUMP on it immediately — buy the pump or buy the crash. When nothing is moving, sell your weakest position. You swing hard.',
-                 name: 'Event Nia',          role: 'reacts to shocks',   risk: .35, tp: 18, sl: -12, maxPos: 4 },
-  { id: 'analyst', desc: 'You are the Analyst. You adapt your strategy dynamically based on recent market reports.',
-                 name: 'The Analyst',        role: 'dynamic meta-trader',risk: .30, tp: 15, sl: -10, maxPos: 5 },
+  { id: 'val',   desc: 'You are a PATIENT value investor. You buy tokens that have dropped hard, withstand big drawdowns (down to -50%), and HOLD AND WAIT for the recovery. You do NOT panic sell on short-term dips.',
+                 name: 'Value Val',          role: 'value investor',     risk: .25, tp: 40, sl: -50, maxPos: 5 },
+  { id: 'mom',   desc: 'You buy whatever is PUMPING hardest right now. You ride momentum until it breaks, but cut losses fast if momentum stalls.',
+                 name: 'Momentum Mia',       role: 'trend chaser',       risk: .35, tp: 20, sl: -10, maxPos: 4 },
+  { id: 'degen', desc: 'You are a FULL DEGEN. You ape into pumps and hold through wild volatility (-30% to +50%). You trade actively and swing for massive gains.',
+                 name: 'Degen Dex',          role: 'meme degen',         risk: .50, tp: 50, sl: -30, maxPos: 5 },
+  { id: 'contra',desc: 'You are a PATIENT contrarian dip buyer. You buy major red fallers, withstand deep dips (down to -45%), and hold patiently waiting for high-conviction bounces.',
+                 name: 'Contrarian Cole',    role: 'buys the dip',       risk: .30, tp: 35, sl: -45, maxPos: 5 },
+  { id: 'mrev',  desc: 'You fade extremes in BOTH directions. If something pumped too far, SELL. If something dumped too far, BUY and wait for mean reversion.',
+                 name: 'Mean-Reverter Mara', role: 'fades extremes',     risk: .28, tp: 20, sl: -20, maxPos: 5 },
+  { id: 'index', desc: 'You are a PATIENT index accumulator. You spread across many tokens, withstand market drawdowns (down to -40%), and hold positions across cycles.',
+                 name: 'Index Ivy',          role: 'diversified',        risk: .15, tp: 30, sl: -40, maxPos: 8 },
+  { id: 'event', desc: 'You are a fast event trader. You react immediately to price/volume shocks and enforce tight stop-losses (-8%) if price breaks down.',
+                 name: 'Event Nia',          role: 'reacts to shocks',   risk: .35, tp: 25, sl: -8,  maxPos: 4 },
+  { id: 'analyst', desc: 'You are the Analyst. You adapt your strategy and risk patience dynamically based on recent market reports.',
+                 name: 'The Analyst',        role: 'dynamic meta-trader',risk: .30, tp: 25, sl: -25, maxPos: 5 },
 ];
 // ============================================================
 //  BASELINES — the null models. NO model is ever called for these.
@@ -673,6 +766,28 @@ function execute(ag, d, M, tick) {
       const pnl = proceeds - basis;
       return { executed: true, qty: q, realized_pnl: r2(pnl), realized_pct: r2((pnl / basis) * 100), hold_ticks: tick - oldest };
     }
+  } else if (d.action === 'SWAP' && d.symbol && d.sellSymbol && M[d.symbol] && M[d.sellSymbol]) {
+    // High-Abstraction SWAP: liquidate sellSymbol and immediately deploy proceeds into symbol
+    const sellRes = execute(ag, { action: 'SELL', symbol: d.sellSymbol, qty: ag.hold[d.sellSymbol] || 0 }, M, tick);
+    const buyRes = execute(ag, { action: 'BUY', symbol: d.symbol, qty: Math.floor((ag.cash * 0.95) / (M[d.symbol].price * 1.001)) }, M, tick);
+    return { executed: sellRes.executed || buyRes.executed, swap: true };
+  } else if (d.action === 'REBALANCE') {
+    // High-Abstraction REBALANCE: equalize portfolio holdings across all current positions
+    const posSyms = Object.keys(ag.hold).filter(s => M[s] && M[s].price > 0);
+    if (!posSyms.length) return { executed: false };
+    const totalPosValue = posSyms.reduce((sum, s) => sum + ag.hold[s] * M[s].price, 0) + ag.cash;
+    const targetPerAsset = totalPosValue / posSyms.length;
+    for (const s of posSyms) {
+      const currentVal = ag.hold[s] * M[s].price;
+      if (currentVal > targetPerAsset * 1.15) {
+        const sellQty = Math.floor((currentVal - targetPerAsset) / M[s].price);
+        execute(ag, { action: 'SELL', symbol: s, qty: sellQty }, M, tick);
+      } else if (currentVal < targetPerAsset * 0.85) {
+        const buyQty = Math.floor((targetPerAsset - currentVal) / M[s].price);
+        execute(ag, { action: 'BUY', symbol: s, qty: buyQty }, M, tick);
+      }
+    }
+    return { executed: true, rebalanced: true };
   }
   return { executed: false };
 }
@@ -950,7 +1065,22 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
         const avg = qq > 0 ? c / qq : px;
         return { sym: s, qty: ag.hold[s], avg, px, pnl: avg > 0 ? (px / avg - 1) * 100 : 0 };
       }).sort((a, b) => b.pnl - a.pnl);
+
       const obs = { cash: ag.cash, equity: ag.lastEq || ag.cash, hold: { ...ag.hold }, positions, log: ag.log, assets: nonStable, M, top, note: ag.note };
+
+      // Risk Safeguard: Persona-Specific Stop-Loss (ag.sl) & Take-Profit (ag.tp)
+      for (const p of positions) {
+        const slLimit = typeof ag.sl === 'number' ? ag.sl : -25;
+        const tpLimit = typeof ag.tp === 'number' ? ag.tp : 30;
+        if (!ag.kind && (p.pnl <= slLimit || p.pnl >= tpLimit)) {
+          const autoTag = p.pnl <= slLimit ? 'STOP_LOSS' : 'TAKE_PROFIT';
+          const autoOpt = { k: 'SELL', sym: p.sym };
+          const autoOrder = menuToOrder(autoOpt, ag, obs);
+          execute(ag, autoOrder, OPEN, round);
+          console.log(`  [RISK GUARD] ${ag.name} (${ag.role}) auto-executed ${autoTag} on ${p.sym} (PNL: ${p.pnl.toFixed(1)}% vs Threshold: ${slLimit}%/${tpLimit}%)`);
+        }
+      }
+
       obs.menu = buildMenu(ag, obs);
       menus.set(`${round}|${ag.id}`, obs.menu);
       let d;
@@ -958,13 +1088,8 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
         d = ag.kind ? baselineChoice(ag, obs)                       // null model, no prompt, no tokens
           : usingOllama ? await think(ag, obs)
           : { ...ruleFallback(ag, obs), brain: 'rules' };
-      } catch (e) { console.error('\\n\\n  [FATAL] THINK ERROR:', e); d = { action: 'HOLD', symbol: null, qty: 0, comment: 'error', brain: 'error' }; }
+      } catch (e) { console.error('\n\n  [FATAL] THINK ERROR:', e); d = { action: 'HOLD', symbol: null, qty: 0, comment: 'error', brain: 'error' }; }
       const sym = d.symbol && OPEN[d.symbol] ? d.symbol : null; d.symbol = sym;
-      // Fill at the price snapshotted when the ROUND opened, not at live M.
-      // The poller mutates M while eight agents are still awaiting their models,
-      // so a slow model used to fill at a later price than a fast one — a
-      // model-correlated execution edge that has nothing to do with judgement.
-      // It also means the price a trade filled at is the price it is scored at.
       const fill = execute(ag, d, OPEN, round); const executed = fill.executed;
       if (fill.qty != null) d.qty = fill.qty;   // log what actually filled, not what was asked for
       fills.set(`${round}|${ag.id}`, fill);
@@ -972,7 +1097,17 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
       if (d.brain === 'model') ag.modelCalls = (ag.modelCalls || 0) + 1; else ag.fallbackCalls = (ag.fallbackCalls || 0) + 1;
       ag.holdStreak = executed ? 0 : (ag.holdStreak || 0) + 1;
       if (executed && sym) { ag.log.push({ tick: round, action: d.action, sym, px: OPEN[sym].price, comment: d.comment }); if (ag.log.length > 6) ag.log.shift(); }
+      
+      // CASH DRAG PENALTY: Idle cash (>50% of equity) decays by 0.05% per tick to penalize do-nothing strategies
       ag.lastEq = equityOf(ag, OPEN);
+      const idleRatio = ag.lastEq > 0 ? (ag.cash / ag.lastEq) : 0;
+      if (idleRatio > 0.50 || ag.kind === 'vault') {
+        const dragFee = Math.round(ag.cash * 0.0005);
+        if (dragFee > 0) {
+          ag.cash -= dragFee;
+          ag.lastEq = equityOf(ag, OPEN);
+        }
+      }
       if (!ag.bust && ag.lastEq < ag.start_cash * 0.02) { ag.bust = true; ag.cash = Math.max(0, ag.lastEq); ag.hold = {}; ag.note = 'busted - eliminated'; }
       decisions.push({ session_id, tick: round, ts: nowISO(), agent_id: ag.id, agent_name: ag.name, role: ag.role, model: ag.model, start_cash: ag.start_cash, action: d.action, sym: sym || '', qty: r2(d.qty), price: sym ? px6(OPEN[sym].price) : 0, executed, comment: d.comment, brain: d.brain || 'rules', choice: d.choice == null ? null : d.choice, reply: d.reply || null, menu_size: (menus.get(`${round}|${ag.id}`) || []).length, token_class: (sym && OPEN[sym]) ? classLabel(OPEN[sym].cat) : null, equity: r2(ag.lastEq) });
       ag.recent.push(ag.lastEq); if (ag.recent.length > 6) ag.recent.shift();

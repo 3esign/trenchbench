@@ -260,8 +260,16 @@
   <!-- row 1 — this session: the race, the standing, the tape -->
   <div class="row3">
     <div class="card">
-      <h3 id="curh3">Current session — the race<span class="scope one">this session</span></h3>
-      <div class="sub" id="racesub">equity of every agent, tick by tick</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <h3 id="curh3" style="margin:0;">Current session — the race<span class="scope one">this session</span></h3>
+        <div class="segs sm" id="chartTimeFilter" style="margin:0;">
+          <button class="seg active" onclick="setChartWindow('all', this)">All Time</button>
+          <button class="seg" onclick="setChartWindow('5m', this)">Last 5m</button>
+          <button class="seg" onclick="setChartWindow('10m', this)">Last 10m</button>
+          <button class="seg" onclick="setChartWindow('15m', this)">Last 15m</button>
+        </div>
+      </div>
+      <div class="sub" id="racesub" style="margin-top:4px;">equity of every agent, tick by tick · vertical time markers indicate trading duration</div>
       <div id="racechart" class="fill-row1"></div>
     </div>
 
@@ -533,39 +541,79 @@ const TIPS={
 // moments — which is how the chart and the standing table ended up publicly
 // disagreeing about who was ahead.
 let _lastSeries = [];
+let _chartWindow = 'all';
 let _raceRo = new ResizeObserver(() => {
   if (_lastSeries && _lastSeries.length) raceChart(_lastSeries);
 });
 _raceRo.observe(document.getElementById('racechart'));
 
+function setChartWindow(win, btn) {
+  _chartWindow = win;
+  if (btn && btn.parentNode) {
+    btn.parentNode.querySelectorAll('.seg').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  if (_lastSeries && _lastSeries.length) raceChart(_lastSeries);
+}
+
 function raceChart(series){
   _lastSeries = series;
   const el = $('#racechart');
   let W=el.clientWidth||620, H=el.clientHeight||385;
-  const L=48,R=62,T=12,B=22;
+  const L=48,R=62,T=12,B=28; // Bottom padding for X-axis time labels
+
+  // Determine global max timestamp/tick across all series
+  let globalMaxT = -Infinity, globalMinT = Infinity;
+  series.forEach(s => s.pts.forEach(p => {
+    if (p.t > globalMaxT) globalMaxT = p.t;
+    if (p.t < globalMinT) globalMinT = p.t;
+  }));
+
+  // Filter series points based on selected time window (5m, 10m, 15m, all)
+  const isMs = globalMaxT > 1000000000;
+  let minCutoff = globalMinT;
+  if (_chartWindow === '5m') minCutoff = isMs ? globalMaxT - 5 * 60 * 1000 : globalMaxT - 30;
+  else if (_chartWindow === '10m') minCutoff = isMs ? globalMaxT - 10 * 60 * 1000 : globalMaxT - 60;
+  else if (_chartWindow === '15m') minCutoff = isMs ? globalMaxT - 15 * 60 * 1000 : globalMaxT - 90;
+
   // Normalize series to percentage return relative to starting capital
   const normSeries = series.map(s => {
+    const filteredPts = s.pts.filter(p => p.t >= minCutoff);
     const base = s.start > 0 ? s.start : (s.pts[0] ? s.pts[0].v : 1);
     return {
       id: s.id,
       name: s.name,
       start: s.start,
-      pts: s.pts.map(p => ({
+      pts: filteredPts.map(p => ({
         t: p.t,
         v: ((p.v - base) / base) * 100
       }))
     };
-  });
+  }).filter(s => s.pts.length > 0);
 
   let mn=Infinity,mx=-Infinity,t0=Infinity,t1=-Infinity;
   normSeries.forEach(s=>s.pts.forEach(p=>{if(p.v<mn)mn=p.v;if(p.v>mx)mx=p.v;if(p.t<t0)t0=p.t;if(p.t>t1)t1=p.t}));
-  if(!isFinite(mn)){$('#racechart').innerHTML='<div class="empty">no equity yet</div>';return}
+  if(!isFinite(mn)){$('#racechart').innerHTML='<div class="empty">no equity yet in this time window</div>';return}
   if(mn===mx){mn*=.98;mx*=1.02} if(t1===t0)t1=t0+1;
   const pad = Math.max(1.0, (mx - mn) * 0.05);
   mn -= pad; mx += pad;
 
   const x=t=>L+((t-t0)/(t1-t0))*(W-L-R),y=v=>T+(1-(v-mn)/(mx-mn))*(H-T-B);
+
+  // Horizontal Return Gridlines (% return)
   let g='';for(let k=0;k<=4;k++){const v=mn+(mx-mn)*k/4,yy=y(v);g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="${cssv('--grid')}" stroke-dasharray="4 4" opacity="0.7"/><text x="${L-6}" y="${yy+3}" text-anchor="end" fill="${cssv('--muted')}" font-size="10" font-weight="500">${v>=0?'+':''}${v.toFixed(1)}%</text>`}
+
+  // Vertical Time Position Markers & X-Axis Minutes Labels (0m, 3m, 5m, 10m, 15m, 20m...)
+  const totalSpanMin = isMs ? Math.max(1, Math.round((t1 - t0) / 60000)) : Math.max(1, Math.round(((t1 - t0) * 10) / 60));
+  const stepMin = totalSpanMin <= 10 ? 2 : totalSpanMin <= 25 ? 5 : 10;
+  const stepMsOrTicks = isMs ? stepMin * 60 * 1000 : Math.round((stepMin * 60) / 10);
+
+  for (let tm = t0; tm <= t1; tm += stepMsOrTicks) {
+    const xx = x(tm);
+    const elapsedMin = isMs ? Math.round((tm - globalMinT) / 60000) : Math.round(((tm - globalMinT) * 10) / 60);
+    g += `<line x1="${xx}" x2="${xx}" y1="${T}" y2="${H-B}" stroke="${cssv('--grid')}" stroke-dasharray="2 4" opacity="0.4"/>`;
+    g += `<text x="${xx}" y="${H-B+14}" text-anchor="middle" fill="${cssv('--brand')}" font-size="9" font-weight="600">${elapsedMin}m</text>`;
+  }
   
   const isOut=s=>{const last=s.pts[s.pts.length-1].v; return last<=-98};
   normSeries.forEach(s=>{const col=acolor(s.id),pts=s.pts.map(p=>`${x(p.t).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');g+=`<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="${isOut(s)?.25:1}"/>`});
@@ -778,22 +826,29 @@ document.querySelectorAll('#btabs .seg').forEach(b=>b.onclick=()=>{
   B.view=b.dataset.b; document.querySelectorAll('#btabs .seg').forEach(x=>x.classList.toggle('active',x===b)); paintBench();
 });
 function paintBench(){
-  const H=B.view==='pairs'?['#','Model × agent','Runs','Avg P&L','Pairing']:['#','Model','Runs','Career','Avg P&L','Hit','Grads'];
+  const H=B.view==='pairs'?['#','Model × agent','Runs','Avg P&L','Pairing']:['#','Model','Runs','Career','Avg P&L','Bayesian','Sample'];
   $('#bhead').innerHTML='<tr>'+H.map((h,i)=>`<th class="${i===0?'rank':''}${i>1?' r':''}">${h}</th>`).join('')+'</tr>';
   const rows=B[B.view]||[];
   if(!rows.length){ $('#gModels').innerHTML=`<tr><td class="empty" colspan="${H.length}">no counted sessions yet</td></tr>`; $('#benchnote').innerHTML=B.note; return; }
+  const bayesK = 5, globalMean = -3.0;
   $('#gModels').innerHTML=rows.slice(0,8).map((r,i)=>{
     const p=`<td class="r tnum ${r.ret>=0?'up':'down'}">${pct(r.ret)}</td>`;
     if(B.view==='pairs') return `<tr><td class="rank tnum">${i+1}</td><td><span class="adot" style="background:${acolor(r.agent_id)}"></span><span class="aname hint" data-tip="${adesc(r.agent_id).replace(/"/g,'&quot;')}">${r.short}</span><div class="dim" style="font-size:10px">${r.m}</div></td><td class="r tnum dim">${r.n}</td>${p}<td class="r"><span class="eff ${r.eff>=0?'pos':'neg'}">${r.eff>=0?'+':''}${r.eff.toFixed(1)}</span></td></tr>`;
-    return `<tr${r.n<2?' style="opacity:.72"':''}><td class="rank tnum">${i+1}</td><td><span class="mdot" style="background:${modelColor(r.m)}"></span><span class="aname">${short(r.m)}</span><div class="dim" style="font-size:10px;margin-left:14px">${r.mods||0} strateg${r.mods===1?'y':'ies'} played${r.n<2?' · <b>n=1, not a result</b>':''}</div></td><td class="r tnum dim">${r.n}</td><td class="r tnum ${r.career>=1e5?'up':'down'}" style="font-weight:600">${money(r.career)}</td>${p}<td class="r tnum" style="color:var(--ink2)">${r.hit==null?'<span class="dim">—</span>':r.hit.toFixed(0)+'%'}</td><td class="r tnum" style="color:var(--ink2)">🚀${r.raydium||0}</td></tr>`;
+    
+    // Bayesian Rating & Sample Confidence Badge
+    const bRet = (r.n > 0) ? ((r.n * r.ret + bayesK * globalMean) / (r.n + bayesK)) : globalMean;
+    const badgeTxt = r.n >= 10 ? 'VERIFIED' : r.n >= 5 ? 'PROVISIONAL' : 'UNSETTLED';
+    const badgeCol = r.n >= 10 ? '#14F195' : r.n >= 5 ? '#eda100' : '#eb6834';
+    
+    return `<tr${r.n<2?' style="opacity:.85"':''}><td class="rank tnum">${i+1}</td><td><span class="mdot" style="background:${modelColor(r.m)}"></span><span class="aname">${short(r.m)}</span><div class="dim" style="font-size:10px;margin-left:14px">${r.mods||0} strateg${r.mods===1?'y':'ies'} played</div></td><td class="r tnum dim">${r.n}</td><td class="r tnum ${r.career>=1e5?'up':'down'}" style="font-weight:600">${money(r.career)}</td>${p}<td class="r tnum ${bRet>=0?'up':'down'}" style="font-weight:600">${pct(bRet)}</td><td class="r tnum"><span style="font-size:9.5px;padding:2px 5px;border-radius:3px;background:rgba(255,255,255,0.05);color:${badgeCol};border:1px solid ${badgeCol}33">${badgeTxt}</span></td></tr>`;
   }).join('')
   // the reference lines, always last, always visually separate
   + ((B.view==='models'&&B.baselines.length) ? B.baselines.map(r=>
-      `<tr class="blrow"><td class="rank tnum dim">·</td><td><span class="aname">${r.m.replace('baseline:','')}</span><span class="bltag" data-tip="A mechanical agent that calls no model. It trades the same menu with the same capital. Every model number should be read against these.">baseline</span><div class="dim" style="font-size:10px">${r.m==='baseline:dice'?'picks at random':r.m==='baseline:vault'?'never trades':'equal weight, then holds'}</div></td><td class="r tnum dim">${r.n}</td><td class="r tnum dim">${money(r.career)}</td><td class="r tnum ${r.ret>=0?'up':'down'}">${pct(r.ret)}</td><td class="r tnum" style="color:var(--ink2)">${r.hit==null?'<span class="dim">—</span>':r.hit.toFixed(0)+'%'}</td><td class="r tnum dim">—</td></tr>`
+      `<tr class="blrow"><td class="rank tnum dim">·</td><td><span class="aname">${r.m.replace('baseline:','')}</span><span class="bltag" data-tip="A mechanical agent that calls no model. It trades the same menu with the same capital. Every model number should be read against these.">baseline</span><div class="dim" style="font-size:10px">${r.m==='baseline:dice'?'picks at random':r.m==='baseline:vault'?'never trades':'equal weight, then holds'}</div></td><td class="r tnum dim">${r.n}</td><td class="r tnum dim">${money(r.career)}</td><td class="r tnum ${r.ret>=0?'up':'down'}">${pct(r.ret)}</td><td class="r tnum dim">—</td><td class="r tnum dim">—</td></tr>`
     ).join('') : '');
   $('#benchnote').innerHTML=B.note+(B.view==='pairs'
     ? ' <br><b>Pairing</b> = how far this combination beats that model\'s own average. Positive means the strategy suits the brain.'
-    : ' <br><b>Agents</b> = how many different strategies this model has played. The pairing rotates each session, so this climbs toward 8.'+(B.baselines.length?' <br><b>Baselines</b> call no model at all — they trade the same menu with the same capital. A model that cannot beat <i>picks at random</i> has not demonstrated anything.':''));
+    : ' <br><b>Bayesian</b> = Empirical Bayes Shrinkage rating (shrunken toward benchmark mean for small N to prevent 1-session distortion).<br><b>Sample</b> = VERIFIED (N≥10), PROVISIONAL (N≥5), UNSETTLED (N<5).');
 }
 
 async function loadGlobals(){

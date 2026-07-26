@@ -5,10 +5,11 @@
     "description": "Forced via Ollama structured output. This is ALL the model returns — nothing else — so inference stays cheap.",
     "type": "object",
     "properties": {
-      "action":  { "type": "string", "enum": ["BUY", "SELL", "HOLD"] },
-      "symbol":  { "type": ["string", "null"], "description": "ticker to trade, or null for HOLD" },
-      "qty":     { "type": "number", "description": "units to buy/sell" },
-      "comment": { "type": "string", "description": "<= 8 words, the model's one-line reason" }
+      "action":     { "type": "string", "enum": ["BUY", "SELL", "HOLD", "ROTATE", "SWAP", "DCA_SCALE", "REBALANCE", "HEDGE"] },
+      "symbol":     { "type": ["string", "null"], "description": "ticker to trade, or null for HOLD" },
+      "allocation": { "type": ["string", "null"], "enum": ["5%", "10%", "25%", "50%", "100%"], "description": "portfolio cash percentage to deploy" },
+      "qty":        { "type": ["number", "null"], "description": "units to buy/sell (optional fallback)" },
+      "comment":    { "type": "string", "description": "<= 8 words, the model's one-line reason" }
     },
     "required": ["action", "comment"]
   },
