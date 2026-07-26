@@ -355,6 +355,10 @@
         <button class="seg" data-b="pairs" title="which model suits which strategy">Model × agent</button>
       </div>
       <div class="fill"><table class="lb"><thead id="bhead"></thead><tbody id="gModels"></tbody></table></div>
+      
+      <!-- Interactive Model Performance Bar Chart (fills empty space) -->
+      <div id="modelPerformanceChart" style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border); height:160px; position:relative;"></div>
+      
       <div class="foot-note" id="benchnote"></div>
     </div>
 
@@ -1290,6 +1294,50 @@ function paintBench(){
   $('#benchnote').innerHTML=B.note+(B.view==='pairs'
     ? ' <br><b>Pairing</b> = how far this combination beats that model\'s own average. Positive means the strategy suits the brain.'
     : ' <br><b>Bayesian</b> = Empirical Bayes Shrinkage rating (shrunken toward benchmark mean for small N to prevent 1-session distortion).<br><b>Sample</b> = VERIFIED (N≥10), PROVISIONAL (N≥5), UNSETTLED (N<5).');
+
+  const chartEl = $('#modelPerformanceChart');
+  if (chartEl && rows.length) {
+    const W = chartEl.clientWidth || 360;
+    const H = 140;
+    const paddingLeft = 40;
+    const paddingRight = 10;
+    const paddingTop = 15;
+    const paddingBottom = 20;
+    
+    const chartData = rows.slice(0, 8);
+    const valKey = B.view === 'pairs' ? 'eff' : 'ret';
+    const chartLabel = B.view === 'pairs' ? 'Pairing Effect' : 'Average Return';
+    
+    const maxVal = Math.max(...chartData.map(r => Math.abs(r[valKey] || 0)), 5);
+    
+    let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%">`;
+    svg += `<text x="${paddingLeft}" y="${paddingTop - 5}" fill="var(--brand)" font-size="9" font-weight="700" font-family="var(--font-mono)">${chartLabel.toUpperCase()}</text>`;
+    const zeroY = paddingTop + (H - paddingTop - paddingBottom) / 2;
+    svg += `<line x1="${paddingLeft}" y1="${zeroY}" x2="${W - paddingRight}" y2="${zeroY}" stroke="var(--border)" stroke-dasharray="2,2"/>`;
+    
+    const barWidth = (W - paddingLeft - paddingRight) / chartData.length;
+    
+    chartData.forEach((r, i) => {
+      const x = paddingLeft + i * barWidth + 6;
+      const w = barWidth - 12;
+      const val = r[valKey] || 0;
+      const barH = ((Math.abs(val) / maxVal) * (H - paddingTop - paddingBottom)) / 2;
+      const y = val >= 0 ? (zeroY - barH) : zeroY;
+      const color = B.view === 'pairs' ? acolor(r.agent_id) : modelColor(r.m);
+      const mName = B.view === 'pairs' ? r.short : short(r.m);
+      
+      svg += `<rect x="${x}" y="${y}" width="${w}" height="${barH}" fill="${color}" opacity="0.8" rx="1.5" class="hint" data-tip="${B.view === 'pairs' ? 'Pairing: <b>' + r.m + ' × ' + r.short + '</b>' : 'Model: <b>' + r.m + '</b>'}<br>${chartLabel}: <b>${B.view === 'pairs' ? (val>=0?'+':'')+val.toFixed(1)+'%' : pct(val)}</b>" style="cursor:pointer;"/>`;
+      svg += `<text x="${x + w/2}" y="${H - 4}" fill="var(--ink2)" font-size="8" text-anchor="middle" font-family="var(--font-mono)">${mName.slice(0, 5)}</text>`;
+    });
+    
+    const formatY = v => B.view === 'pairs' ? (v >= 0 ? '+' : '') + v.toFixed(0) + '%' : pct(v);
+    svg += `<text x="5" y="${paddingTop + 10}" fill="var(--muted)" font-size="8">${formatY(maxVal)}</text>`;
+    svg += `<text x="5" y="${zeroY + 3}" fill="var(--muted)" font-size="8">0%</text>`;
+    svg += `<text x="5" y="${H - paddingBottom - 2}" fill="var(--muted)" font-size="8">-${formatY(maxVal)}</text>`;
+    svg += `</svg>`;
+    
+    chartEl.innerHTML = svg;
+  }
 }
 
 async function loadGlobals(){
@@ -1458,7 +1506,7 @@ async function loadGlobals(){
         } else {
           arr.sort((a, b) => b[1].pnl - a[1].pnl);
         }
-        const t = arr.slice(0, 12);
+        const t = arr.slice(0, 18);
         const mx = Math.max(1,...t.map(([,v])=>Math.abs(v.pnl)));
         
         const scopeLbl = tab === 'recent' ? 'recent trades' : 'all sessions';
