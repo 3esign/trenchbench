@@ -1004,15 +1004,18 @@ async function render(){
     }).sort((a,b)=>(a.q-b.q)||((b.chg==null?-1e9:b.chg)-(a.chg==null?-1e9:a.chg)));
     const mags=tiles.filter(t=>t.chg!=null).map(t=>Math.abs(t.chg)).sort((a,b)=>a-b);
     const ref=Math.max(0.4,(mags[Math.floor(mags.length*.8)]||1));
-    $('#heat').innerHTML=tiles.map(t=>{
-      const url=t.addr?('https://pump.fun/coin/'+t.addr):('https://pump.fun/board?q='+encodeURIComponent(t.sym));
-      const pxt=t.live?(t.live>=1?'$'+t.live.toFixed(2):'$'+(+t.live).toPrecision(3)):'on chain';
-      let st='';
-      if(t.chg!=null){ const k=Math.sqrt(Math.min(1,Math.abs(t.chg)/ref)),a=(.05+k*.27).toFixed(3),rgb=t.chg>=0?'0,168,31':'224,54,44';
-        st=`background:rgba(${rgb},${a});border-color:rgba(${rgb},${(.18+k*.5).toFixed(2)});`; }
-      const chgTxt=t.q?'<span class="dim" data-tip="This token\'s price could not be trusted this session, so it was delisted mid-run: trading frozen, any position held at what the agent paid, and every decision on it excluded from scoring.">held</span>':(t.chg==null?'—':pct(t.chg));
-      return `<a class="htile${t.q?' hqt':''}" style="${st}" href="${url}" target="_blank" rel="noopener"><div class="hs">${t.sym}${t.isMigrated?'<span class="fresh" style="color:var(--brand)" data-tip="Raydium Graduate">🎓</span>':''}${t.fresh?'<span class="fresh" data-tip="Fresh Listing">✦</span>':''}${t.q?'<span class="fresh" style="color:var(--muted)">⚑</span>':''}</div><div class="hp tnum">${pxt}</div><div class="hc tnum ${t.q?'':t.chg==null?'':t.chg>=0?'up':'down'}">${chgTxt}</div></a>`;
-    }).join('')||'<div class="empty">—</div>';
+    const heatEl = $('#heat');
+    if (heatEl) {
+      heatEl.innerHTML=tiles.map(t=>{
+        const url=t.addr?('https://pump.fun/coin/'+t.addr):('https://pump.fun/board?q='+encodeURIComponent(t.sym));
+        const pxt=t.live?(t.live>=1?'$'+t.live.toFixed(2):'$'+(+t.live).toPrecision(3)):'on chain';
+        let st='';
+        if(t.chg!=null){ const k=Math.sqrt(Math.min(1,Math.abs(t.chg)/ref)),a=(.05+k*.27).toFixed(3),rgb=t.chg>=0?'0,168,31':'224,54,44';
+          st=`background:rgba(${rgb},${a});border-color:rgba(${rgb},${(.18+k*.5).toFixed(2)});`; }
+        const chgTxt=t.q?'<span class="dim" data-tip="This token\'s price could not be trusted this session, so it was delisted mid-run: trading frozen, any position held at what the agent paid, and every decision on it excluded from scoring.">held</span>':(t.chg==null?'—':pct(t.chg));
+        return `<a class="htile${t.q?' hqt':''}" style="${st}" href="${url}" target="_blank" rel="noopener"><div class="hs">${t.sym}${t.isMigrated?'<span class="fresh" style="color:var(--brand)" data-tip="Raydium Graduate">🎓</span>':''}${t.fresh?'<span class="fresh" data-tip="Fresh Listing">✦</span>':''}${t.q?'<span class="fresh" style="color:var(--muted)">⚑</span>':''}</div><div class="hp tnum">${pxt}</div><div class="hc tnum ${t.q?'':t.chg==null?'':t.chg>=0?'up':'down'}">${chgTxt}</div></a>`;
+      }).join('')||'<div class="empty">—</div>';
+    }
     
     // Populate Token Carousel Marquee
     const carEl = $('#tokenCarousel');
@@ -1029,9 +1032,12 @@ async function render(){
     const nUp=tiles.filter(t=>t.chg>0).length,nDn=tiles.filter(t=>t.chg<0).length,
           nFlat=tiles.filter(t=>t.chg===0).length,nQ=tiles.filter(t=>t.q).length,
           nNo=tiles.length-nUp-nDn-nFlat-nQ;
-    $('#marketsub').innerHTML=`${tiles.length} tokens · <span class="up">${nUp} up</span> · <span class="down">${nDn} down</span> · ${nFlat} unchanged`
-      +(nNo?` · ${nNo} not priced yet`:'')+(nQ?` · <span title="delisted mid-session">${nQ} held</span>`:'')
-      +' · measured from session open';
+    const mSubEl = $('#marketsub');
+    if (mSubEl) {
+      mSubEl.innerHTML=`${tiles.length} tokens · <span class="up">${nUp} up</span> · <span class="down">${nDn} down</span> · ${nFlat} unchanged`
+        +(nNo?` · ${nNo} not priced yet`:'')+(nQ?` · <span title="delisted mid-session">${nQ} held</span>`:'')
+        +' · measured from session open';
+    }
 
     // ---- standing under the chart ----
     const isOut=r=>r.start_cash>0 && r.end_value < r.start_cash*.02;
