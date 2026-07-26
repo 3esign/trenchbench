@@ -1121,7 +1121,8 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
     }
   }
 
-  const sessRow = { name: `[${EXPERIMENTAL_ARM.toUpperCase()}] Session ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`, provider: usingOllama ? 'ollama' : 'rules', status: 'running', memecoins: roster,
+  const session_id = crypto.randomUUID();
+  const sessRow = { id: session_id, name: `[${EXPERIMENTAL_ARM.toUpperCase()}] Session ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`, provider: usingOllama ? 'ollama' : 'rules', status: 'running', memecoins: roster,
     capital_min: CAP_MODE === 'equal' ? START_CAP : CMIN, capital_max: CAP_MODE === 'equal' ? START_CAP : CMAX,
     pairing: PAIRING, capital_mode: CAP_MODE, counted: false, tokens: tokenRow(), season: SEASON };
   let sess = await sb('sessions', 'POST', sessRow, 'return=representation');
@@ -1130,7 +1131,6 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
     sess = await sb('sessions', 'POST', basic, 'return=representation');
     if (sess) console.log('  [db] saved without tokens or season column (run supabase/007_season_management.sql to enable V2 season scoping).');
   }
-  const session_id = (sess && sess[0] && sess[0].id) || crypto.randomUUID();
   console.log(`\nSession ${session_id}\ncapital ${CAP_MODE === 'equal' ? `$${START_CAP.toLocaleString('en-US')} each (equal)` : `$${CMIN}-$${CMAX} per agent (random)`} · ${REALMODE ? 'REAL Pump.fun memecoin prices' : 'simulated prices'} · roster ${MODE} · runs until you press Stop (safety cap ${SECONDS >= 60 ? Math.round(SECONDS / 60) + ' min' : SECONDS + ' s'})\n`);
 
   const decisions = [], equity = [], roundMs = []; let round = 0, flushedD = 0, flushedE = 0; const t0 = Date.now();
