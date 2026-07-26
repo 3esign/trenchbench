@@ -382,10 +382,23 @@
 
   <!-- row 3 — v2.0 Visualizations & Representations -->
   <div class="row3" style="margin-top:14px;">
-    <div class="card">
+    <div class="card" style="display:flex; flex-direction:column; height:100%;">
       <h3><span class="star">★</span> Persona Skill Radar<span class="scope all">v2.0</span></h3>
       <div class="sub">5-axis skill profile across Return, Hit Rate, HODL Resiliency, Action Variety &amp; Regret</div>
       <div id="radarCanvas" class="fill" style="min-height:240px; position:relative;"></div>
+      
+      <!-- Brainstorming & Agent-as-a-Token Telemetry Harness -->
+      <div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border); font-family:var(--font-mono); font-size:11px;">
+        <div style="color:var(--brand); font-weight:700; margin-bottom:6px; letter-spacing:0.05em; text-transform:uppercase;">📡 DEGEN TELEMETRY HARNESS</div>
+        <div style="background:#05070a; border:1px solid var(--border); border-radius:8px; padding:8px 10px; line-height:1.5; color:var(--ink2);">
+          <span style="color:#fff;">[DISCOURSE]:</span> What if AI agents behave as tradeable tokens? <span style="color:var(--brand);">Agent-as-a-Token (AaaT)</span> shifts agents from passive asset managers to dynamic, self-liquidating bonding curves.
+          <div style="margin-top:6px; font-size:10px; opacity:0.85; border-top:1px solid rgba(255,255,255,0.03); padding-top:4px;">
+            • Active Sandbox: <span style="color:var(--good);">Enabled (4 Archetypes)</span><br>
+            • Simulation Loop: Poisson Order Flow<br>
+            • Target: DPO preference pair compilation
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="card" style="grid-column: span 2;">
@@ -1445,7 +1458,7 @@ async function loadGlobals(){
         } else {
           arr.sort((a, b) => b[1].pnl - a[1].pnl);
         }
-        const t = arr.slice(0, 16);
+        const t = arr.slice(0, 12);
         const mx = Math.max(1,...t.map(([,v])=>Math.abs(v.pnl)));
         
         const scopeLbl = tab === 'recent' ? 'recent trades' : 'all sessions';
