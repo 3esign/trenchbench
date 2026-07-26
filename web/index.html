@@ -1113,7 +1113,7 @@ async function render(){
     const lastPx={}; for(const d of decs){ if(d.sym&&!lastPx[d.sym])lastPx[d.sym]=+d.price; }
     const firstPx={}; for(let i=decs.length-1; i>=0; i--){ const d=decs[i]; if(d.sym&&!firstPx[d.sym])firstPx[d.sym]=+d.price; }
     
-    const tiles=toks.map(t=>{ const info=bt[String(t.addr||'').toLowerCase()]||{};
+    const tiles=toks.filter(t => t.sym && t.sym.trim() && t.sym !== 'null' && t.sym !== 'undefined').map(t=>{ const info=bt[String(t.addr||'').toLowerCase()]||{};
       const q=!!t.quarantined;
       const px=(info.price!=null?info.price:(t.last||lastPx[t.sym]||info.price))||0;
       const open=(+t.open)||(firstPx[t.sym]||t.seed||px)||null;
@@ -1137,25 +1137,11 @@ async function render(){
     // Populate Token Carousel Marquee (combining current session tiles & recent hot tokens)
     const carEl = $('#tokenCarousel');
     if (carEl) {
-      const recentList = (window.topTokensData && window.topTokensData.recent) || [];
       const carouselData = [...tiles];
-      for (const [sym, v] of recentList) {
-        if (!carouselData.some(x => x.sym === sym)) {
-          carouselData.push({
-            sym,
-            live: null,
-            chg: v.pnl,
-            addr: null,
-            fresh: false,
-            isMigrated: false,
-            q: false
-          });
-        }
-      }
       window._prevPrices = window._prevPrices || {};
       const itemsHTML = carouselData.map(t => {
         const url = t.addr ? ('https://pump.fun/coin/' + t.addr) : ('https://pump.fun/board?q=' + encodeURIComponent(t.sym));
-        const pxt = t.live ? (t.live >= 1 ? '$' + t.live.toFixed(2) : '$' + (+t.live).toPrecision(3)) : 'recent';
+        const pxt = t.live ? (t.live >= 1 ? '$' + t.live.toFixed(2) : '$' + (+t.live).toPrecision(3)) : '—';
         const chgTxt = t.chg == null ? '—' : pct(t.chg);
         const colCls = t.q ? '' : (t.chg == null ? '' : t.chg >= 0 ? 'up' : 'down');
         
