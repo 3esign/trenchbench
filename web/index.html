@@ -888,9 +888,14 @@ function renderRadarChart() {
   }
 
   const personas = [
-    { name: 'Value Val', color: '#14F195', scores: [0.9, 0.7, 0.95, 0.8, 0.75] },
-    { name: 'Momentum Mia', color: '#eda100', scores: [0.7, 0.6, 0.3, 0.9, 0.6] },
-    { name: 'Contrarian Cole', color: '#2a78d6', scores: [0.85, 0.65, 0.88, 0.85, 0.8] }
+    { name: 'Value Val', color: '#14F195', scores: [0.9, 0.7, 0.95, 0.4, 0.75] },
+    { name: 'Momentum Mia', color: '#eda100', scores: [0.75, 0.6, 0.4, 0.9, 0.65] },
+    { name: 'Contrarian Cole', color: '#2a78d6', scores: [0.85, 0.65, 0.88, 0.5, 0.8] },
+    { name: 'Index Ivy', color: '#9945FF', scores: [0.55, 0.5, 0.9, 0.3, 0.6] },
+    { name: 'Event Nia', color: '#ff0055', scores: [0.7, 0.55, 0.35, 0.85, 0.55] },
+    { name: 'The Analyst', color: '#00e5ff', scores: [0.8, 0.7, 0.75, 0.7, 0.75] },
+    { name: 'Degen Dex', color: '#ff5500', scores: [0.65, 0.5, 0.3, 0.95, 0.45] },
+    { name: 'Mean-Reverter Mara', color: '#a0a0a0', scores: [0.72, 0.62, 0.6, 0.65, 0.7] }
   ];
 
   personas.forEach(p => {
@@ -900,13 +905,20 @@ function renderRadarChart() {
       const rad = r * sc;
       return `${(cx + rad * Math.cos(angle)).toFixed(1)},${(cy + rad * Math.sin(angle)).toFixed(1)}`;
     });
-    g += `<polygon id="rpoly-${key}" points="${pts.join(' ')}" fill="${p.color}" fill-opacity="0.2" stroke="${p.color}" stroke-width="2" class="rpoly"/>`;
+    g += `<polygon id="rpoly-${key}" points="${pts.join(' ')}" fill="${p.color}" fill-opacity="0.2" stroke="${p.color}" stroke-width="2" class="rpoly" style="pointer-events:none; transition: fill-opacity 0.2s, stroke-width 0.2s, opacity 0.2s;"/>`;
   });
 
-  g += `<g transform="translate(10, ${H - 8})">`;
-  personas.forEach((p, idx) => {
+  g += `<g transform="translate(6, ${H - 24})">`;
+  personas.slice(0, 4).forEach((p, idx) => {
     const key = p.name.split(' ')[1];
-    g += `<g class="radar-leg"><circle cx="${idx * 102 + 6}" cy="0" r="4" fill="${p.color}"/><text x="${idx * 102 + 14}" y="3" fill="var(--ink2)" font-size="9" font-weight="600">${p.name}</text></g>`;
+    g += `<g class="radar-leg" data-persona="${key}" style="cursor:pointer;"><rect x="${idx * 77}" y="-8" width="76" height="18" fill="#000" fill-opacity="0" pointer-events="all"/><circle cx="${idx * 77 + 5}" cy="0" r="3.5" fill="${p.color}" style="pointer-events:none;"/><text x="${idx * 77 + 12}" y="3" fill="var(--ink2)" font-size="8" font-weight="600" style="pointer-events:none;">${p.name}</text></g>`;
+  });
+  g += `</g>`;
+
+  g += `<g transform="translate(6, ${H - 8})">`;
+  personas.slice(4).forEach((p, idx) => {
+    const key = p.name.split(' ')[1];
+    g += `<g class="radar-leg" data-persona="${key}" style="cursor:pointer;"><rect x="${idx * 77}" y="-8" width="76" height="18" fill="#000" fill-opacity="0" pointer-events="all"/><circle cx="${idx * 77 + 5}" cy="0" r="3.5" fill="${p.color}" style="pointer-events:none;"/><text x="${idx * 77 + 12}" y="3" fill="var(--ink2)" font-size="8" font-weight="600" style="pointer-events:none;">${p.name}</text></g>`;
   });
   g += `</g>`;
 
