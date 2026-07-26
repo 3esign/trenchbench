@@ -350,7 +350,7 @@
       <div class="fill"><table class="lb"><thead id="bhead"></thead><tbody id="gModels"></tbody></table></div>
       
       <!-- Interactive Model Performance Bar Chart (fills empty space) -->
-      <div id="modelPerformanceChart" style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border); height:230px; position:relative;"></div>
+      <div id="modelPerformanceChart" style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border); height:310px; position:relative;"></div>
       
       <div class="foot-note" id="benchnote"></div>
     </div>
@@ -420,7 +420,9 @@
             <tr><td><b>Index Ivy</b></td><td><span class="aname" style="color:var(--good)">Portfolio Spread Cognition</span></td><td class="r down">-40%</td><td class="r up">+30%</td><td class="r tnum">REBALANCE, SWAP</td></tr>
             <tr><td><b>Momentum Mia</b></td><td><span class="aname" style="color:var(--warn)">Trend Velocity Cognition</span></td><td class="r down">-10%</td><td class="r up">+30%</td><td class="r tnum">BUY, SELL, DCA_SCALE</td></tr>
             <tr><td><b>Event Nia</b></td><td><span class="aname" style="color:var(--bad)">Event Shock Cognition</span></td><td class="r down">-8%</td><td class="r up">+25%</td><td class="r tnum">BUY, SELL, HEDGE</td></tr>
-            <tr><td><b>The Analyst</b></td><td><span class="aname" style="color:var(--ink)">Meta-Macro Cognition</span></td><td class="r down">-25%</td><td class="r up">+35%</td><td class="r tnum">SWAP, REBALANCE</td></tr>
+            <tr><td><b>The Analyst</b></td><td><span class="aname" style="color:var(--ink)">Meta-Macro adaptations</span></td><td class="r down">-25%</td><td class="r up">+35%</td><td class="r tnum">SWAP, REBALANCE</td></tr>
+            <tr><td><b>Degen Dex</b></td><td><span class="aname" style="color:var(--brand2)">High-Risk Momentum Cognition</span></td><td class="r down">-15%</td><td class="r up">+25%</td><td class="r tnum">BUY, SELL, SWAP, ALLIN</td></tr>
+            <tr><td><b>Mean-Reverter Mara</b></td><td><span class="aname" style="color:var(--good)">Oscillation Mean Cognition</span></td><td class="r down">-8%</td><td class="r up">+7%</td><td class="r tnum">BUY, SELL, SWAP</td></tr>
           </tbody>
         </table>
       </div>
@@ -1301,7 +1303,7 @@ function paintBench(){
   const chartEl = $('#modelPerformanceChart');
   if (chartEl && rows.length) {
     const W = chartEl.clientWidth || 360;
-    const H = 210;
+    const H = 285;
     const paddingLeft = 40;
     const paddingRight = 10;
     const paddingTop = 15;
@@ -1480,6 +1482,17 @@ async function loadGlobals(){
         if(['USDC','USDT','DAI','USDE','FDUSD'].includes(o.sym.toUpperCase())) continue;
         const bR = cRecent[o.sym] = cRecent[o.sym] || {n:0, pnl:0};
         bR.n++; bR.pnl += (+o.realized_pnl||0);
+      }
+    }
+    
+    // Pad cRecent with all-time tokens if it has fewer than 20 unique items
+    if (Object.keys(cRecent).length < 20) {
+      const allSorted = Object.entries(cAll).sort((a, b) => b[1].pnl - a[1].pnl);
+      for (const [sym, val] of allSorted) {
+        if (Object.keys(cRecent).length >= 20) break;
+        if (!cRecent[sym]) {
+          cRecent[sym] = { n: val.n, pnl: val.pnl };
+        }
       }
     }
       
