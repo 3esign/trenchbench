@@ -895,7 +895,13 @@ async function render(){
     // ---- race: the SAME byA the standing was built from, keyed by tick ----
     const startBy={}; for(const r of reps) startBy[r.agent_id]=r.start_cash;
     const series=Object.keys(byA).map(k=>({id:k,name:aname(k),pts:byA[k],start:startBy[k]}));
-    if(series.length)raceChart(series); else $('#racechart').innerHTML='<div class="empty">equity curve appears as the session runs</div>';
+    if (series.length) {
+      _lastSeries = series;
+      if (_chartMode === 'career') loadAndRenderCareerChart();
+      else raceChart(series);
+    } else if (_chartMode === 'session') {
+      $('#racechart').innerHTML='<div class="empty">equity curve appears as the session runs</div>';
+    }
 
     // ---- tape ----
     const setS=(id,v)=>{const e=$('#'+id); if(e)e.textContent=v;};
