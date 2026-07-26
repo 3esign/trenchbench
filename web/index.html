@@ -655,7 +655,10 @@ const TIPS={
   radarHitRate:'<b>Hit Rate Axis</b><br>Measures the proportion of executed trades that closed in profit relative to the market benchmark.',
   radarHODL:'<b>HODL Resiliency Axis</b><br>Measures the agent\'s capacity to hold positions through drawdown phases without premature panic-selling.',
   radarVariety:'<b>Action Variety Axis</b><br>Measures the diversity of primitives used (BUY, SELL, SWAP, HEDGE, REBALANCE) to navigate different volatility regimes.',
-  radarRegret:'<b>Regret Axis</b><br>Measures the variance between actual trade exits and the theoretical maximum return possible during the holding window (lower regret is better/higher score).'
+  radarRegret:'<b>Regret Axis</b><br>Measures the variance between actual trade exits and the theoretical maximum return possible during the holding window (lower regret is better/higher score).',
+  radarVal:'<b>Value Val Skill Profile</b><br>• Return: 90%<br>• Hit Rate: 70%<br>• HODL: 95%<br>• Variety: 80%<br>• Regret: 75%<br><br>Excels at entering deeply oversold dips and holding through drawdown, but has low action variety.',
+  radarMia:'<b>Momentum Mia Skill Profile</b><br>• Return: 70%<br>• Hit Rate: 60%<br>• HODL: 30%<br>• Variety: 90%<br>• Regret: 60%<br><br>Chases trend velocity with high variety, but cuts trades early (low HODL resiliency).',
+  radarCole:'<b>Contrarian Cole Skill Profile</b><br>• Return: 85%<br>• Hit Rate: 65%<br>• HODL: 88%<br>• Variety: 85%<br>• Regret: 80%<br><br>Balanced dip sniper. High precision on local panic capitulations.'
 };
 (function(){
   const tip=document.createElement('div'); tip.className='tip'; document.body.appendChild(tip);
@@ -851,12 +854,14 @@ function renderRadarChart() {
       const rad = r * sc;
       return `${(cx + rad * Math.cos(angle)).toFixed(1)},${(cy + rad * Math.sin(angle)).toFixed(1)}`;
     });
-    g += `<polygon points="${pts.join(' ')}" fill="${p.color}" fill-opacity="0.2" stroke="${p.color}" stroke-width="2"/>`;
+    const tipKey = 'radar' + p.name.split(' ')[1];
+    g += `<polygon points="${pts.join(' ')}" fill="${p.color}" fill-opacity="0.2" stroke="${p.color}" stroke-width="2" class="hint" data-tip="${tipKey}" style="cursor:pointer;"/>`;
   });
 
   g += `<g transform="translate(10, ${H - 8})">`;
   personas.forEach((p, idx) => {
-    g += `<circle cx="${idx * 102 + 6}" cy="0" r="4" fill="${p.color}"/><text x="${idx * 102 + 14}" y="3" fill="var(--ink2)" font-size="9" font-weight="600">${p.name}</text>`;
+    const tipKey = 'radar' + p.name.split(' ')[1];
+    g += `<g class="hint" data-tip="${tipKey}" style="cursor:pointer;"><circle cx="${idx * 102 + 6}" cy="0" r="4" fill="${p.color}"/><text x="${idx * 102 + 14}" y="3" fill="var(--ink2)" font-size="9" font-weight="600">${p.name}</text></g>`;
   });
   g += `</g>`;
 
