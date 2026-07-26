@@ -42,6 +42,23 @@
     background: var(--card) !important;
     box-shadow: 0 0 10px rgba(20,241,149,0.15) !important;
   }
+
+  /* Price Change Glitch Animation */
+  @keyframes priceGlitch {
+    0% { transform: translate(0); text-shadow: 2px 0 0 #ff0055, -2px 0 0 #00ffcc; box-shadow: 0 0 10px #14f195; }
+    15% { transform: translate(-2px, 1px) skew(-3deg); text-shadow: -2px 0 0 #ff0055, 2px 0 0 #00ffcc; }
+    30% { transform: translate(1px, -2px); }
+    45% { transform: translate(0); text-shadow: 1px -1px 0 #ff0055, -1px 1px 0 #00ffcc; }
+    60% { transform: translate(-1px, 2px) skew(3deg); }
+    75% { transform: translate(2px, -1px); text-shadow: 2px 0 0 #ff0055, -2px 0 0 #00ffcc; }
+    90% { transform: translate(0); }
+    100% { transform: translate(0); text-shadow: none; }
+  }
+  .price-glitch-active {
+    animation: priceGlitch 1.2s ease-in-out;
+    border-color: #14F195 !important;
+    background: rgba(20,241,149,0.12) !important;
+  }
   
   /* Custom Scrollbars */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -1078,12 +1095,24 @@ async function render(){
           });
         }
       }
+      window._prevPrices = window._prevPrices || {};
       const itemsHTML = carouselData.map(t => {
         const url = t.addr ? ('https://pump.fun/coin/' + t.addr) : ('https://pump.fun/board?q=' + encodeURIComponent(t.sym));
         const pxt = t.live ? (t.live >= 1 ? '$' + t.live.toFixed(2) : '$' + (+t.live).toPrecision(3)) : 'recent';
         const chgTxt = t.chg == null ? '—' : pct(t.chg);
         const colCls = t.q ? '' : (t.chg == null ? '' : t.chg >= 0 ? 'up' : 'down');
-        return `<a href="${url}" class="glitch-hover" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:6px; background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:4px 10px; font-size:11.5px; text-decoration:none; color:var(--ink); flex:0 0 auto;"><span style="font-weight:600">${t.sym}</span><span style="font-family:var(--font-mono); font-size:11px">${pxt}</span><span class="${colCls}" style="font-weight:600; font-size:11px">${chgTxt}</span></a>`;
+        
+        const prevPrice = window._prevPrices[t.sym];
+        const hasChanged = (t.live != null && prevPrice != null && prevPrice !== t.live);
+        if (t.live != null) {
+          window._prevPrices[t.sym] = t.live;
+        }
+        
+        const statusBadge = t.isMigrated ? '<span style="font-size:8.5px; background:var(--brand); color:#000; padding:1px 3px; border-radius:2px; font-weight:800; margin-right:3px;">GRD</span>'
+                            : t.live ? '<span style="font-size:8.5px; background:#ff0055; color:#fff; padding:1px 3px; border-radius:2px; font-weight:800; margin-right:3px;">LIV</span>'
+                            : '<span style="font-size:8.5px; background:var(--muted); color:#fff; padding:1px 3px; border-radius:2px; font-weight:800; margin-right:3px;">ARC</span>';
+
+        return `<a href="${url}" class="glitch-hover ${hasChanged ? 'price-glitch-active' : ''}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:6px; background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:4px 10px; font-size:11.5px; text-decoration:none; color:var(--ink); flex:0 0 auto;">${statusBadge}<span style="font-weight:600">${t.sym}</span><span style="font-family:var(--font-mono); font-size:11px">${pxt}</span><span class="${colCls}" style="font-weight:600; font-size:11px">${chgTxt}</span></a>`;
       }).join('');
       carEl.innerHTML = itemsHTML + itemsHTML;
     }
