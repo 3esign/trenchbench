@@ -907,39 +907,35 @@ async function loadGlobals(){
     // benchmark threw out — so the session that minted $109m out of a bad price
     // was excluded from every other board and still set the token leader.
     
-    // Paginate to bypass the 1000-row limit in Supabase
-    let outs = [];
-    let offset = 0;
-    while(true) {
-      const chunk = await qTry(`decision_outcomes?select=sym,realized_pnl,outcome,session_id&order=created_at.desc&limit=1000&offset=${offset}`);
-      if(!chunk || !chunk.length) break;
-      outs.push(...chunk);
-      if(chunk.length < 1000 || outs.length >= 50000) break;
-      offset += 1000;
+    const cRecent={}, cAll={}; 
+    const recentSessIds = Array.from(validSessIds).slice(0, 5);
+
+    // Fetch All-time Top Tokens directly from the backend view (1 request)
+    const allTokens = await qTry('lb_token_pnl?select=sym,calls,realized_pnl&limit=1000');
+    if(allTokens) {
+      for(const row of allTokens) {
+        if(!row.sym) continue;
+        if(['USDC','USDT','DAI','USDE','FDUSD'].includes(row.sym.toUpperCase())) continue;
+        cAll[row.sym] = { n: row.calls, pnl: row.realized_pnl || 0 };
+      }
     }
 
-    if(outs&&outs.length){
-      const cRecent={}, cAll={}; 
-      const recentSessIds = Array.from(validSessIds).slice(0, 5);
-      
-      for(const o of outs){
-        if(!o.sym) continue;
-        if(o.outcome==='void') continue;                                   // token was delisted; unscoreable
-        if(!o.session_id) continue;
-        if(['USDC','USDT','DAI','USDE','USDE','FDUSD'].includes(o.sym.toUpperCase())) continue;
-        
-        // Accumulate all-time
-        if(!preMigration && validSessIds.has(o.session_id)) {
-          const bA = cAll[o.sym] = cAll[o.sym] || {n:0, pnl:0};
-          bA.n++; bA.pnl += (+o.realized_pnl||0);
-        }
-        
-        // Accumulate recent
-        if(recentSessIds.includes(o.session_id)) {
+    // Fetch Recent tokens just for the last 5 valid sessions
+    if(recentSessIds.length > 0) {
+      let offset = 0;
+      while(true) {
+        const chunk = await qTry(`decision_outcomes?select=sym,realized_pnl,outcome,session_id&session_id=in.(${recentSessIds.join(',')})&limit=1000&offset=${offset}`);
+        if(!chunk || !chunk.length) break;
+        for(const o of chunk) {
+          if(!o.sym || o.outcome==='void') continue;
+          if(['USDC','USDT','DAI','USDE','FDUSD'].includes(o.sym.toUpperCase())) continue;
           const bR = cRecent[o.sym] = cRecent[o.sym] || {n:0, pnl:0};
           bR.n++; bR.pnl += (+o.realized_pnl||0);
         }
+        if(chunk.length < 1000 || offset >= 20000) break;
+        offset += 1000;
       }
+    }
       
       S.totalScored=Object.values(cRecent).reduce((n,v)=>n+v.n,0);
       
@@ -985,14 +981,6 @@ async function loadGlobals(){
           paintTokens();
         };
       }
-    }else{
-      const dd=await q('decisions?select=sym&executed=is.true&sym=not.eq.&order=ts.desc&limit=5000');
-      const c={}; for(const x of dd)c[x.sym]=(c[x.sym]||0)+1;
-      const t=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,30);
-      $('#gtoksub').innerHTML='ranked by how often they were traded — profit ranking appears once outcomes are scored';
-      $('#gtokcolh').textContent='Trades';
-      $('#gTokens').innerHTML=t.map(([s,n],i)=>`<tr><td class="rank tnum">${i+1}</td><td><span class="aname">${s}</span></td><td class="r tnum dim">—</td><td class="r tnum">${n}</td></tr>`).join('')||'<tr><td class="empty" colspan="4">—</td></tr>';
-    }
   }catch(e){
     console.error('[trenchbench] all-time boards failed:', e);
     B.note='could not refresh the all-time boards: ' + e.message;
