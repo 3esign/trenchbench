@@ -648,7 +648,14 @@ const TIPS={
   career:'<b>Career balance</b><br>A notional $100,000 compounded through every counted session this model or strategy has played.<br><br>Each session still trades from equal capital, so returns stay comparable — the career line is those returns multiplied together. Nobody ever gets more buying power than anyone else.',
   brain:'<b>Which brain answered</b><br>If a cloud model does not reply in time the rule brain covers that round so the session keeps moving. Those calls are recorded separately and are <i>not</i> counted toward that model hit rate.',
   race:'<b>The race</b><br>Each line is one agent\'s total worth over the session. Faded lines are agents that were eliminated.',
-  grads:'<b>Raydium Migrations</b><br>How many of this agent\'s picks successfully migrated to Raydium during the session. Graduation multiplies their score on the board.'
+  grads:'<b>Raydium Migrations</b><br>How many of this agent\'s picks successfully migrated to Raydium during the session. Graduation multiplies their score on the board.',
+  bayesian:'<b>Bayesian Rating</b><br>An Empirical Bayes shrinkage rating that pulls small-sample models toward the benchmark mean to prevent single-run distortion.',
+  sample:'<b>Sample Confidence</b><br>Reflects statistical confidence based on run volume:<br>• VERIFIED: 10+ runs<br>• PROVISIONAL: 5–9 runs<br>• UNSETTLED: Under 5 runs.',
+  radarReturn:'<b>Return Axis</b><br>Measures the agent\'s cumulative net profitability across all completed trading cycles.',
+  radarHitRate:'<b>Hit Rate Axis</b><br>Measures the proportion of executed trades that closed in profit relative to the market benchmark.',
+  radarHODL:'<b>HODL Resiliency Axis</b><br>Measures the agent\'s capacity to hold positions through drawdown phases without premature panic-selling.',
+  radarVariety:'<b>Action Variety Axis</b><br>Measures the diversity of primitives used (BUY, SELL, SWAP, HEDGE, REBALANCE) to navigate different volatility regimes.',
+  radarRegret:'<b>Regret Axis</b><br>Measures the variance between actual trade exits and the theoretical maximum return possible during the holding window (lower regret is better/higher score).'
 };
 (function(){
   const tip=document.createElement('div'); tip.className='tip'; document.body.appendChild(tip);
@@ -827,8 +834,9 @@ function renderRadarChart() {
     const ay = cy + r * Math.sin(angle);
     const lx = cx + (r + 14) * Math.cos(angle);
     const ly = cy + (r + 14) * Math.sin(angle);
+    const tipKey = 'radar' + axes[i].replace(/\s+/g, '');
     g += `<line x1="${cx}" y1="${cy}" x2="${ax}" y2="${ay}" stroke="var(--grid)" opacity="0.5"/>`;
-    g += `<text x="${lx}" y="${ly+3}" text-anchor="middle" fill="var(--ink2)" font-size="9" font-weight="600">${axes[i]}</text>`;
+    g += `<text x="${lx}" y="${ly+3}" text-anchor="middle" fill="var(--ink2)" font-size="9" font-weight="600" class="hint" data-tip="${tipKey}" style="cursor:pointer;">${axes[i]}</text>`;
   }
 
   const personas = [
@@ -1280,7 +1288,9 @@ document.querySelectorAll('#btabs .seg').forEach(b=>b.onclick=()=>{
   B.view=b.dataset.b; document.querySelectorAll('#btabs .seg').forEach(x=>x.classList.toggle('active',x===b)); paintBench();
 });
 function paintBench(){
-  const H=B.view==='pairs'?['#','Model × agent','Runs','Avg P&L','Pairing']:['#','Model','Runs','Career','Avg P&L','Bayesian','Sample'];
+  const H_pairs = ['#','Model × agent','<span class="hint" data-tip="runs">Runs</span>','<span class="hint" data-tip="avgpnl">Avg P&amp;L</span>','<span class="hint" data-tip="pairing">Pairing</span>'];
+  const H_models = ['#','Model','<span class="hint" data-tip="runs">Runs</span>','<span class="hint" data-tip="career">Career</span>','<span class="hint" data-tip="avgpnl">Avg P&amp;L</span>','<span class="hint" data-tip="bayesian">Bayesian</span>','<span class="hint" data-tip="sample">Sample</span>'];
+  const H = B.view==='pairs' ? H_pairs : H_models;
   $('#bhead').innerHTML='<tr>'+H.map((h,i)=>`<th class="${i===0?'rank':''}${i>1?' r':''}">${h}</th>`).join('')+'</tr>';
   const rows=B[B.view]||[];
   if(!rows.length){ $('#gModels').innerHTML=`<tr><td class="empty" colspan="${H.length}">no counted sessions yet</td></tr>`; $('#benchnote').innerHTML=B.note; return; }
