@@ -339,7 +339,7 @@
       </div>
       <div class="fill" style="position:relative; min-height:0; flex:1 1 auto; overflow:visible;">
         <div style="position:absolute; top:0; left:0; right:-4px; bottom:0; overflow-y:auto; padding-right:4px;">
-          <table class="lb"><thead><tr><th class="rank">#</th><th>Token</th><th class="r"><span class="hint" data-tip="calls">Calls</span></th><th class="r"><span class="hint" data-tip="tokenpnl" id="gtokcolh">Realised P&amp;L</span></th></tr></thead><tbody id="gTokens"></tbody></table>
+          <table class="lb"><thead><tr><th class="rank">#</th><th>Token</th><th class="r"><span class="hint" data-tip="calls">Calls</span></th><th class="r" style="cursor:pointer;" onclick="toggleTokenSortDirection()"><span class="hint" data-tip="tokenpnl" id="gtokcolh" style="color:var(--brand);text-decoration:underline dotted;">Realised P&amp;L ⇅</span></th></tr></thead><tbody id="gTokens"></tbody></table>
         </div>
       </div>
     </div>
@@ -1317,10 +1317,21 @@ async function loadGlobals(){
       window.topTokensData = { recent: tRecent, winners: Object.entries(cAll).sort((a,b)=>b[1].pnl-a[1].pnl), losers: Object.entries(cAll).sort((a,b)=>a[1].pnl-b[1].pnl) };
       window.topTokensActiveTab = window.topTokensActiveTab || 'recent';
       
+      window.topTokensSortDirection = window.topTokensSortDirection || 'desc';
+      window.toggleTokenSortDirection = () => {
+        window.topTokensSortDirection = window.topTokensSortDirection === 'desc' ? 'asc' : 'desc';
+        paintTokens();
+      };
+
       const paintTokens = () => {
         const tab = window.topTokensActiveTab;
-        const arr = window.topTokensData[tab] || [];
-        const t = arr.slice(0, 30); // show up to 30
+        let arr = [...(window.topTokensData[tab] || [])];
+        if (window.topTokensSortDirection === 'asc') {
+          arr.sort((a, b) => a[1].pnl - b[1].pnl);
+        } else {
+          arr.sort((a, b) => b[1].pnl - a[1].pnl);
+        }
+        const t = arr.slice(0, 10);
         const mx = Math.max(1,...t.map(([,v])=>Math.abs(v.pnl)));
         
         const scopeLbl = tab === 'recent' ? 'last 5 sessions' : 'all sessions';
@@ -1328,7 +1339,7 @@ async function loadGlobals(){
         
         const scp = $('#tokscope'); if(scp) scp.textContent = scopeLbl;
         const sub = $('#gtoksub'); if(sub) sub.textContent = subLbl;
-        const colh = $('#gtokcolh'); if(colh) colh.textContent = 'Realised P&L';
+        const colh = $('#gtokcolh'); if(colh) colh.innerHTML = `Realised P&amp;L ${window.topTokensSortDirection === 'desc' ? '▼' : '▲'}`;
         
         const toktabs = $('#toktabs');
         if(toktabs) {
