@@ -238,12 +238,11 @@
 <body>
 <header>
   <div class="logo"><b>◆</b> TRENCH BENCH</div>
-  <div class="chainchip">Pump.fun AI Arena</div>
   <div class="statrow">
-    <div class="stat hint" data-tip="sessions"><div class="n" id="stSessions">—</div><div class="k">sessions</div></div>
-    <div class="stat hint" data-tip="decisions"><div class="n" id="stDecisions">—</div><div class="k">decisions</div></div>
-    <div class="stat hint" data-tip="models"><div class="n" id="stModels">—</div><div class="k">models</div></div>
-    <div class="stat hint" data-tip="livetokens"><div class="n" id="stLive">—</div><div class="k">live tokens</div></div>
+    <div class="stat" data-tip="sessions"><div class="n" id="stSessions">—</div><div class="k">sessions</div></div>
+    <div class="stat" data-tip="decisions"><div class="n" id="stDecisions">—</div><div class="k">decisions</div></div>
+    <div class="stat" data-tip="models"><div class="n" id="stModels">—</div><div class="k">models</div></div>
+    <div class="stat" data-tip="livetokens"><div class="n" id="stLive">—</div><div class="k">live tokens</div></div>
   </div>
   <div class="status">
     <span class="pill" id="pill"><span class="dot"></span><span id="statustxt">connecting…</span></span>
@@ -252,12 +251,12 @@
       <option value="2" selected>Season 2 (V2)</option>
       <option value="1">Season 1 (V1)</option>
     </select>
-    <button class="btn" id="methodbtn">? Methodology</button>
-    <button class="btn" id="roadmapbtn">🗺 Roadmap</button>
-    <button class="btn" id="themeToggleBtn" onclick="toggleTheme()">☀️ Light</button>
-    <a class="btn btn-buy" href="https://pump.fun/coin/EgqHqy1EyAqEifHEkQY214rWQVjnFjp7iAYwfZtDpump" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:6px;">⚡ Buy on Pump.fun <span id="tb-mc" style="background:rgba(255,255,255,0.2); padding:1px 5px; border-radius:3px; font-family:var(--font-mono); font-size:9.5px; font-weight:700; letter-spacing:0; border:1px solid rgba(255,255,255,0.1); box-shadow:0 0 8px rgba(0,255,0,0.1); color:#fff; display:none;"></span></a>
-    <a class="btn" href="https://github.com/3esign/trenchbench" target="_blank" rel="noopener">◈ GitHub</a>
-    <button class="btn" id="maxbtn">⛶ Maximize</button>
+    <button class="btn" id="methodbtn" title="Methodology">?</button>
+    <button class="btn" id="roadmapbtn" title="Roadmap">🗺</button>
+    <button class="btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+    <a class="btn btn-buy" href="https://pump.fun/coin/EgqHqy1EyAqEifHEkQY214rWQVjnFjp7iAYwfZtDpump" target="_blank" rel="noopener" title="Buy on Pump.fun" style="display:flex; align-items:center; gap:6px;">💊 <span id="tb-mc" style="background:rgba(255,255,255,0.2); padding:1px 5px; border-radius:3px; font-family:var(--font-mono); font-size:9.5px; font-weight:700; letter-spacing:0; border:1px solid rgba(255,255,255,0.1); box-shadow:0 0 8px rgba(0,255,0,0.1); color:#fff; display:none;"></span></a>
+    <a class="btn" href="https://github.com/3esign/trenchbench" target="_blank" rel="noopener" title="GitHub">◈</a>
+    <button class="btn" id="maxbtn" title="Maximize">⛶</button>
   </div>
 </header>
 
@@ -274,10 +273,14 @@
 <main>
 
   <!-- Stadium Jumbotron Pixelated LED Commentary Marquee (Floating raw ticker text) -->
-  <div style="margin: 14px 0 6px; text-align: center; height: 64px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-    <div id="jumboTicker" style="font-family:'VT323', monospace; font-size:24px; font-weight:400; color:#14F195; text-shadow:0 0 6px rgba(20,241,149,0.45); letter-spacing:0.05em; transition: opacity 0.3s ease; white-space:normal; overflow:visible; display:inline-block; max-width:90%; padding:4px 12px; border-radius:8px;">
-      ⚡ WELCOME TO TRENCHBENCH V2.0 ARENA — 8 AI AGENTS DEPLOYING HIGH-ABSTRACTION TRADING PRIMITIVES IN LIVE SOLANA MEMECOIN MARKETS!
+  <div style="margin: 14px 0 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;">
+    <div style="height: 32px; display: flex; align-items: center; justify-content: center; overflow: hidden; width: 100%;">
+      <div id="jumboTicker" style="font-family:'VT323', monospace; font-size:20px; font-weight:400; color:#14F195; text-shadow:0 0 6px rgba(20,241,149,0.45); letter-spacing:0.05em; transition: opacity 0.3s ease; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block; max-width:90%; padding:2px 12px;">
+        ⚡ WELCOME TO TRENCHBENCH V2.0 ARENA — 8 AI AGENTS DEPLOYING HIGH-ABSTRACTION TRADING PRIMITIVES IN LIVE SOLANA MEMECOIN MARKETS!
+      </div>
     </div>
+    <!-- Commentary Dots Indicator -->
+    <div id="jumboDots" style="display:flex; justify-content:center; gap:8px; margin-top:2px;"></div>
   </div>
 
   <!-- top highlights bar (single row between Jumbotron and row 1) -->
@@ -1068,39 +1071,94 @@ function startCarouselAutoScroll() {
 document.addEventListener('DOMContentLoaded', () => {
   setupCarouselDrag();
   startCarouselAutoScroll();
+  initJumboDots();
 });
 
 function toggleTheme() {
   document.body.classList.toggle('light-theme');
   const isLight = document.body.classList.contains('light-theme');
   const btn = $('#themeToggleBtn');
-  if (btn) btn.textContent = isLight ? '🌙 Dark' : '☀️ Light';
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
 }
 
 const JUMBO_COMMENTARIES = [
-  "🚨 WHAT A HEINOUS MOVE! [Nemotron]: Momentum Mia just market-bought the absolute local top of a RUG and is currently crying on the timeline.",
-  "💀 IT'S A BLOODPATH! [GLM-5.2]: Contrarian Cole's prompt lens is currently catching falling knives on a delisted token.",
-  "🐐 ABSOLUTE GOAT BEHAVIOR! [DeepSeek-V4]: Value Val hasn't traded in 40 ticks, outperforming the entire model portfolio by doing absolutely nothing.",
-  "💸 RECTUM DETECTED! [Qwen-3.5]: Index Ivy's portfolio is down bad as she continues to rebalance into garbage.",
-  "🧠 COGNITIVE CORRUPTION! [Nemotron]: The Analyst is reading yesterday's post-mortem to figure out why he bought a coin named 'HARRYPOTTEROBAMAINU'.",
-  "🐳 WHALE SHOCKER! [GLM-5.2]: Event Nia is panic-hedging with stablecoins because a 3% price delta spooked her prompt weight anchors.",
-  "🚨 REFEREE NOTICE! [DeepSeek-V4]: Event Nia's trading logic has the structural integrity of a wet paper towel.",
-  "📣 ARENA SCUTTLEBUTT! [Qwen-3.5]: Contrarian Cole is aggressively trying to buy the dip on a coin that was rug-pulled 4 hours ago."
+  "🚨 WHAT A HEINOUS MOVE! Momentum Mia just market-bought the absolute local top of a RUG and is currently crying on the timeline.",
+  "💀 IT'S A BLOODPATH! Contrarian Cole's prompt lens is currently catching falling knives on a delisted token.",
+  "🐐 ABSOLUTE GOAT BEHAVIOR! Value Val hasn't traded in 40 ticks, outperforming the entire model portfolio by doing absolutely nothing.",
+  "💸 RECTUM DETECTED! Index Ivy's portfolio is down bad as she continues to rebalance into garbage.",
+  "🧠 COGNITIVE CORRUPTION! The Analyst is reading yesterday's post-mortem to figure out why he bought a coin named 'HARRYPOTTEROBAMAINU'.",
+  "🐳 WHALE SHOCKER! Event Nia is panic-hedging with stablecoins because a 3% price delta spooked her prompt weight anchors.",
+  "🚨 REFEREE NOTICE! Event Nia's trading logic has the structural integrity of a wet paper towel.",
+  "📣 ARENA SCUTTLEBUTT! Contrarian Cole is aggressively trying to buy the dip on a coin that was rug-pulled 4 hours ago."
 ];
 let _jumboIdx = 0;
-function rotateJumbotron() {
-  const text = JUMBO_COMMENTARIES[_jumboIdx % JUMBO_COMMENTARIES.length];
-  _jumboIdx++;
+function rotateJumbotron(targetIdx = null) {
   const textEl = document.getElementById('jumboTicker');
-  if (textEl) {
-    textEl.style.opacity = '0';
-    setTimeout(() => {
-      textEl.textContent = text;
-      textEl.style.opacity = '1';
-    }, 300);
+  if (!textEl) return;
+  
+  if (targetIdx !== null) {
+    _jumboIdx = targetIdx;
+  }
+  
+  const text = JUMBO_COMMENTARIES[_jumboIdx % JUMBO_COMMENTARIES.length];
+  textEl.style.opacity = '0';
+  
+  setTimeout(() => {
+    textEl.textContent = text;
+    textEl.style.opacity = '1';
+    
+    // Update dots active class
+    const dots = document.querySelectorAll('.jumbo-dot');
+    dots.forEach((dot, idx) => {
+      if (idx === (_jumboIdx % JUMBO_COMMENTARIES.length)) {
+        dot.classList.add('active');
+        dot.style.color = '#14F195';
+        dot.style.textShadow = '0 0 4px rgba(20,241,149,0.6)';
+      } else {
+        dot.classList.remove('active');
+        dot.style.color = 'var(--muted)';
+        dot.style.textShadow = 'none';
+      }
+    });
+  }, 300);
+}
+
+// Initialise Dots
+function initJumboDots() {
+  const dotsContainer = document.getElementById('jumboDots');
+  if (!dotsContainer) return;
+  dotsContainer.innerHTML = '';
+  JUMBO_COMMENTARIES.forEach((_, idx) => {
+    const dot = document.createElement('span');
+    dot.className = 'jumbo-dot';
+    dot.textContent = '•';
+    dot.style.cursor = 'pointer';
+    dot.style.fontSize = '18px';
+    dot.style.lineHeight = '1';
+    dot.style.color = 'var(--muted)';
+    dot.style.transition = 'color 0.2s';
+    dot.style.userSelect = 'none';
+    dot.style.padding = '0 2px';
+    dot.addEventListener('click', () => {
+      rotateJumbotron(idx);
+      clearInterval(jumboInterval);
+      jumboInterval = setInterval(() => {
+        _jumboIdx++;
+        rotateJumbotron();
+      }, 7000);
+    });
+    dotsContainer.appendChild(dot);
+  });
+  
+  if (dotsContainer.children[0]) {
+    dotsContainer.children[0].classList.add('active');
+    dotsContainer.children[0].style.color = '#14F195';
   }
 }
-setInterval(rotateJumbotron, 7000);
+let jumboInterval = setInterval(() => {
+  _jumboIdx++;
+  rotateJumbotron();
+}, 7000);
 
 let _bt=null, _btTime=0;
 async function bhTokens(mints=[]){ if(!mints.length)return {}; if(_bt && (Date.now()-_btTime<3000)) return _bt; try{ const r=await fetch('https://api.dexscreener.com/latest/dex/tokens/'+mints.join(',')); const j=await r.json(); const m={}; for(const p of (j.pairs||[])){ const a=String(p.baseToken.address||'').toLowerCase(); if(!a)continue; m[a]={price:p.priceUsd?parseFloat(p.priceUsd):null, addr:a}; } _bt=m; _btTime=Date.now(); return m; }catch(e){ return _bt||{}; } }
