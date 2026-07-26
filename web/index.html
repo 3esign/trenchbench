@@ -728,8 +728,8 @@ function careerChart(series) {
 function renderRadarChart() {
   const el = $('#radarCanvas');
   if (!el) return;
-  const W = el.clientWidth || 320, H = el.clientHeight || 240;
-  const cx = W / 2, cy = H / 2 + 5, r = Math.min(cx, cy) - 35;
+  const W = 320, H = 220;
+  const cx = W / 2, cy = H / 2 - 12, r = Math.min(cx, cy) - 25;
   const axes = ['Return', 'Hit Rate', 'HODL', 'Variety', 'Regret'];
   const numAxes = axes.length;
 
@@ -766,10 +766,16 @@ function renderRadarChart() {
       const rad = r * sc;
       return `${(cx + rad * Math.cos(angle)).toFixed(1)},${(cy + rad * Math.sin(angle)).toFixed(1)}`;
     });
-    g += `<polygon points="${pts.join(' ')}" fill="${p.color}" fill-opacity="0.18" stroke="${p.color}" stroke-width="2"/>`;
+    g += `<polygon points="${pts.join(' ')}" fill="${p.color}" fill-opacity="0.2" stroke="${p.color}" stroke-width="2"/>`;
   });
 
-  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%">${g}</svg>`;
+  g += `<g transform="translate(10, ${H - 8})">`;
+  personas.forEach((p, idx) => {
+    g += `<circle cx="${idx * 102 + 6}" cy="0" r="4" fill="${p.color}"/><text x="${idx * 102 + 14}" y="3" fill="var(--ink2)" font-size="9" font-weight="600">${p.name}</text>`;
+  });
+  g += `</g>`;
+
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="220" style="display:block;">${g}</svg>`;
 }
 
 function setChartWindow(win, btn) {
@@ -1069,7 +1075,7 @@ async function render(){
     $('#tapesub').textContent=`${Math.min(decs.length,60)} most recent decisions · newest first`;
     $('#tape').innerHTML=decs.slice(0,60).map(d=>`<div class="trow" style="font-size:11px;padding:4px 0;margin-right:8px;border-bottom:1px solid rgba(255,255,255,0.03)"><span class="adot" data-tip="${adesc(d.agent_id).replace(/"/g,'&quot;')}" style="background:${acolor(d.agent_id)};margin-right:2px"></span><span class="act ${(d.action||'').toLowerCase()}" style="font-weight:600">${d.action}</span>${d.sym?`<span class="sym" style="font-weight:500;margin-left:3px">${d.sym}</span>`:''}<span class="dim" style="margin-left:auto;font-size:10px;white-space:nowrap;opacity:0.8">${short(d.model||'')}</span></div>`).join('')||'<div class="empty">decisions appear as the session runs</div>';
 
-    loadGlobals();
+    await loadGlobals();
     renderRadarChart();
     clearTimeout(S.timer);
     S.timer=setTimeout(()=>{S.list=[];render()}, live?2500:8000);
