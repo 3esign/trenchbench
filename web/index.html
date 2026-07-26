@@ -703,16 +703,14 @@ const TIPS={
   document.addEventListener('mouseout',e=>{
     const t=e.target.closest&&e.target.closest('[data-tip]');
     if(t) {
-      const next=e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('[data-tip]');
-      if(next === t) return;
+      if(e.relatedTarget && t.contains(e.relatedTarget)) return;
       tip.style.display='none';
     }
     
     // Reset Legend Highlight on Mouse Out
     const leg=e.target.closest&&e.target.closest('.radar-leg');
     if(leg) {
-      const next=e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('.radar-leg');
-      if(next === leg) return;
+      if(e.relatedTarget && leg.contains(e.relatedTarget)) return;
       document.querySelectorAll('.rpoly').forEach(poly => {
         poly.setAttribute('fill-opacity', '0.2');
         poly.setAttribute('stroke-width', '2');
