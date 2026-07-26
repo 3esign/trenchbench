@@ -909,7 +909,7 @@ function renderRadarChart() {
   personas.forEach((p, idx) => {
     const key = p.name.split(' ')[1];
     const tipKey = 'radar' + key;
-    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><circle cx="${idx * 102 + 6}" cy="0" r="4" fill="${p.color}"/><text x="${idx * 102 + 14}" y="3" fill="var(--ink2)" font-size="9" font-weight="600">${p.name}</text></g>`;
+    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 102}" y="-8" width="90" height="16" fill="transparent"/><circle cx="${idx * 102 + 6}" cy="0" r="4" fill="${p.color}"/><text x="${idx * 102 + 14}" y="3" fill="var(--ink2)" font-size="9" font-weight="600">${p.name}</text></g>`;
   });
   g += `</g>`;
 
