@@ -261,7 +261,13 @@
   <div class="row3">
     <div class="card">
       <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-        <h3 id="curh3" style="margin:0;">Current session — the race<span class="scope one">this session</span></h3>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <h3 id="curh3" style="margin:0;">Current session — the race<span class="scope one">this session</span></h3>
+          <div class="segs sm" id="chartModeFilter" style="margin:0;">
+            <button class="seg active" onclick="toggleChartMode('session', this)">Live Session</button>
+            <button class="seg" onclick="toggleChartMode('career', this)">Career Evolution</button>
+          </div>
+        </div>
         <div class="segs sm" id="chartTimeFilter" style="margin:0;">
           <button class="seg active" onclick="setChartWindow('all', this)">All Time</button>
           <button class="seg" onclick="setChartWindow('5m', this)">Last 5m</button>
@@ -542,10 +548,133 @@ const TIPS={
 // disagreeing about who was ahead.
 let _lastSeries = [];
 let _chartWindow = 'all';
+let _chartMode = 'session';
 let _raceRo = new ResizeObserver(() => {
-  if (_lastSeries && _lastSeries.length) raceChart(_lastSeries);
+  if (_chartMode === 'career') loadAndRenderCareerChart();
+  else if (_lastSeries && _lastSeries.length) raceChart(_lastSeries);
 });
 _raceRo.observe(document.getElementById('racechart'));
+
+async function toggleChartMode(mode, btn) {
+  _chartMode = mode;
+  if (btn && btn.parentNode) {
+    btn.parentNode.querySelectorAll('.seg').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  if (mode === 'career') {
+    $('#racesub').textContent = 'compounded $100k career bankroll across every completed session, session by session';
+    $('#chartTimeFilter').style.display = 'none';
+    await loadAndRenderCareerChart();
+  } else {
+    $('#racesub').textContent = 'equity of every agent, tick by tick · vertical time markers indicate trading duration';
+    $('#chartTimeFilter').style.display = 'flex';
+    if (_lastSeries && _lastSeries.length) raceChart(_lastSeries);
+  }
+}
+
+async function loadAndRenderCareerChart() {
+  $('#racechart').innerHTML = '<div class="empty">loading career session data...</div>';
+  const rows = await qTry('agent_reports?select=session_id,model,ret,created_at&order=created_at.asc&limit=8000',
+                          'agent_reports?select=session_id,model,ret&order=created_at.asc&limit=8000');
+  const cs = await qTry('sessions?select=id&counted=is.true', 'sessions?select=id');
+  if (!Array.isArray(rows) || !rows.length) {
+    $('#racechart').innerHTML = '<div class="empty">no career session reports found</div>';
+    return;
+  }
+  const counted = new Set((cs || []).map(x => x.id));
+  const validRows = rows.filter(r => r.model && (counted.size === 0 || counted.has(r.session_id)));
+  
+  const sessionSeq = [];
+  const sessMap = new Map();
+  for (const r of validRows) {
+    if (!sessMap.has(r.session_id)) {
+      sessionSeq.push(r.session_id);
+      sessMap.set(r.session_id, sessionSeq.length);
+    }
+  }
+
+  const modelBankrolls = {};
+  const modelSeriesMap = {};
+
+  for (const sessId of sessionSeq) {
+    const sNum = sessMap.get(sessId);
+    const sRows = validRows.filter(r => r.session_id === sessId);
+    for (const r of sRows) {
+      const m = r.model;
+      if (!modelBankrolls[m]) modelBankrolls[m] = 100000;
+      const ret = +r.ret || 0;
+      modelBankrolls[m] = modelBankrolls[m] * (1 + ret / 100);
+      if (!modelSeriesMap[m]) modelSeriesMap[m] = [{ s: 0, v: 100000 }];
+      modelSeriesMap[m].push({ s: sNum, v: modelBankrolls[m] });
+    }
+  }
+
+  const careerSeries = Object.entries(modelSeriesMap).map(([m, pts]) => ({ model: m, pts }));
+  careerChart(careerSeries);
+}
+
+function careerChart(series) {
+  const el = $('#racechart');
+  let W = el.clientWidth || 620, H = el.clientHeight || 385;
+  const L = 55, R = 110, T = 15, B = 30;
+
+  let mn = Infinity, mx = -Infinity, maxSess = 0;
+  series.forEach(s => {
+    s.pts.forEach(p => {
+      if (p.v < mn) mn = p.v;
+      if (p.v > mx) mx = p.v;
+      if (p.s > maxSess) maxSess = p.s;
+    });
+  });
+
+  if (!isFinite(mn) || maxSess === 0) {
+    $('#racechart').innerHTML = '<div class="empty">no career data recorded across sessions yet</div>';
+    return;
+  }
+
+  const pad = Math.max(1000, (mx - mn) * 0.05);
+  mn = Math.max(0, mn - pad); mx += pad;
+
+  const x = s => L + (s / Math.max(1, maxSess)) * (W - L - R);
+  const y = v => T + (1 - (v - mn) / (mx - mn)) * (H - T - B);
+
+  let g = '';
+  for (let k = 0; k <= 4; k++) {
+    const v = mn + (mx - mn) * k / 4, yy = y(v);
+    const isBase = Math.abs(v - 100000) < 1000;
+    g += `<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="${isBase ? 'var(--brand)' : 'var(--grid)'}" stroke-dasharray="${isBase ? 'none' : '4 4'}" opacity="${isBase ? 0.6 : 0.4}"/><text x="${L-6}" y="${yy+3}" text-anchor="end" fill="${isBase ? 'var(--brand)' : 'var(--muted)'}" font-size="10" font-weight="${isBase ? '600' : '400'}">${money(v)}</text>`;
+  }
+
+  const stepSess = maxSess <= 10 ? 1 : maxSess <= 30 ? 5 : 10;
+  for (let s = 1; s <= maxSess; s += stepSess) {
+    const xx = x(s);
+    g += `<line x1="${xx}" x2="${xx}" y1="${T}" y2="${H-B}" stroke="var(--grid)" stroke-dasharray="2 4" opacity="0.3"/>`;
+    g += `<text x="${xx}" y="${H-B+14}" text-anchor="middle" fill="var(--brand2)" font-size="9" font-weight="600">S${s}</text>`;
+  }
+
+  series.forEach(s => {
+    const col = modelColor(s.model);
+    const pts = s.pts.map(p => `${x(p.s).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+    g += `<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  });
+
+  const ends = series.map(s => ({ s, p: s.pts[s.pts.length - 1] })).sort((a, b) => b.p.v - a.p.v);
+  let prev = -1e9;
+  ends.forEach(e => {
+    let yy = clamp(y(e.p.v), T + 5, H - B);
+    if (yy - prev < 12) yy = prev + 12;
+    prev = yy;
+    e.lab = yy;
+  });
+
+  ends.forEach((e, i) => {
+    const col = modelColor(e.s.model);
+    const retPct = ((e.p.v / 100000 - 1) * 100).toFixed(1);
+    g += `<circle cx="${x(e.p.s)}" cy="${clamp(y(e.p.v), T + 4, H - B)}" r="${i === 0 ? 4.5 : 3.5}" fill="${col}"/><text x="${W - R + 7}" y="${e.lab + 3}" fill="${i === 0 ? 'var(--ink)' : 'var(--ink2)'}" font-size="${i === 0 ? 11 : 10}" font-weight="${i === 0 ? '600' : '400'}">${short(e.s.model)} (${retPct >= 0 ? '+' : ''}${retPct}%)</text>`;
+  });
+
+  $('#racechart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" preserveAspectRatio="none">${g}</svg>`;
+}
 
 function setChartWindow(win, btn) {
   _chartWindow = win;
@@ -553,7 +682,7 @@ function setChartWindow(win, btn) {
     btn.parentNode.querySelectorAll('.seg').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
   }
-  if (_lastSeries && _lastSeries.length) raceChart(_lastSeries);
+  if (_chartMode === 'session' && _lastSeries && _lastSeries.length) raceChart(_lastSeries);
 }
 
 function raceChart(series){
