@@ -21,6 +21,8 @@ const SUPA = ENV.SUPABASE_URL, ANON = ENV.SUPABASE_ANON_KEY;
 // WRITES from the service key — which lives here, in git-ignored config.txt.
 const WRITE_KEY = ENV.SUPABASE_SERVICE_KEY || ANON;
 const SECONDS = +(ENV.SESSION_SECONDS || 3600);   // a SAFETY CAP, not the plan — Stop ends the session
+const SEASON = +(ENV.SESSION_SEASON || 2);
+const EXPERIMENTAL_ARM = (ENV.EXPERIMENTAL_ARM || 's2e').toLowerCase();
 const CMIN = +(ENV.CAPITAL_MIN || 500), CMAX = +(ENV.CAPITAL_MAX || 100000);
 const CAP_MODE = (ENV.CAPITAL_MODE || 'equal').toLowerCase();     // equal | random
 const START_CAP = +(ENV.START_CAPITAL || 25000);
@@ -299,7 +301,7 @@ async function askOllama(model, sys, usr, options = {}) {
 // Cheap — it only fires on failure — and it rescues the chattier models.
 const RETRY_SYS = 'Answer with a single digit. No words. No punctuation. Only the digit.';
 async function askChoiceWithRetry(model, sys, usr, menu) {
-  const a = await askOllama(model, sys, usr, { num_predict: 64, stop: ['\n\n'] });
+  const a = await askOllama(model, sys, usr, { num_predict: Math.max(384, NUM_PREDICT), stop: ['\n\n'] });
   if (a.ok) { const p = parseChoice(a.text, menu); if (p != null) return { pick: p, text: a.text, retried: false }; }
   const b = await askOllama(model, RETRY_SYS,
     `${usr}\n\nAnswer with one digit only, 0 to ${menu.length - 1}.`,
@@ -385,7 +387,7 @@ function calculateBondingCurveImpact(action, tradeValUsd, spotPx, liquidityPoolU
   if (!spotPx || spotPx <= 0 || tradeValUsd <= 0) return { execPx: spotPx, priceImpactPct: 0, slippageFeeUsd: 0 };
   const gamma = tradeValUsd / Math.max(1000, liquidityPoolUsd);
   const impactSign = action === 'BUY' ? 1 : -1;
-  const execPx = spotPx * (1 + impactSign * (gamma / 2));
+  const execPx = Math.max(0.001 * spotPx, spotPx * (1 + impactSign * (gamma / 2)));
   const priceImpactPct = impactSign * gamma * 100;
   const slippageFeeUsd = tradeValUsd * (gamma / 2);
   return { execPx, priceImpactPct, slippageFeeUsd };
@@ -398,8 +400,19 @@ function menuToOrder(opt, ag, obs) {
   if (opt.k === 'REBALANCE') return { action: 'REBALANCE', symbol: null, qty: 0 };
   const px = obs.M[opt.sym] ? obs.M[opt.sym].price : 0;
   const dynRisk = getPsychologicalRisk(ag, obs);
-  const tradeSizeUsd = dynRisk * obs.cash;
   const liq = (obs.M[opt.sym] && obs.M[opt.sym].liq) || 10000;
+  
+  let tradeSizeUsd = dynRisk * obs.cash;
+  if (['s2b', 's2c', 's2d', 's2e'].includes(EXPERIMENTAL_ARM)) {
+    const momVol = Math.abs(obs.M[opt.sym] ? obs.M[opt.sym].mom : 0);
+    const volScale = Math.max(0.2, 1 - (momVol / 10)); // max 80% scale down
+    tradeSizeUsd *= volScale;
+    
+    // Cap trade size at 5% of pool liquidity to prevent massive slippage (min $100 safeguard)
+    const maxTradeSize = Math.max(100, liq * 0.05);
+    tradeSizeUsd = Math.min(tradeSizeUsd, maxTradeSize);
+  }
+  
   const impact = calculateBondingCurveImpact('BUY', tradeSizeUsd, px, liq);
   const execPx = impact.execPx;
   return { action: 'BUY', symbol: opt.sym, qty: execPx > 0 ? Math.floor(tradeSizeUsd / (execPx * 1.001)) : 0, impactPct: impact.priceImpactPct };
@@ -540,9 +553,11 @@ ${ag.desc || ''}
 CRITICAL DIRECTIVE: You are an active fund manager mandated to generate alpha.
 Idle cash (>50%) incurs a mandatory CASH DRAG PENALTY (-0.05%/tick). SITTING STILL DECAYS CAPITAL.
 You MUST actively evaluate tokens, buy dips, ride momentum, and rotate capital.
-Choose exactly ONE option from the menu. Reply with its integer number and NOTHING else.`;
+${['s2d', 's2e'].includes(EXPERIMENTAL_ARM) ? 'Menu Legend: LQ = Pool Liquidity (USD), V5 = 5m Volume (USD), MC = Market Cap (USD), M1/M15/M60 = 1m/15m/60m price change. PNL = your position\'s profit/loss percentage.\nNote: Trades incur slippage (~1%). Only trade if expected edge > 1%.\n' : ''}Choose exactly ONE option from the menu. Reply with its integer number and NOTHING else.`;
 
-  const usr = `[STATE]
+  const marketDesc = obs.realMode ? 'Live Solana (Dexscreener aligned)' : 'Mathematical Simulation';
+  const sessionContext = ['s2d', 's2e'].includes(EXPERIMENTAL_ARM) ? `[SESSION CONTEXT]\nRound: ${obs.tick || 1} | Market: ${marketDesc} | Mode: V2 Profit Maximization\n\n` : '';
+  const usr = `${sessionContext}[STATE]
 ${budget}
 HOLDINGS:${pos}
 RECENT:${hist}${idle}${learned}
@@ -627,7 +642,20 @@ function buildSimAssets() {
   }
   return A;
 }
-function tickSim(A) { for (const a of A) { if (a.cat === 'memecoin' && Math.random() < .05) a.price *= (1 + rnd(-.35, .45)); a.price = Math.max(a.seed * .02, a.price * (1 + (a.drift + a.vol * randn()))); a.hist.push(a.price); if (a.hist.length > 60) a.hist.shift(); recompute(a); } }
+function tickSim(A) {
+  for (const a of A) {
+    if (a.cat === 'memecoin') {
+      if (Math.random() < .05) a.price *= (1 + rnd(-.35, .45));
+      // Hype/momentum feedback loop: past price change influences drift (trend-following simulation)
+      const momBias = (a.mom || 0) * 0.005;
+      const nextDrift = a.drift + Math.max(-0.015, Math.min(0.015, momBias));
+      a.price = Math.max(a.seed * .02, a.price * (1 + (nextDrift + a.vol * randn())));
+      a.hist.push(a.price);
+      if (a.hist.length > 60) a.hist.shift();
+      recompute(a);
+    }
+  }
+}
 
 // (a synthetic "live" price walk used to live here — removed, see the poller)
 
@@ -638,9 +666,9 @@ const PERSONAS = [
   { id: 'val',   desc: 'You are a PATIENT value investor. You buy tokens that have dropped hard, withstand big drawdowns (down to -50%), and HOLD AND WAIT for the recovery. You do NOT panic sell on short-term dips.',
                  name: 'Value Val',          role: 'value investor',     risk: .25, tp: 40, sl: -50, maxPos: 5 },
   { id: 'mom',   desc: 'You buy whatever is PUMPING hardest right now. You ride momentum until it breaks, but cut losses fast if momentum stalls.',
-                 name: 'Momentum Mia',       role: 'trend chaser',       risk: .35, tp: 20, sl: -10, maxPos: 4 },
+                 name: 'Momentum Mia',       role: 'trend chaser',       risk: .35, tp: 15, sl: -8,  maxPos: 4 },
   { id: 'degen', desc: 'You are a FULL DEGEN. You ape into pumps and hold through wild volatility (-30% to +50%). You trade actively and swing for massive gains.',
-                 name: 'Degen Dex',          role: 'meme degen',         risk: .50, tp: 50, sl: -30, maxPos: 5 },
+                 name: 'Degen Dex',          role: 'meme degen',         risk: .40, tp: 50, sl: -30, maxPos: 5 },
   { id: 'contra',desc: 'You are a PATIENT contrarian dip buyer. You buy major red fallers, withstand deep dips (down to -45%), and hold patiently waiting for high-conviction bounces.',
                  name: 'Contrarian Cole',    role: 'buys the dip',       risk: .30, tp: 35, sl: -45, maxPos: 5 },
   { id: 'mrev',  desc: 'You fade extremes in BOTH directions. If something pumped too far, SELL. If something dumped too far, BUY and wait for mean reversion.',
@@ -649,9 +677,16 @@ const PERSONAS = [
                  name: 'Index Ivy',          role: 'diversified',        risk: .15, tp: 30, sl: -40, maxPos: 8 },
   { id: 'event', desc: 'You are a fast event trader. You react immediately to price/volume shocks and enforce tight stop-losses (-8%) if price breaks down.',
                  name: 'Event Nia',          role: 'reacts to shocks',   risk: .35, tp: 25, sl: -8,  maxPos: 4 },
-  { id: 'analyst', desc: 'You are the Analyst. You adapt your strategy and risk patience dynamically based on recent market reports.',
-                 name: 'The Analyst',        role: 'dynamic meta-trader',risk: .30, tp: 25, sl: -25, maxPos: 5 },
+  { id: 'analyst', desc: 'You are the Analyst. You synthesize market reports and adjust your trade timing conservatively based on historical performance.',
+                 name: 'The Analyst',        role: 'dynamic meta-trader',risk: .25, tp: 25, sl: -25, maxPos: 5 },
 ];
+
+// Fallback to S1 personas if not in S2e (Fully Tuned Arm)
+if (EXPERIMENTAL_ARM !== 's2e') {
+  const pDegen = PERSONAS.find(p => p.id === 'degen'); if (pDegen) pDegen.risk = 0.50;
+  const pMom = PERSONAS.find(p => p.id === 'mom'); if (pMom) { pMom.tp = 20; pMom.sl = -10; }
+  const pAnalyst = PERSONAS.find(p => p.id === 'analyst'); if (pAnalyst) pAnalyst.risk = 0.30;
+}
 // ============================================================
 //  BASELINES — the null models. NO model is ever called for these.
 //
@@ -748,23 +783,52 @@ function execute(ag, d, M, tick) {
   if (d.action === 'BUY' && d.symbol && M[d.symbol]) {
     const px = M[d.symbol].price;
     if (!(px > 0) || !(d.qty > 0)) return { executed: false };
-    // Models routinely ask for more than they can afford. Scaling the order
-    // down to what the cash allows beats silently dropping it — a rejected
-    // order used to look identical to a deliberate HOLD in the data.
-    const afford = Math.floor((ag.cash * 0.98) / (px * 1.001));
+    
+    // Simulate bonding curve impact at execution
+    const liq = M[d.symbol].liq || 10000;
+    const tradeSizeUsd = d.qty * px;
+    const impact = calculateBondingCurveImpact('BUY', tradeSizeUsd, px, liq);
+    const execPx = impact.execPx;
+    
+    // Scale order size down based on execPx rather than spot px
+    const afford = Math.floor((ag.cash * 0.98) / (execPx * 1.001));
     const qty = Math.min(d.qty, afford);
     if (qty > 0) {
-      const cost = qty * px * 1.001;
+      const cost = qty * execPx * 1.001;
       ag.cash -= cost;
       ag.hold[d.symbol] = (ag.hold[d.symbol] || 0) + qty;
-      (ag.lots[d.symbol] = ag.lots[d.symbol] || []).push({ qty, px, tick });
-      return { executed: true, qty, trimmed: qty < d.qty };
+      (ag.lots[d.symbol] = ag.lots[d.symbol] || []).push({ qty, px: execPx, tick });
+      if (M[d.symbol].src === 'simulation' || !M[d.symbol].live) {
+        M[d.symbol].price = execPx;
+      }
+      return { executed: true, qty, trimmed: qty < d.qty, execPx };
     }
     return { executed: false };
   } else if (d.action === 'SELL' && d.symbol && M[d.symbol]) {
-    const h = ag.hold[d.symbol] || 0, q = Math.min(h, d.qty);
+    const h = ag.hold[d.symbol] || 0;
+    const lots = ag.lots[d.symbol] || [];
+    
+    // Anti-Panic Hold Timers
+    if (['s2c', 's2d', 's2e'].includes(EXPERIMENTAL_ARM) && lots.length) {
+      const px = M[d.symbol].price;
+      const oldestLot = lots[0];
+      const pnlPct = oldestLot.px > 0 ? ((px / oldestLot.px) - 1) * 100 : 0;
+      const holdTime = tick - oldestLot.tick;
+      if (holdTime < 5 && pnlPct > -50) {
+        ag.note = `hold timer blocked panic sell of ${d.symbol}`;
+        return { executed: false, blocked: true };
+      }
+    }
+    
+    const q = Math.min(h, d.qty);
     if (q > 0) {
-      const px = M[d.symbol].price, proceeds = q * px * .999;
+      const px = M[d.symbol].price;
+      const liq = M[d.symbol].liq || 10000;
+      const tradeSizeUsd = q * px;
+      const impact = calculateBondingCurveImpact('SELL', tradeSizeUsd, px, liq);
+      const execPx = impact.execPx;
+      
+      const proceeds = q * execPx * .999;
       ag.cash += proceeds;
       ag.hold[d.symbol] = h - q;
       if (ag.hold[d.symbol] <= 1e-9) delete ag.hold[d.symbol];
@@ -776,15 +840,18 @@ function execute(ag, d, M, tick) {
         l.qty -= take; left -= take;
         if (l.qty <= 1e-12) lots.shift();
       }
-      const basis = cost > 0 ? cost : q * px;
+      const basis = cost > 0 ? cost : q * execPx;
       const pnl = proceeds - basis;
-      return { executed: true, qty: q, realized_pnl: r2(pnl), realized_pct: r2((pnl / basis) * 100), hold_ticks: tick - oldest };
+      if (M[d.symbol].src === 'simulation' || !M[d.symbol].live) {
+        M[d.symbol].price = execPx;
+      }
+      return { executed: true, qty: q, realized_pnl: r2(pnl), realized_pct: r2((pnl / basis) * 100), hold_ticks: tick - oldest, execPx };
     }
   } else if (d.action === 'SWAP' && d.symbol && d.sellSymbol && M[d.symbol] && M[d.sellSymbol]) {
     // High-Abstraction SWAP: liquidate sellSymbol and immediately deploy proceeds into symbol
     const sellRes = execute(ag, { action: 'SELL', symbol: d.sellSymbol, qty: ag.hold[d.sellSymbol] || 0 }, M, tick);
     const buyRes = execute(ag, { action: 'BUY', symbol: d.symbol, qty: Math.floor((ag.cash * 0.95) / (M[d.symbol].price * 1.001)) }, M, tick);
-    return { executed: sellRes.executed || buyRes.executed, swap: true };
+    return { executed: sellRes.executed || buyRes.executed, swap: true, execPx: buyRes.execPx };
   } else if (d.action === 'REBALANCE') {
     // High-Abstraction REBALANCE: equalize portfolio holdings across all current positions
     const posSyms = Object.keys(ag.hold).filter(s => M[s] && M[s].price > 0);
@@ -867,6 +934,21 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
   const priceLog = [Object.fromEntries(assets.map(a => [a.sym, a.price]))];
   const fills = new Map(), menus = new Map();
 
+  if (feed) {
+    // Lock the active roster in the feed so newly discovered tokens start inactive (no polling)
+    feed.isRosterLocked = true;
+    // Disable polling for any discovered tokens not in our active assets roster
+    const rosterAddrs = new Set(assets.map(a => a.addr).filter(Boolean));
+    let deactivated = 0;
+    for (const mint in feed.tokens) {
+      if (!rosterAddrs.has(mint)) {
+        feed.tokens[mint].active = false;
+        deactivated++;
+      }
+    }
+    console.log(`  [feed] locked price feed to the ${assets.length} roster tokens. Deactivated ${deactivated} discovery tokens. WebSocket discovery remains open for mid-session launches.`);
+  }
+
   // live price refresh (real mode)
   // Prices come from the chain and ONLY from the chain. Previously a random
   // walk was layered on top in 'live' mode, so everything after the opening
@@ -906,8 +988,17 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
             }
           }
 
-          if (!(t.priceNative > 0) || t.priceNative === a.price) continue;
-          a.price = t.priceNative;
+          if (!(t.priceNative > 0)) continue;
+          
+          // Hybrid Alignment: pull sandbox price towards real-world price (kappa = 0.20)
+          let hasMoved = false;
+          if (t.priceNative !== a.price) {
+            const kappa = 0.20;
+            const prevPrice = a.price;
+            a.price = a.price + kappa * (t.priceNative - a.price);
+            if (a.price !== prevPrice) hasMoved = true;
+          }
+
           a.mom = t.priceChange5m || 0;
           a.mom1h = t.priceChange1h || 0;
           a.vol5m = t.volume5m || 0;
@@ -915,10 +1006,10 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
           a.cap = t.marketCap || 0;
           a.tier = t.tier || 'growth';
           a.src = 'pool';
-          a.hist.push(t.priceNative);
+          a.hist.push(a.price);
           if (a.hist.length > 60) a.hist.shift();
           recompute(a);
-          moved++;
+          if (hasMoved) moved++;
         }
         priceMoves += moved;
         if (moved) console.log(`  [pump] ${moved} price(s) moved`);
@@ -1030,11 +1121,15 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
     }
   }
 
-  const sessRow = { name: `Session ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`, provider: usingOllama ? 'ollama' : 'rules', status: 'running', memecoins: roster,
+  const sessRow = { name: `[${EXPERIMENTAL_ARM.toUpperCase()}] Session ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`, provider: usingOllama ? 'ollama' : 'rules', status: 'running', memecoins: roster,
     capital_min: CAP_MODE === 'equal' ? START_CAP : CMIN, capital_max: CAP_MODE === 'equal' ? START_CAP : CMAX,
-    pairing: PAIRING, capital_mode: CAP_MODE, counted: false, tokens: tokenRow() };
+    pairing: PAIRING, capital_mode: CAP_MODE, counted: false, tokens: tokenRow(), season: SEASON };
   let sess = await sb('sessions', 'POST', sessRow, 'return=representation');
-  if (!sess) { const { tokens, ...basic } = sessRow; sess = await sb('sessions', 'POST', basic, 'return=representation'); if (sess) console.log('  [db] saved without token opens — run supabase/002_outcomes_and_tokens.sql to turn on live token colours.'); }
+  if (!sess) {
+    const { tokens, season, ...basic } = sessRow;
+    sess = await sb('sessions', 'POST', basic, 'return=representation');
+    if (sess) console.log('  [db] saved without tokens or season column (run supabase/007_season_management.sql to enable V2 season scoping).');
+  }
   const session_id = (sess && sess[0] && sess[0].id) || crypto.randomUUID();
   console.log(`\nSession ${session_id}\ncapital ${CAP_MODE === 'equal' ? `$${START_CAP.toLocaleString('en-US')} each (equal)` : `$${CMIN}-$${CMAX} per agent (random)`} · ${REALMODE ? 'REAL Pump.fun memecoin prices' : 'simulated prices'} · roster ${MODE} · runs until you press Stop (safety cap ${SECONDS >= 60 ? Math.round(SECONDS / 60) + ' min' : SECONDS + ' s'})\n`);
 
@@ -1080,7 +1175,7 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
         return { sym: s, qty: ag.hold[s], avg, px, pnl: avg > 0 ? (px / avg - 1) * 100 : 0 };
       }).sort((a, b) => b.pnl - a.pnl);
 
-      const obs = { cash: ag.cash, equity: ag.lastEq || ag.cash, hold: { ...ag.hold }, positions, log: ag.log, assets: nonStable, M, top, note: ag.note };
+      const obs = { tick: round, realMode: REALMODE, cash: ag.cash, equity: ag.lastEq || ag.cash, hold: { ...ag.hold }, positions, log: ag.log, assets: nonStable, M, top, note: ag.note };
 
       // Risk Safeguard: Persona-Specific Stop-Loss (ag.sl) & Take-Profit (ag.tp)
       for (const p of positions) {
@@ -1122,7 +1217,8 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
           ag.lastEq = equityOf(ag, OPEN);
         }
       }
-      if (!ag.bust && ag.lastEq < ag.start_cash * 0.02) { ag.bust = true; ag.cash = Math.max(0, ag.lastEq); ag.hold = {}; ag.note = 'busted - eliminated'; }
+      const bankruptcyThreshold = ['s2c', 's2d', 's2e'].includes(EXPERIMENTAL_ARM) ? 10 : START_CAP * 0.02;
+      if (!ag.bust && ag.lastEq < bankruptcyThreshold) { ag.bust = true; ag.cash = Math.max(0, ag.lastEq); ag.hold = {}; ag.note = 'bankrupt - out of capital'; }
       decisions.push({ session_id, tick: round, ts: nowISO(), agent_id: ag.id, agent_name: ag.name, role: ag.role, model: ag.model, start_cash: ag.start_cash, action: d.action, sym: sym || '', qty: r2(d.qty), price: sym ? px6(OPEN[sym].price) : 0, executed, comment: d.comment, brain: d.brain || 'rules', choice: d.choice == null ? null : d.choice, reply: d.reply || null, menu_size: (menus.get(`${round}|${ag.id}`) || []).length, token_class: (sym && OPEN[sym]) ? classLabel(OPEN[sym].cat) : null, equity: r2(ag.lastEq) });
       ag.recent.push(ag.lastEq); if (ag.recent.length > 6) ag.recent.shift();
       // RISK IS FROZEN. This used to multiply ag.risk by 1.1 or 0.9 on a
@@ -1147,6 +1243,46 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
       if (!ne.length || await sbInsertBatch('equity_points', ne)) flushedE = equity.length;
     }
     roundMs.push(Date.now() - rt0);
+
+    // Dynamic token injection (new launches)
+    if (round % 5 === 0 && assets.length < 40) {
+      if (REALMODE && feed) {
+        // Find a discovered token that is active: false (not in assets)
+        const inactiveTokens = Object.values(feed.tokens).filter(t => !t.active && t.mint);
+        if (inactiveTokens.length > 0) {
+          const t = shuffle(inactiveTokens)[0];
+          t.active = true; // start polling it
+          
+          try {
+            await feed.updatePrices(); 
+            const newAsset = {
+              sym: t.symbol, addr: t.mint, cat: 'memecoin', kind: 'memecoin', baseSym: null, src: 'discovery',
+              live: true, name: t.name, fresh: true, price: t.priceNative || 0.000005, seed: t.priceNative || 0.000005,
+              vol: 0.05, drift: 0, hist: [t.priceNative || 0.000005], chg: 0, mom: 0, mom1h: 0, vol5m: 0, liq: t.liquidityUsd || 10000,
+              cap: t.marketCap || 5000, tier: 'micro', dev: 0, isMigrated: false
+            };
+            assets.push(newAsset);
+            M[t.symbol] = newAsset;
+            console.log(`\n  [pump] 🆕 NEW LAUNCH INJECTED: ${t.symbol} (${t.name}) at $${newAsset.price.toPrecision(4)} (Cap: $${Math.round(newAsset.cap)})\n`);
+          } catch {}
+        }
+      } else if (!REALMODE) {
+        // Simulated new launch
+        if (Math.random() < 0.15) {
+          const newSym = `NEW_${Math.floor(Math.random() * 900 + 100)}`;
+          const startPx = 0.000005;
+          const newAsset = {
+            sym: newSym, addr: null, cat: 'memecoin', kind: 'memecoin', baseSym: null, src: 'simulation',
+            live: false, name: `Simulated Launch ${newSym}`, fresh: true, price: startPx, seed: startPx,
+            vol: 0.06, drift: 0.01, hist: [startPx], chg: 0, mom: 0, mom1h: 0, vol5m: 0, liq: 10000,
+            cap: 5000, tier: 'micro', dev: 0, isMigrated: false
+          };
+          assets.push(newAsset);
+          M[newSym] = newAsset;
+          console.log(`\n  [sim] 🆕 NEW LAUNCH SIMULATED: ${newSym} at $${startPx}\n`);
+        }
+      }
+    }
     if (usingOllama && CALLS >= MAX_MODEL_CALLS) console.log(`\n  [budget] hit the ${MAX_MODEL_CALLS}-call ceiling — finishing the session now. Raise MAX_MODEL_CALLS in config.txt if you want longer runs.`);
     if (round % 10 === 0 && usingOllama) console.log(`  [budget] ${CALLS}/${MAX_MODEL_CALLS} model calls used`);
     if (round === MIN_BENCH_ROUNDS && SUPA && ANON) {
@@ -1255,7 +1391,7 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
         const a0 = p0s[o.sym], a1 = phs[o.sym];
         if (!(a0 > 0 && a1 > 0)) return null;
         const move = (a1 / a0 - 1) * 100 - mh;
-        return o.k === 'BUY' ? move : -move;
+        return (o.k === 'BUY' || o.k === 'SWAP') ? move : -move;
       };
       const scored = mn.map(optEdge);
       const usable = scored.filter(v => v != null);

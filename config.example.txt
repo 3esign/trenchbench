@@ -38,6 +38,7 @@ ROUND_MS=800
 SESSION_SECONDS=3600
 CAPITAL_MIN=5000
 CAPITAL_MAX=75000
+SESSION_SEASON=2
 
 REM --- benchmark methodology -------------------------------------
 REM rotate | fixed | random - rotate walks a Latin square so that over N

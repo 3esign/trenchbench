@@ -7,12 +7,33 @@
 //     and tracks the token across the Raydium migration boundary.
 // ============================================================
 
+async function fetchWithBackoff(url, options = {}, retries = 3, delay = 1000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(url, options);
+      if (res.status === 429) {
+        const backoff = delay * Math.pow(2, i);
+        console.log(`  [feed] Dexscreener returned 429 (Rate Limit). Retrying in ${backoff}ms...`);
+        await new Promise(r => setTimeout(r, backoff));
+        continue;
+      }
+      return res;
+    } catch (e) {
+      if (i === retries - 1) throw e;
+      const backoff = delay * Math.pow(2, i);
+      await new Promise(r => setTimeout(r, backoff));
+    }
+  }
+  return fetch(url, options);
+}
+
 export class LiveFeed {
   constructor({ log = () => {} } = {}) {
     this.log = log;
     this.tokens = {}; // mint -> { mint, name, symbol, creator, initialBuy, createdAt, priceNative, marketCap, txns5m, priceChange5m, isMigrated, active }
     this.ws = null;
     this.isTracking = false;
+    this.isRosterLocked = false;
   }
 
   close() {
@@ -59,7 +80,7 @@ export class LiveFeed {
               txns5m: 1, // Start with 1 transaction (the creation)
               priceChange5m: 0,
               isMigrated: false,
-              active: true
+              active: !this.isRosterLocked
             };
             this.log(`[feed] Discovery: New token [${data.symbol}] ${data.mint.slice(0,6)}... MarketCap: $${this.tokens[data.mint].marketCap.toFixed(2)}`);
           }
@@ -94,7 +115,7 @@ export class LiveFeed {
       const url = `https://api.dexscreener.com/latest/dex/tokens/${batch.join(',')}`;
       
       try {
-        const res = await fetch(url);
+        const res = await fetchWithBackoff(url);
         if (!res.ok) {
           this.log(`[feed] Dexscreener fetch failed: ${res.status}`);
           continue;
@@ -168,11 +189,7 @@ export class LiveFeed {
   }
 
   stop() {
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
-    }
-    this.isTracking = false;
+    this.close();
   }
 
   // trenchbench drop-in interface compatibility methods
@@ -182,7 +199,7 @@ export class LiveFeed {
     // Seed with latest profiles to ensure we have a robust initial list of memecoins
     try {
       this.log('[feed] Seeding initial active roster from Dexscreener profiles...');
-      const pRes = await fetch('https://api.dexscreener.com/token-profiles/latest/v1');
+      const pRes = await fetchWithBackoff('https://api.dexscreener.com/token-profiles/latest/v1');
       if (pRes.ok) {
         const profiles = await pRes.json();
         const solMints = profiles

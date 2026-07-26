@@ -31,6 +31,7 @@ drop view if exists lb_agents             cascade;
 drop view if exists career_models         cascade;
 drop view if exists career_agents         cascade;
 
+drop table if exists session_commentary cascade;
 drop table if exists agent_memory      cascade;
 drop table if exists decision_outcomes cascade;
 drop table if exists agent_reports     cascade;
@@ -51,6 +52,7 @@ create table sessions (
   pairing text,                        -- 'rotate' | 'fixed' | 'random'
   rounds int,
   counted boolean default false,       -- may this session move the all-time boards?
+  season int default 2,
   started_at timestamptz default now(),
   stopped_at timestamptz
 );
@@ -124,6 +126,15 @@ create table agent_memory (
   created_at timestamptz default now()
 );
 create index ix_mem_agent on agent_memory(agent_id, created_at desc);
+
+-- ---------- session commentary ----------
+create table session_commentary (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid references sessions(id) on delete cascade,
+  model text,
+  commentary text,
+  created_at timestamptz default now()
+);
 
 create index ix_dec_session   on decisions(session_id);
 create index ix_dec_brain     on decisions(brain);
@@ -286,6 +297,7 @@ alter table equity_points     enable row level security;
 alter table agent_reports     enable row level security;
 alter table decision_outcomes enable row level security;
 alter table agent_memory      enable row level security;
+alter table session_commentary enable row level security;
 
 create policy p_read_sessions on sessions          for select using (true);
 create policy p_read_dec      on decisions         for select using (true);
@@ -293,5 +305,6 @@ create policy p_read_eq       on equity_points     for select using (true);
 create policy p_read_rep      on agent_reports     for select using (true);
 create policy p_read_out      on decision_outcomes for select using (true);
 create policy p_read_mem      on agent_memory      for select using (true);
+create policy p_read_comm     on session_commentary for select using (true);
 -- deliberately no INSERT/UPDATE policies: service_role bypasses RLS entirely,
 -- so the local runner still writes fine and nobody else can.

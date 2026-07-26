@@ -1,0 +1,40 @@
+=== OVERALL S1 CORRELATIONS ===
+P&L vs. Trade Count Correlation:  -0.1982
+P&L vs. Hold Ratio Correlation:   0.2381
+
+=== PERSONA CORRELATION METRICS ===
+Persona | Runs | Avg P&L | Avg Trades | Avg Hold % | P&L vs Trades Corr | P&L vs Hold % Corr
+---|---|---|---|---|---|---
+val | 48 | -18.90% | 134.6 | 31.9% | -0.3160 | 0.2807
+mom | 48 | -23.93% | 153.5 | 18.2% | -0.3011 | 0.2799
+degen | 48 | -22.71% | 126.8 | 20.8% | 0.1006 | 0.2146
+contra | 48 | -19.50% | 126.9 | 33.5% | -0.1850 | 0.0320
+mrev | 48 | -25.52% | 147.9 | 19.3% | -0.1963 | 0.3591
+index | 48 | -19.71% | 140.1 | 31.5% | -0.3153 | 0.2144
+event | 48 | -22.58% | 145.2 | 21.3% | -0.1201 | 0.3199
+rand | 15 | 3.02% | 81.7 | 34.3% | -0.1178 | 0.0909
+analyst | 33 | -30.91% | 176.1 | 12.1% | -0.0734 | -0.0161
+
+=== TRADE HOLD DURATION DISTRIBUTION ===
+Hold Duration | Trades | Avg Return
+---|---|---
+1-2 ticks | 11398 | -0.09%
+3-5 ticks | 5110 | 0.76%
+6-10 ticks | 4061 | 0.95%
+11-20 ticks | 3779 | 0.83%
+21-50 ticks | 2987 | 1.02%
+50+ ticks | 1081 | -0.29%
+
+=== TOP 10 TOKENS BY LOSS (PNL SUM) ===
+Symbol | Trades | Avg Return per Trade | Total Summed Return
+---|---|---|---
+E | 152 | -3.94% | -599.52%
+promise | 89 | -6.32% | -562.23%
+Scooby | 86 | -6.03% | -518.34%
+SIRIUS | 131 | -3.38% | -443.00%
+fuck | 205 | -1.19% | -244.66%
+SHELL | 41 | -5.90% | -241.93%
+Homo | 48 | -5.03% | -241.47%
+UNDERCAT | 42 | -5.01% | -210.61%
+H.E.R.B.I.E. | 5 | -37.74% | -188.68%
+Beluga | 206 | -0.86% | -177.60%

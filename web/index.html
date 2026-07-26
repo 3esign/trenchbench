@@ -247,6 +247,11 @@
   </div>
   <div class="status">
     <span class="pill" id="pill"><span class="dot"></span><span id="statustxt">connecting…</span></span>
+    <select id="seasonFilter" class="btn" style="background:var(--card2); border:1px solid var(--border); color:var(--ink); padding:0 12px; border-radius:8px; cursor:pointer; font-weight:600; outline:none; height:30px; font-size:11.5px; vertical-align:middle; text-align:center;" onchange="changeSeason(this.value)">
+      <option value="all">All Seasons</option>
+      <option value="2" selected>Season 2 (V2)</option>
+      <option value="1">Season 1 (V1)</option>
+    </select>
     <button class="btn" id="methodbtn">? Methodology</button>
     <button class="btn" id="roadmapbtn">🗺 Roadmap</button>
     <button class="btn" id="themeToggleBtn" onclick="toggleTheme()">☀️ Light</button>
@@ -538,6 +543,11 @@
 window.onerror = function(msg, url, line, col, error) {
   alert("GLOBAL ERROR:\n" + msg + "\nLine: " + line + "\nCol: " + col + "\nStack: " + (error ? error.stack : ''));
 };
+window.currentSeason = '2';
+function changeSeason(val) {
+  window.currentSeason = val;
+  loadGlobals();
+}
 const $=s=>document.querySelector(s), cssv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const money=x=>'$'+(Math.abs(x)>=1e6?(x/1e6).toFixed(2)+'M':Math.abs(x)>=1e3?(x/1e3).toFixed(1)+'K':(+x).toFixed(0));
 const money2=x=>'$'+(+x).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), pct=x=>(x>=0?'+':'')+(+x).toFixed(2)+'%';
@@ -558,12 +568,19 @@ function modelColor(m){
 function short(m){
   if(!m)return '—';
   let s=String(m).replace(/^baseline:/i,'').replace(/:latest$/i,'').replace(/:\w+$/,'');
-  if(s.toLowerCase().includes('qwen')) return 'Qwen 2.5';
+  if(s.toLowerCase().includes('qwen3.5')) return 'Qwen 3.5';
+  if(s.toLowerCase().includes('qwen2.5')) return 'Qwen 2.5';
+  if(s.toLowerCase().includes('qwen')) return 'Qwen';
   if(s.toLowerCase().includes('llama')) return 'Llama 3.1';
+  if(s.toLowerCase().includes('deepseek-v4')) return 'DeepSeek V4';
   if(s.toLowerCase().includes('deepseek')) return 'DeepSeek R1';
   if(s.toLowerCase().includes('mistral')) return 'Mistral 7B';
+  if(s.toLowerCase().includes('gemma4')) return 'Gemma 4';
   if(s.toLowerCase().includes('gemma')) return 'Gemma 2';
   if(s.toLowerCase().includes('nemotron')) return 'Nemotron';
+  if(s.toLowerCase().includes('minimax')) return 'Minimax M3';
+  if(s.toLowerCase().includes('kimi')) return 'Kimi K2.7';
+  if(s.toLowerCase().includes('glm')) return 'GLM 5.2';
   return s.length>14?s.slice(0,12)+'…':s;
 }
 const AGENTS={
@@ -1116,6 +1133,13 @@ async function render(){
     const id=sess.id;
 
     const decs=await qTry(`decisions?session_id=eq.${id}&select=tick,ts,agent_id,agent_name,model,start_cash,action,sym,qty,price,comment,equity&order=tick.desc&limit=300`) || [];
+    const startDecs=await qTry(`decisions?session_id=eq.${id}&select=agent_id,agent_name,model,start_cash&order=tick.asc&limit=30`) || [];
+    const startCashByA={};
+    for(const d of startDecs){
+      if(d.start_cash!=null && startCashByA[d.agent_id]==null){
+        startCashByA[d.agent_id]={start_cash:+d.start_cash, agent_name:d.agent_name, model:d.model};
+      }
+    }
     const lastTs=decs.reduce((mx,d)=>{const t=d.ts?Date.parse(d.ts):0;return t>mx?t:mx},0);
     const quietFor=lastTs?Math.round((Date.now()-lastTs)/1000):null;
     const stale=S.pendingLive && quietFor!=null && quietFor>90;
@@ -1157,13 +1181,13 @@ async function render(){
     const seen={}; for(const d of decs) if(!seen[d.agent_id]) seen[d.agent_id]=d;
     for(const k in byA) if(!seen[k]) seen[k]={agent_id:k,agent_name:aname(k),model:'',start_cash:null,equity:null};
     const reps=Object.values(seen).map(d=>{
-      const f=finBy[d.agent_id], curve=byA[d.agent_id];
-      const start=+((f&&f.start_cash)||d.start_cash)||null;
+      const f=finBy[d.agent_id], curve=byA[d.agent_id], startInfo=startCashByA[d.agent_id]||{};
+      const start = +((f && f.start_cash) || startInfo.start_cash || d.start_cash) || null;
       const end = f&&f.end_value!=null ? +f.end_value
                 : curve&&curve.length ? curve[curve.length-1].v
                 : (d.equity!=null?+d.equity:null);
-      return {agent_id:d.agent_id, agent_name:(f&&f.agent_name)||d.agent_name||aname(d.agent_id),
-              model:(f&&f.model)||d.model, start_cash:start, end_value:end,
+      return {agent_id:d.agent_id, agent_name:(f&&f.agent_name)||d.agent_name||startInfo.agent_name||aname(d.agent_id),
+              model:(f&&f.model)||d.model||startInfo.model, start_cash:start, end_value:end,
               // a missing start_cash used to coerce to 1 and print +2,499,900%
               ret: (start>0&&end!=null) ? (f&&f.ret!=null?+f.ret:(end/start-1)*100) : null};
     }).filter(r=>r.end_value!=null);
@@ -1234,7 +1258,13 @@ async function render(){
 
     // ---- standing under the chart ----
     const isOut=r=>r.start_cash>0 && r.end_value < r.start_cash*.02;
-    const rr=[...reps].sort((a,b)=>(isOut(a)-isOut(b))||(b.ret-a.ret)||String(a.agent_id).localeCompare(String(b.agent_id)));
+    const rr=[...reps].sort((a,b)=>{
+      const aOut = isOut(a), bOut = isOut(b);
+      if (aOut !== bOut) return aOut - bOut; // dead at bottom
+      const aRet = a.ret == null ? -999 : a.ret;
+      const bRet = b.ret == null ? -999 : b.ret;
+      return (bRet - aRet) || String(a.agent_id).localeCompare(String(b.agent_id));
+    });
     const decided=!live&&!stale, canCrown=decided&&sess.counted!==false;
     
     // Tag rule: strictly only index 0 (first place) gets "Win" or "Leading"; all subsequent places get empty tag
@@ -1417,14 +1447,26 @@ async function loadGlobals(){
     // 500 rows, so the two windows covered different sets of sessions and the
     // boards ranked on their arbitrary intersection while the note confidently
     // stated an exact session count.
-    const srows=await qTry('sessions?select=id,counted,rounds,status,started_at&order=started_at.desc&limit=500','sessions?select=id,started_at&order=started_at.desc&limit=500')||[];
-    const countedIds=new Set(srows.filter(s=>s.counted).map(s=>s.id));
-    const preMigration=!srows.some(s=>'counted' in s);
-    const validSessIds=new Set(srows.filter(s=>s.counted!==false||s.status==='running'||(s.rounds!=null&&s.rounds<MIN_ROUNDS)).map(s=>s.id));
+    const srows=await qTry('sessions?select=id,counted,rounds,status,started_at,season&order=started_at.desc&limit=500','sessions?select=id,started_at&order=started_at.desc&limit=500')||[];
+    
+    // Season Filter Logic
+    const activeSeason = window.currentSeason || '2';
+    let filteredSrows = srows;
+    if (activeSeason !== 'all') {
+      const targetSeason = parseInt(activeSeason, 10);
+      filteredSrows = srows.filter(s => {
+        const sSeason = s.season == null ? 1 : parseInt(s.season, 10);
+        return sSeason === targetSeason;
+      });
+    }
+
+    const countedIds=new Set(filteredSrows.filter(s=>s.counted).map(s=>s.id));
+    const preMigration=!filteredSrows.some(s=>'counted' in s);
+    const validSessIds=new Set(filteredSrows.filter(s=>s.counted!==false||s.status==='running'||(s.rounds!=null&&s.rounds<MIN_ROUNDS)).map(s=>s.id));
     // A running session is not "too short to count" — it is unfinished. And a
     // session can be excluded for an untrustworthy price rather than for being
     // short, which the note used to report as the same thing.
-    const done=srows.filter(s=>s.status!=='running');
+    const done=filteredSrows.filter(s=>s.status!=='running');
     const nShort=done.filter(s=>s.counted===false&&(s.rounds!=null&&s.rounds<MIN_ROUNDS)).length;
     const nBad  =done.filter(s=>s.counted===false&&!(s.rounds!=null&&s.rounds<MIN_ROUNDS)).length;
 
@@ -1451,7 +1493,7 @@ async function loadGlobals(){
     $('#benchsub').innerHTML='each model averaged over every strategy it has played · <span class="hint" data-tip="career">career</span> = $100k compounded';
 
     // career = a notional $100k compounded through the counted sessions, in order
-    const ord={}; srows.filter(x=>x.counted!==false).sort((a,b)=>new Date(a.started_at||0)-new Date(b.started_at||0)).forEach((x,i)=>ord[x.id]=i);
+    const ord={}; filteredSrows.filter(x=>x.counted!==false).sort((a,b)=>new Date(a.started_at||0)-new Date(b.started_at||0)).forEach((x,i)=>ord[x.id]=i);
     const CAREER0=100000;
     // ONE gain factor per session. When there are fewer models than personas a
     // model drives two or three agents in the same session and used to be
