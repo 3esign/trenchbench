@@ -244,6 +244,7 @@
     <div class="stat" data-tip="models"><div class="n" id="stModels">—</div><div class="k">models</div></div>
     <div class="stat" data-tip="livetokens"><div class="n" id="stLive">—</div><div class="k">live tokens</div></div>
   </div>
+  <div class="ca-bar" style="margin: 0 auto; font-family:var(--font-mono); font-size:11px; color:var(--muted); border:1px dashed var(--border); padding:4px 12px; border-radius:6px; cursor:pointer; white-space:nowrap;" onclick="navigator.clipboard.writeText('EgqHqy1EyAqEifHEkQY214rWQVjnFjp7iAYwfZtDpump'); this.style.color='var(--brand)'; this.style.borderColor='var(--brand)'; setTimeout(()=>{this.style.color='var(--muted)'; this.style.borderColor='var(--border)'},1000);" title="Click to copy Contract Address">CA: EgqHqy1EyAqEifHEkQY214rWQVjnFjp7iAYwfZtDpump</div>
   <div class="status">
     <span class="pill" id="pill"><span class="dot"></span><span id="statustxt">connecting…</span></span>
     <button class="btn" id="methodbtn" title="Methodology">?</button>
@@ -1489,17 +1490,19 @@ async function loadGlobals(){
       });
     }
 
-    const countedIds=new Set(filteredSrows.filter(s=>s.counted||s.counted==null||s.status==='running'||s.status==='stopped').map(s=>s.id));
+    const countedIds=new Set(filteredSrows.filter(s=>s.counted).map(s=>s.id));
     const preMigration=!filteredSrows.some(s=>'counted' in s);
     const validSessIds=new Set(filteredSrows.filter(s=>s.counted!==false||s.status==='running'||(s.rounds!=null&&s.rounds<MIN_ROUNDS)).map(s=>s.id));
+    // A running session is not "too short to count" — it is unfinished. And a
+    // session can be excluded for an untrustworthy price rather than for being
+    // short, which the note used to report as the same thing.
     const done=filteredSrows.filter(s=>s.status!=='running');
     const nShort=done.filter(s=>s.counted===false&&(s.rounds!=null&&s.rounds<MIN_ROUNDS)).length;
     const nBad  =done.filter(s=>s.counted===false&&!(s.rounds!=null&&s.rounds<MIN_ROUNDS)).length;
 
     const reps0=await qTry('agent_reports?select=agent_id,agent_name,model,ret,hit_rate,session_id,raydium_hits&order=created_at.desc&limit=4000',
                            'agent_reports?select=agent_id,agent_name,model,ret,session_id,raydium_hits&order=created_at.desc&limit=4000') || [];
-    let all0=preMigration?reps0:reps0.filter(r=>countedIds.has(r.session_id));
-    if(!all0.length && reps0.length) all0=reps0;
+    const all0=preMigration?reps0:reps0.filter(r=>countedIds.has(r.session_id));
     // A BASELINE IS NOT A MODEL. The three mechanical agents (random pick,
     // never trade, equal-weight-and-hold) ride along in every session on the
     // same capital and the same menu, calling no model. They are what every
