@@ -888,7 +888,7 @@ function renderRadarChart() {
     const ly = cy + (r + 14) * Math.sin(angle);
     const tipKey = 'radar' + axes[i].replace(/\s+/g, '');
     g += `<line x1="${cx}" y1="${cy}" x2="${ax}" y2="${ay}" stroke="var(--grid)" opacity="0.5"/>`;
-    g += `<g class="hint" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${lx - 30}" y="${ly - 9}" width="60" height="18" fill="transparent"/><text x="${lx}" y="${ly+3}" text-anchor="middle" fill="var(--ink2)" font-size="9" font-weight="600">${axes[i]}</text></g>`;
+    g += `<g class="hint" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${lx - 30}" y="${ly - 9}" width="60" height="18" fill="transparent" pointer-events="all"/><text x="${lx}" y="${ly+3}" text-anchor="middle" fill="var(--ink2)" font-size="9" font-weight="600">${axes[i]}</text></g>`;
   }
 
   const personas = [
@@ -916,7 +916,7 @@ function renderRadarChart() {
   personas.slice(0, 4).forEach((p, idx) => {
     const key = p.name.split(' ')[1];
     const tipKey = 'radar' + key;
-    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 77}" y="-8" width="74" height="16" fill="transparent"/><circle cx="${idx * 77 + 5}" cy="0" r="3.5" fill="${p.color}"/><text x="${idx * 77 + 12}" y="3" fill="var(--ink2)" font-size="8" font-weight="600">${p.name}</text></g>`;
+    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 77}" y="-8" width="74" height="16" fill="transparent" pointer-events="all"/><circle cx="${idx * 77 + 5}" cy="0" r="3.5" fill="${p.color}"/><text x="${idx * 77 + 12}" y="3" fill="var(--ink2)" font-size="8" font-weight="600">${p.name}</text></g>`;
   });
   g += `</g>`;
 
@@ -924,7 +924,7 @@ function renderRadarChart() {
   personas.slice(4).forEach((p, idx) => {
     const key = p.name.split(' ')[1];
     const tipKey = 'radar' + key;
-    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 77}" y="-8" width="74" height="16" fill="transparent"/><circle cx="${idx * 77 + 5}" cy="0" r="3.5" fill="${p.color}"/><text x="${idx * 77 + 12}" y="3" fill="var(--ink2)" font-size="8" font-weight="600">${p.name}</text></g>`;
+    g += `<g class="hint radar-leg" data-persona="${key}" data-tip="${tipKey}" style="cursor:pointer;"><rect x="${idx * 77}" y="-8" width="74" height="16" fill="transparent" pointer-events="all"/><circle cx="${idx * 77 + 5}" cy="0" r="3.5" fill="${p.color}"/><text x="${idx * 77 + 12}" y="3" fill="var(--ink2)" font-size="8" font-weight="600">${p.name}</text></g>`;
   });
   g += `</g>`;
 
