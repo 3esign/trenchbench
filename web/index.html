@@ -323,7 +323,7 @@
       <h3 id="standingtitle">Standing right now<span class="scope one">this session</span></h3>
       <div class="sub">highest return leads · below 2% of its start an agent is out · hover a name</div>
       <div class="fill fill-row1">
-        <table class="lb"><thead><tr><th class="rank">#</th><th>Agent</th><th class="r"><span class="hint" data-tip="moneyleft">Money</span></th><th class="r"><span class="hint" data-tip="pnl">P&amp;L</span></th><th class="r"><span class="hint" data-tip="hit">Hit</span></th></tr></thead><tbody id="lbbody"></tbody></table>
+        <table class="lb"><thead><tr><th class="rank">#</th><th>Agent</th><th class="r">Money</th><th class="r">P&amp;L</th><th class="r">Hit</th></tr></thead><tbody id="lbbody"></tbody></table>
       </div>
       <!-- small model color legend in middle panel -->
       <div id="mLegendInline" style="display:flex; flex-wrap:wrap; gap:6px 12px; font-size:10px; color:var(--ink2); margin-top:8px; padding-top:6px; border-top:1px solid var(--border);"></div>
@@ -342,7 +342,7 @@
   <div class="row3">
     <div class="card">
       <h3><span class="star">★</span> Top models<span class="scope all hint" data-tip="counted">counted sessions</span></h3>
-      <div class="sub" id="benchsub">each model averaged over every strategy it has played · <span class="hint" data-tip="career">career</span> = $100k compounded</div>
+      <div class="sub" id="benchsub">each model averaged over every strategy it has played · career = net absolute P&L</div>
       <div class="segs sm" id="btabs">
         <button class="seg active" data-b="models" title="how each model does, across all the personas it has played">By model</button>
         <button class="seg" data-b="pairs" title="which model suits which strategy">Model × agent</button>
@@ -357,8 +357,8 @@
 
     <div class="card">
       <h3><span class="star">★</span> Top agents<span class="scope all hint" data-tip="counted">counted sessions</span></h3>
-      <div class="sub">each strategy averaged over every model that has run it · <span class="hint" data-tip="career">career</span> = $100k compounded</div>
-      <div class="fill"><table class="lb"><thead><tr><th class="rank">#</th><th>Agent · strategy</th><th class="r"><span class="hint" data-tip="runs">Runs</span></th><th class="r"><span class="hint" data-tip="career">Career</span></th><th class="r"><span class="hint" data-tip="avgpnl">Avg P&amp;L</span></th><th class="r"><span class="hint" data-tip="hit">Hit</span></th><th class="r"><span class="hint" data-tip="grads">Grads</span></th></tr></thead><tbody id="gAgents"></tbody></table></div>
+      <div class="sub">each strategy averaged over every model that has run it · career = net absolute P&L</div>
+      <div class="fill"><table class="lb"><thead><tr><th class="rank">#</th><th>Agent · strategy</th><th class="r">Runs</th><th class="r">Career</th><th class="r">Avg P&amp;L</th><th class="r">Hit</th><th class="r">Grads</th></tr></thead><tbody id="gAgents"></tbody></table></div>
       <div class="foot-note">The bar under each agent shows <b>which models have run that strategy</b>. Hover a name for what the strategy actually does.</div>
     </div>
 
@@ -372,7 +372,7 @@
       </div>
       <div class="fill" style="position:relative; flex:1 1 auto; min-height:0; overflow:hidden;">
         <div style="position:absolute; inset:0; overflow-y:auto; padding-right:4px;">
-          <table class="lb"><thead><tr><th class="rank">#</th><th>Token</th><th class="r"><span class="hint" data-tip="calls">Calls</span></th><th class="r" style="cursor:pointer;" onclick="toggleTokenSortDirection()"><span class="hint" data-tip="tokenpnl" id="gtokcolh" style="color:var(--brand);text-decoration:underline dotted;">Realised P&amp;L ⇅</span></th></tr></thead><tbody id="gTokens"></tbody></table>
+          <table class="lb"><thead><tr><th class="rank">#</th><th>Token</th><th class="r">Calls</th><th class="r" style="cursor:pointer;" onclick="toggleTokenSortDirection()"><span id="gtokcolh" style="color:var(--brand);">Realised P&amp;L ⇅</span></th></tr></thead><tbody id="gTokens"></tbody></table>
         </div>
       </div>
       <div class="foot-note" style="margin-top:auto;">Click the header column to toggle sort order. Scroll to view more.</div>
@@ -545,7 +545,7 @@ function changeSeason(val) {
 }
 const $=s=>document.querySelector(s), cssv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const money=x=>'$'+(Math.abs(x)>=1e6?(x/1e6).toFixed(2)+'M':Math.abs(x)>=1e3?(x/1e3).toFixed(1)+'K':(+x).toFixed(0));
-const money2=x=>'$'+(+x).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), pct=x=>(x>=0?'+':'')+(+x).toFixed(2)+'%';
+const money2=x=>'$'+(+x).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), pct=x=>(x>0?'+':'')+(+x).toFixed(2)+'%';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 
 const MODEL_COLORS={
@@ -594,12 +594,13 @@ async function q(p){const r=await fetch(`${SUPA}/rest/v1/${p}`,{headers:{apikey:
 async function qTry(a,b){ try{ return await q(a); }catch(e){ if(!b)return null; try{ return await q(b); }catch(e2){ return null; } } }
 async function getTableCount(table) {
   try {
-    const r = await fetch(`${SUPA}/rest/v1/${table}?select=id&limit=1`, {
+    const r = await fetch(`${SUPA}/rest/v1/${table}${table.includes('?') ? '&' : '?'}select=id&limit=1`, {
       headers: {
         apikey: ANON,
         Authorization: `Bearer ${ANON}`,
         Prefer: 'count=exact'
-      }
+      },
+      cache: 'no-store'
     });
     if (!r.ok) return null;
     const cr = r.headers.get('Content-Range');
@@ -643,6 +644,10 @@ const TIPS={
   decisions:'<b>Decisions</b><br>The total number of Buy, Sell, and Hold calls made by all AI trading agents across all active and completed sessions.',
   models:'<b>Models</b><br>The total number of unique LLM reasoning engines (e.g. Claude 3.5 Sonnet, GPT-4o, Llama 3) that have run sessions in the Arena.',
   livetokens:'<b>Live Tokens</b><br>The number of active memecoins currently being tracked and traded in this session.',
+  hlmodel:'<b>Best Model</b><br>The AI reasoning engine that has generated the highest cumulative realized P&L across all historical sessions.',
+  hlagent:'<b>Best Strategy</b><br>The specific trading persona (e.g. Degen Dan, Momentum Mia) that has dominated the trenches and generated the highest overall realized P&L.',
+  hltoken:'<b>Top Token</b><br>The specific Solana memecoin that has generated the most absolute profit for the swarm.',
+  hlleader:'<b>Session Leader</b><br>The agent currently holding the highest equity in the actively running session.',
   hit:'<b>Hit rate</b><br>Share of this agent\'s <i>trades</i> that beat the market over the next few rounds. Holds are not counted — they outnumber trades about ten to one and would drown the signal.<br><br>An agent can have a high hit rate and still lose money: right often, wrong when it mattered. That gap is the interesting part.',
   pnl:'<b>P&L</b><br>Percentage change from the money the agent started with. Every agent starts on the same capital, so these are directly comparable.',
   avgpnl:'<b>Average P&L</b><br>Mean return across every counted session. Read it next to <b>Runs</b> — an average over one session is not a ranking.',
@@ -657,7 +662,7 @@ const TIPS={
   tokenpnl:'<b>Realised P&L</b><br>Money actually locked in on round-trips that closed on this token, priced FIFO. Open positions are not counted — this is settled money only.',
   calls:'<b>Calls</b><br>How many scored decisions involved this token.',
   market:'<b>Session move</b><br>Each token shaded against its own price when the session opened. Shading depth scales to how much this session moved, so the strip reads the same on a quiet day or a wild one.',
-  career:'<b>Career balance</b><br>A notional $100,000 compounded through every counted session this model or strategy has played.<br><br>Each session still trades from equal capital, so returns stay comparable — the career line is those returns multiplied together. Nobody ever gets more buying power than anyone else.',
+  career:'<b>Career balance</b><br>The sum of the absolute $ P&L across every counted session this model or strategy has played.<br><br>Since agents can go into debt across multiple sessions, a negative number simply means they have lost more actual dollars than they have won.',
   brain:'<b>Which brain answered</b><br>If a cloud model does not reply in time the rule brain covers that round so the session keeps moving. Those calls are recorded separately and are <i>not</i> counted toward that model hit rate.',
   race:'<b>The race</b><br>Each line is one agent\'s total worth over the session. Faded lines are agents that were eliminated.',
   grads:'<b>Raydium Migrations</b><br>How many of this agent\'s picks successfully migrated to Raydium during the session. Graduation multiplies their score on the board.',
@@ -793,11 +798,16 @@ async function loadAndRenderCareerChart() {
   for (const sessId of sessionSeq) {
     const sNum = sessMap.get(sessId);
     const sRows = validRows.filter(r => r.session_id === sessId);
+    const byModel = {};
     for (const r of sRows) {
-      const m = r.model;
+      if (r.model) {
+        (byModel[r.model] = byModel[r.model] || []).push(+r.ret || 0);
+      }
+    }
+    for (const [m, rets] of Object.entries(byModel)) {
+      const avgRet = rets.reduce((a, b) => a + b, 0) / rets.length;
       if (!modelBankrolls[m]) modelBankrolls[m] = 100000;
-      const ret = +r.ret || 0;
-      modelBankrolls[m] = modelBankrolls[m] * (1 + ret / 100);
+      modelBankrolls[m] = modelBankrolls[m] * (1 + avgRet / 100);
       if (!modelSeriesMap[m]) modelSeriesMap[m] = [{ s: 0, v: 100000 }];
       modelSeriesMap[m].push({ s: sNum, v: modelBankrolls[m] });
     }
@@ -969,7 +979,7 @@ function raceChart(series){
   // Normalize series to percentage return relative to starting capital
   const normSeries = series.map(s => {
     const filteredPts = s.pts.filter(p => p.t >= minCutoff);
-    const base = filteredPts[0] ? filteredPts[0].v : (s.start > 0 ? s.start : 1);
+    const base = (_chartWindow === 'all' && s.start > 0) ? s.start : (filteredPts[0] ? filteredPts[0].v : (s.start > 0 ? s.start : 1));
     return {
       id: s.id,
       name: s.name,
@@ -1129,7 +1139,7 @@ function rotateJumbotron() {
   }, 300);
 }
 
-setInterval(rotateJumbotron, 7000);
+setInterval(rotateJumbotron, 15000);
 setInterval(loadRealCommentary, 30000);
 
 let _bt=null, _btTime=0;
@@ -1163,6 +1173,8 @@ async function render(){
     const id=sess.id;
 
     const decs=await qTry(`decisions?session_id=eq.${id}&select=tick,ts,agent_id,agent_name,model,start_cash,action,sym,qty,price,comment,equity&order=tick.desc&limit=300`) || [];
+    const trades=await qTry(`decisions?session_id=eq.${id}&action=neq.HOLD&select=tick,agent_id,action,sym,qty,price&order=tick.desc&limit=5000`) || [];
+    window.activeSessionTrades = trades;
     const startDecs=await qTry(`decisions?session_id=eq.${id}&select=agent_id,agent_name,model,start_cash&order=tick.asc&limit=30`) || [];
     const startCashByA={};
     for(const d of startDecs){
@@ -1235,6 +1247,7 @@ async function render(){
       const open=(+t.open)||(firstPx[t.sym]||t.seed||px)||null;
       return {sym:t.sym,live:px,chg:q?null:((open>0&&px>0)?((px/open-1)*100):null),addr:t.addr||info.addr,fresh:!!t.fresh,isMigrated:!!t.isMigrated,tier:t.tier||'growth',q};
     }).sort((a,b)=>(a.q-b.q)||((b.chg==null?-1e9:b.chg)-(a.chg==null?-1e9:a.chg)));
+    window.activeSessionTiles = tiles;
     const mags=tiles.filter(t=>t.chg!=null).map(t=>Math.abs(t.chg)).sort((a,b)=>a-b);
     const ref=Math.max(0.4,(mags[Math.floor(mags.length*.8)]||1));
     const heatEl = $('#heat');
@@ -1246,7 +1259,7 @@ async function render(){
         if(t.chg!=null){ const k=Math.sqrt(Math.min(1,Math.abs(t.chg)/ref)),a=(.05+k*.27).toFixed(3),rgb=t.chg>=0?'0,168,31':'224,54,44';
           st=`background:rgba(${rgb},${a});border-color:rgba(${rgb},${(.18+k*.5).toFixed(2)});`; }
         const chgTxt=t.q?'<span class="dim" data-tip="This token\'s price could not be trusted this session, so it was delisted mid-run: trading frozen, any position held at what the agent paid, and every decision on it excluded from scoring.">held</span>':(t.chg==null?'—':pct(t.chg));
-        return `<a class="htile${t.q?' hqt':''}" style="${st}" href="${url}" target="_blank" rel="noopener"><div class="hs">${t.sym}${t.isMigrated?'<span class="fresh" style="color:var(--brand)" data-tip="Raydium Graduate">🎓</span>':''}${t.fresh?'<span class="fresh" data-tip="Fresh Listing">✦</span>':''}${t.q?'<span class="fresh" style="color:var(--muted)">⚑</span>':''}</div><div class="hp tnum">${pxt}</div><div class="hc tnum ${t.q?'':t.chg==null?'':t.chg>=0?'up':'down'}">${chgTxt}</div></a>`;
+        return `<a class="htile${t.q?' hqt':''}" style="${st}" href="${url}" target="_blank" rel="noopener"><div class="hs">${t.sym}${t.isMigrated?'<span class="fresh" style="color:var(--brand)" data-tip="Raydium Graduate">🎓</span>':''}${t.fresh?'<span class="fresh" data-tip="Fresh Listing">✦</span>':''}${t.q?'<span class="fresh" style="color:var(--muted)">⚑</span>':''}</div><div class="hp tnum">${pxt}</div><div class="hc tnum ${t.q?'':t.chg==null?'':t.chg>0?'up':t.chg<0?'down':''}">${chgTxt}</div></a>`;
       }).join('')||'<div class="empty">—</div>';
     }
     
@@ -1300,7 +1313,7 @@ async function render(){
     // Tag rule: strictly only index 0 (first place) gets "Win" or "Leading"; all subsequent places get empty tag
     $('#lbbody').innerHTML=rr.map((r,i)=>{const out=isOut(r),first=i===0&&!out,h=hitBy[r.agent_id];
       const tag=!first?'':canCrown?'<span class="tagw win">Win</span>':(live?'<span class="tagw win">Leading</span>':'');
-      return`<tr class="${out?'dead':''}" style="border-bottom:0"><td class="rank tnum">${i+1}</td><td><span class="adot" style="background:${acolor(r.agent_id)}"></span><span class="aname">${r.agent_name}</span><span class="mdot hint" data-tip="${r.model||'?'}" style="background:${modelColor(r.model)};margin-left:6px;width:7px;height:7px;border-radius:1px;"></span>${tag}${out?'<span class="tagw out" style="margin-left:6px">Out</span>':''}</td><td class="r tnum">${money2(r.end_value)}</td><td class="r tnum ${r.ret==null?'':r.ret>=0?'up':'down'}">${r.ret==null?'<span class="dim">—</span>':pct(r.ret)}</td><td class="r tnum" style="color:var(--ink2)">${h==null?'<span class="dim">—</span>':(+h).toFixed(0)+'%'}</td></tr>`}).join('')
+      return`<tr class="${out?'dead':''}" style="border-bottom:0"><td class="rank tnum">${i+1}</td><td><span class="adot" style="background:${acolor(r.agent_id)}"></span><span class="aname">${r.agent_name}</span><span class="mdot" style="background:${modelColor(r.model)};margin-left:6px;width:7px;height:7px;border-radius:1px;"></span>${tag}${out?'<span class="tagw out" style="margin-left:6px">Out</span>':''}</td><td class="r tnum">${money2(r.end_value)}</td><td class="r tnum ${r.ret==null?'':r.ret>0?'up':r.ret<0?'down':''}">${r.ret==null?'<span class="dim">—</span>':pct(r.ret)}</td><td class="r tnum" style="color:var(--ink2)">${h==null?'<span class="dim">—</span>':(+h).toFixed(0)+'%'}</td></tr>`}).join('')
       ||'<tr><td class="empty" colspan="5">results appear when the session has data</td></tr>';
 
     // Small inline model legend in middle panel (Standing card)
@@ -1313,7 +1326,7 @@ async function render(){
     const setHL = (id, html) => { const e = $('#'+id); if(e) e.innerHTML = html; };
     if(rr.length && rr[0]){
       const l = rr[0];
-      setHL('hlLeader', `<span class="aname" style="color:var(--brand);font-weight:600">${l.agent_name}</span> <span class="${l.ret>=0?'up':'down'}">(${pct(l.ret)})</span>`);
+      setHL('hlLeader', `<span class="dim">Session Leader:</span> <span class="aname" style="color:var(--brand);font-weight:600">${l.agent_name}</span> <span class="${l.ret>0?'up':l.ret<0?'down':''}">${l.ret>0?'+':''}${pct(l.ret)}</span>`);
     }
 
     // ---- race: the SAME byA the standing was built from, keyed by tick ----
@@ -1396,27 +1409,33 @@ document.querySelectorAll('#btabs .seg').forEach(b=>b.onclick=()=>{
   B.view=b.dataset.b; document.querySelectorAll('#btabs .seg').forEach(x=>x.classList.toggle('active',x===b)); paintBench();
 });
 function paintBench(){
-  const H_pairs = ['#','Model × agent','<span class="hint" data-tip="runs">Runs</span>','<span class="hint" data-tip="avgpnl">Avg P&amp;L</span>','<span class="hint" data-tip="pairing">Pairing</span>'];
-  const H_models = ['#','Model','<span class="hint" data-tip="runs">Runs</span>','<span class="hint" data-tip="career">Career</span>','<span class="hint" data-tip="avgpnl">Avg P&amp;L</span>','<span class="hint" data-tip="bayesian">Bayesian</span>','<span class="hint" data-tip="sample">Sample</span>'];
+  const H_pairs = ['#','Model × agent','Runs','Avg P&amp;L','Pairing'];
+  const H_models = ['#','Model','Runs','Career','Avg P&amp;L','Bayesian','Sample'];
   const H = B.view==='pairs' ? H_pairs : H_models;
   $('#bhead').innerHTML='<tr>'+H.map((h,i)=>`<th class="${i===0?'rank':''}${i>1?' r':''}">${h}</th>`).join('')+'</tr>';
   const rows=B[B.view]||[];
   if(!rows.length){ $('#gModels').innerHTML=`<tr><td class="empty" colspan="${H.length}">no counted sessions yet</td></tr>`; $('#benchnote').innerHTML=B.note; return; }
   const bayesK = 5, globalMean = -3.0;
   $('#gModels').innerHTML=rows.slice(0,8).map((r,i)=>{
-    const p=`<td class="r tnum ${r.ret>=0?'up':'down'}">${pct(r.ret)}</td>`;
-    if(B.view==='pairs') return `<tr><td class="rank tnum">${i+1}</td><td><span class="adot" style="background:${acolor(r.agent_id)}"></span><span class="aname hint" data-tip="${adesc(r.agent_id).replace(/"/g,'&quot;')}">${r.short}</span><div class="dim" style="font-size:10px">${r.m}</div></td><td class="r tnum dim">${r.n}</td>${p}<td class="r"><span class="eff ${r.eff>=0?'pos':'neg'}">${r.eff>=0?'+':''}${r.eff.toFixed(1)}</span></td></tr>`;
+    const p=`<td class="r tnum ${r.ret>0?'up':r.ret<0?'down':''}">${pct(r.ret)}</td>`;
+    if(B.view==='pairs') return `<tr><td class="rank tnum">${i+1}</td><td><span class="adot" style="background:${acolor(r.agent_id)}"></span><span class="aname">${r.short}</span><div class="dim" style="font-size:10px">${r.m}</div></td><td class="r tnum dim">${r.n}</td>${p}<td class="r"><span class="eff ${r.eff>=0?'pos':'neg'}">${r.eff>=0?'+':''}${r.eff.toFixed(1)}</span></td></tr>`;
     
     // Bayesian Rating & Sample Confidence Badge
     const bRet = (r.n > 0) ? ((r.n * r.ret + bayesK * globalMean) / (r.n + bayesK)) : globalMean;
     const badgeTxt = r.n >= 10 ? 'VERIFIED' : r.n >= 5 ? 'PROVISIONAL' : 'UNSETTLED';
     const badgeCol = r.n >= 10 ? '#14F195' : r.n >= 5 ? '#eda100' : '#eb6834';
     
-    return `<tr${r.n<2?' style="opacity:.85"':''}><td class="rank tnum">${i+1}</td><td><span class="mdot" style="background:${modelColor(r.m)}"></span><span class="aname">${short(r.m)}</span><div class="dim" style="font-size:10px;margin-left:14px">${r.mods||0} strateg${r.mods===1?'y':'ies'} played</div></td><td class="r tnum dim">${r.n}</td><td class="r tnum ${r.career>=1e5?'up':'down'}" style="font-weight:600">${money(r.career)}</td>${p}<td class="r tnum ${bRet>=0?'up':'down'}" style="font-weight:600">${pct(bRet)}</td><td class="r tnum"><span style="font-size:9.5px;padding:2px 5px;border-radius:3px;background:rgba(255,255,255,0.05);color:${badgeCol};border:1px solid ${badgeCol}33">${badgeTxt}</span></td></tr>`;
+    return `<tr${r.n<2?' style="opacity:.85"':''}>`
+      + `<td class="rank tnum">${i+1}</td>`
+      + `<td><span class="mdot" style="background:${modelColor(r.m)}"></span><span class="aname">${short(r.m)}</span><div class="dim" style="font-size:10px;margin-left:14px">${r.mods||0} strateg${r.mods===1?'y':'ies'} played</div></td>`
+      + `<td class="r tnum dim">${r.n}</td>`
+      + `<td class="r tnum ${r.career>0?'up':r.career<0?'down':''}" style="font-weight:600">${r.career<0?'-':''}${money(Math.abs(r.career))}</td>`
+      + `${p}<td class="r tnum ${bRet>0?'up':bRet<0?'down':''}" style="font-weight:600">${pct(bRet)}</td>`
+      + `<td class="r tnum"><span style="font-size:9.5px;padding:2px 5px;border-radius:3px;background:rgba(255,255,255,0.05);color:${badgeCol};border:1px solid ${badgeCol}33">${badgeTxt}</span></td></tr>`;
   }).join('')
   // the reference lines, always last, always visually separate
   + ((B.view==='models'&&B.baselines.length) ? B.baselines.map(r=>
-      `<tr class="blrow"><td class="rank tnum dim">·</td><td><span class="aname">${r.m.replace('baseline:','')}</span><span class="bltag" data-tip="A mechanical agent that calls no model. It trades the same menu with the same capital. Every model number should be read against these.">baseline</span><div class="dim" style="font-size:10px">${r.m==='baseline:dice'?'picks at random':r.m==='baseline:vault'?'never trades':'equal weight, then holds'}</div></td><td class="r tnum dim">${r.n}</td><td class="r tnum dim">${money(r.career)}</td><td class="r tnum ${r.ret>=0?'up':'down'}">${pct(r.ret)}</td><td class="r tnum dim">—</td><td class="r tnum dim">—</td></tr>`
+      `<tr class="blrow"><td class="rank tnum dim">·</td><td><span class="aname">${r.m.replace('baseline:','')}</span><span class="bltag">baseline</span><div class="dim" style="font-size:10px">${r.m==='baseline:dice'?'picks at random':r.m==='baseline:vault'?'never trades':'equal weight, then holds'}</div></td><td class="r tnum dim">${r.n}</td><td class="r tnum ${r.career>0?'up':r.career<0?'down':''}">${r.career<0?'-':''}${money(Math.abs(r.career))}</td><td class="r tnum ${r.ret>0?'up':r.ret<0?'down':''}">${pct(r.ret)}</td><td class="r tnum dim">—</td><td class="r tnum dim">—</td></tr>`
     ).join('') : '');
   $('#benchnote').innerHTML=B.note+(B.view==='pairs'
     ? ' <br><b>Pairing</b> = how far this combination beats that model\'s own average. Positive means the strategy suits the brain.'
@@ -1500,8 +1519,8 @@ async function loadGlobals(){
     const nShort=done.filter(s=>s.counted===false&&(s.rounds!=null&&s.rounds<MIN_ROUNDS)).length;
     const nBad  =done.filter(s=>s.counted===false&&!(s.rounds!=null&&s.rounds<MIN_ROUNDS)).length;
 
-    const reps0=await qTry('agent_reports?select=agent_id,agent_name,model,ret,hit_rate,session_id,raydium_hits&order=created_at.desc&limit=4000',
-                           'agent_reports?select=agent_id,agent_name,model,ret,session_id,raydium_hits&order=created_at.desc&limit=4000') || [];
+    const reps0=await qTry('agent_reports?select=agent_id,agent_name,model,ret,hit_rate,session_id,raydium_hits,start_cash,end_value&order=created_at.desc&limit=4000',
+                           'agent_reports?select=agent_id,agent_name,model,ret,session_id,raydium_hits,start_cash,end_value&order=created_at.desc&limit=4000') || [];
     const all0=preMigration?reps0:reps0.filter(r=>countedIds.has(r.session_id));
     // A BASELINE IS NOT A MODEL. The three mechanical agents (random pick,
     // never trade, equal-weight-and-hold) ride along in every session on the
@@ -1520,21 +1539,19 @@ async function loadGlobals(){
     // if the counted filter isn't actually being applied, no element on the page
     // may claim it is
     if(preMigration) document.querySelectorAll('.scope.all').forEach(e=>e.textContent='all sessions');
-    $('#benchsub').innerHTML='each model averaged over every strategy it has played · <span class="hint" data-tip="career">career</span> = $100k compounded';
+    $('#benchsub').innerHTML='each model averaged over every strategy it has played · career = net absolute P&L';
 
     // career = a notional $100k compounded through the counted sessions, in order
     const ord={}; filteredSrows.filter(x=>x.counted!==false).sort((a,b)=>new Date(a.started_at||0)-new Date(b.started_at||0)).forEach((x,i)=>ord[x.id]=i);
-    const CAREER0=100000;
-    // ONE gain factor per session. When there are fewer models than personas a
-    // model drives two or three agents in the same session and used to be
-    // compounded once per agent — so "Runs 1" sat next to a career of $172,800
-    // that no single session could have produced. Average within the session
-    // first, then compound across sessions.
+    // Additive absolute P&L across all counted sessions.
     const career=rows=>{
-      const bySess={}; for(const r of rows){ if(r.ret==null)continue; (bySess[r.session_id]=bySess[r.session_id]||[]).push(+r.ret); }
+      const bySess={}; 
+      for(const r of rows){ 
+        if(r.end_value==null || r.start_cash==null) continue; 
+        (bySess[r.session_id]=bySess[r.session_id]||[]).push(Number(r.end_value) - Number(r.start_cash)); 
+      }
       return Object.entries(bySess)
-        .sort((a,b)=>(ord[a[0]]??0)-(ord[b[0]]??0))
-        .reduce((bal,[,rs])=>bal*Math.max(.01,1+avg(rs)/100),CAREER0);   // a -100% run must not pin the ledger at $0 forever
+        .reduce((total,[,pnlArr])=>total + pnlArr.reduce((a,b)=>a+b, 0), 0);
     };
     const grp=(rows,keyf)=>{const o={};for(const r of rows)(o[keyf(r)]=o[keyf(r)]||[]).push(r);return o};
     // ret averaged over rows that HAVE a ret — a null return is missing data,
@@ -1555,7 +1572,7 @@ async function loadGlobals(){
     $('#gAgents').innerHTML=B.agents.slice(0,8).map((r,i)=>{
       const ent=Object.entries(r.byModel).sort((a,b)=>b[1]-a[1]), tot=ent.reduce((s,[,c])=>s+c,0)||1;
       const bar=ent.map(([m,c])=>`<i style="width:${(c/tot*100).toFixed(1)}%;background:${modelColor(m)}" data-tip="<b>${m}</b><br>ran this strategy ${c} of ${tot} time${tot===1?'':'s'}"></i>`).join('');
-      return `<tr style="border-bottom:0"><td class="rank tnum">${i+1}</td><td><span class="adot" style="background:${acolor(r.agent_id)}"></span><span class="aname">${r.m}</span></td><td class="r tnum dim">${r.n}</td><td class="r tnum ${r.career>=1e5?'up':'down'}" style="font-weight:600">${money(r.career)}</td><td class="r tnum ${r.ret>=0?'up':'down'}">${pct(r.ret)}</td><td class="r tnum" style="color:var(--ink2)">${r.hit==null?'<span class="dim">—</span>':r.hit.toFixed(0)+'%'}</td><td class="r tnum" style="color:var(--ink2)">🚀${r.raydium||0}</td></tr>
+      return `<tr style="border-bottom:0"><td class="rank tnum">${i+1}</td><td><span class="adot" style="background:${acolor(r.agent_id)}"></span><span class="aname">${r.m}</span></td><td class="r tnum dim">${r.n}</td><td class="r tnum ${r.career>0?'up':r.career<0?'down':''}" style="font-weight:600">${r.career<0?'-':''}${money(Math.abs(r.career))}</td><td class="r tnum ${r.ret>0?'up':r.ret<0?'down':''}">${pct(r.ret)}</td><td class="r tnum" style="color:var(--ink2)">${r.hit==null?'<span class="dim">—</span>':r.hit.toFixed(0)+'%'}</td><td class="r tnum" style="color:var(--ink2)">🚀${r.raydium||0}</td></tr>
               <tr><td></td><td colspan="6" style="padding-top:0"><div class="dim" style="font-size:10.5px;padding-bottom:6px">${adesc(r.agent_id)}</div><div class="mixbar" data-tip="modelsplayed">${bar}</div></td></tr>`;
     }).join('')||'<tr><td class="empty" colspan="7">no counted sessions yet</td></tr>';
 
@@ -1582,11 +1599,11 @@ async function loadGlobals(){
     const setHL = (id, html) => { const e = $('#'+id); if(e) e.innerHTML = html; };
     if(B.models.length && B.models[0]){
       const bm = B.models[0];
-      setHL('hlBestModel', `<span class="aname" style="color:var(--ink);font-weight:600"><span style="color:${modelColor(bm.m)}">■</span> ${short(bm.m)}</span> <span class="${(bm.ret||0)>=0?'up':'down'}">(${pct(bm.ret||0)})</span>`);
+      setHL('hlBestModel', `<span class="dim">Best Model:</span> <span class="aname" style="color:var(--ink);font-weight:600"><span style="color:${modelColor(bm.m)}">■</span> ${short(bm.m)}</span> <span class="${(bm.ret||0)>0?'up':(bm.ret||0)<0?'down':''}">(${pct(bm.ret||0)})</span>`);
     }
     if(B.agents.length && B.agents[0]){
       const ba = B.agents[0];
-      setHL('hlBestAgent', `<span class="aname" style="color:var(--ink);font-weight:600">${ba.m}</span> <span class="${(ba.ret||0)>=0?'up':'down'}">(${pct(ba.ret||0)})</span>`);
+      setHL('hlBestAgent', `<span class="dim">Best Strategy:</span> <span class="aname" style="color:var(--ink);font-weight:600">${ba.m}</span> <span class="${(ba.ret||0)>0?'up':(ba.ret||0)<0?'down':''}">(${pct(ba.ret||0)})</span>`);
     }
     paintBench();
 
@@ -1602,24 +1619,114 @@ async function loadGlobals(){
     if(allTokens) {
       for(const row of allTokens) {
         if(!row.sym) continue;
-        const cleanSym = row.sym.trim();
+        const cleanSym = row.sym.trim().toUpperCase();
         if(!cleanSym || cleanSym === 'null' || cleanSym === 'undefined') continue;
         if(['USDC','USDT','DAI','USDE','FDUSD'].includes(cleanSym.toUpperCase())) continue;
-        cAll[cleanSym] = { n: row.calls, pnl: row.realized_pnl || 0 };
+        if (!cAll[cleanSym]) cAll[cleanSym] = { n: 0, pnl: 0 };
+        cAll[cleanSym].n += row.calls;
+        cAll[cleanSym].pnl += (row.realized_pnl || 0);
       }
     }
 
-    // Fetch last 1500 traded outcomes to find the hottest recent tokens regardless of session limits
-    const chunk = await qTry('decision_outcomes?select=sym,realized_pnl,outcome&order=id.desc&limit=1500',
-                            'decision_outcomes?select=sym,realized_pnl,outcome&limit=1500');
-    if(chunk) {
-      for(const o of chunk) {
-        if(!o.sym || o.outcome==='void') continue;
-        const cleanSym = o.sym.trim();
-        if(!cleanSym || cleanSym === 'null' || cleanSym === 'undefined') continue;
-        if(['USDC','USDT','DAI','USDE','FDUSD'].includes(cleanSym.toUpperCase())) continue;
-        const bR = cRecent[cleanSym] = cRecent[cleanSym] || {n:0, pnl:0};
-        bR.n++; bR.pnl += (+o.realized_pnl||0);
+    // Fetch Recent tokens just for the last 5 valid sessions (V1 style)
+    if(recentSessIds.length > 0) {
+      let offset = 0;
+      while(true) {
+        const chunk = await qTry(`decision_outcomes?select=sym,realized_pnl,outcome,session_id&session_id=in.(${recentSessIds.join(',')})&limit=1000&offset=${offset}`);
+        if(!chunk || !chunk.length) break;
+        for(const o of chunk) {
+          if(!o.sym || o.outcome==='void') continue;
+          const cleanSym = o.sym.trim().toUpperCase();
+          if(!cleanSym || cleanSym === 'null' || cleanSym === 'undefined') continue;
+          if(['USDC','USDT','DAI','USDE','FDUSD'].includes(cleanSym.toUpperCase())) continue;
+          const bR = cRecent[cleanSym] = cRecent[cleanSym] || {n:0, pnl:0};
+          bR.n++; bR.pnl += (+o.realized_pnl||0);
+        }
+        if(chunk.length < 1000 || offset >= 20000) break;
+        offset += 1000;
+      }
+    }
+
+    // Compute live active session token P&Ls if it's running
+    const activeTrades = window.activeSessionTrades || [];
+    const activeTiles = window.activeSessionTiles || [];
+    if (S.pendingLive && activeTrades.length > 0) {
+      const currentPrices = {};
+      for (const t of activeTiles) {
+        if (t.sym) currentPrices[t.sym.toUpperCase()] = t.live || 0;
+      }
+
+      const chronoDecs = [...activeTrades].sort((a, b) => (a.tick || 0) - (b.tick || 0));
+      const agentHoldings = {};
+      const agentBasis = {};
+      const agentRealized = {};
+      const tokenCallCount = {};
+
+      for (const d of chronoDecs) {
+        if (!d.sym || d.action === 'HOLD') continue;
+        const cleanSym = d.sym.trim().toUpperCase();
+        if (!cleanSym || cleanSym === 'null' || cleanSym === 'undefined') continue;
+        if (['USDC','USDT','DAI','USDE','FDUSD'].includes(cleanSym)) continue;
+
+        const agentId = d.agent_id;
+        agentHoldings[agentId] = agentHoldings[agentId] || {};
+        agentBasis[agentId] = agentBasis[agentId] || {};
+        agentRealized[agentId] = agentRealized[agentId] || {};
+        tokenCallCount[cleanSym] = (tokenCallCount[cleanSym] || 0) + 1;
+
+        const qty = +d.qty || 0;
+        const px = +d.price || 0;
+        if (qty <= 0) continue;
+
+        if (d.action === 'BUY') {
+          const curHold = agentHoldings[agentId][cleanSym] || 0;
+          const curBasis = agentBasis[agentId][cleanSym] || 0;
+          const newHold = curHold + qty;
+          const newBasis = newHold > 0 ? (curHold * curBasis + qty * px) / newHold : 0;
+          agentHoldings[agentId][cleanSym] = newHold;
+          agentBasis[agentId][cleanSym] = newBasis;
+        } else if (d.action === 'SELL' || d.action === 'SWAP') {
+          const curHold = agentHoldings[agentId][cleanSym] || 0;
+          const curBasis = agentBasis[agentId][cleanSym] || 0;
+          const sellQty = Math.min(qty, curHold);
+          if (sellQty > 0) {
+            const realized = sellQty * (px - curBasis);
+            agentRealized[agentId][cleanSym] = (agentRealized[agentId][cleanSym] || 0) + realized;
+            agentHoldings[agentId][cleanSym] = curHold - sellQty;
+          }
+        }
+      }
+
+      const activeTokenPnl = {};
+      for (const agentId of Object.keys(agentHoldings)) {
+        const holdings = agentHoldings[agentId];
+        const basis = agentBasis[agentId];
+        const realized = agentRealized[agentId];
+
+        for (const sym of Object.keys(holdings)) {
+          const qty = holdings[sym];
+          const curBasis = basis[sym];
+          const curRealized = realized[sym] || 0;
+          const curPx = currentPrices[sym] || 0;
+          const unrealized = qty * (curPx - curBasis);
+
+          activeTokenPnl[sym] = (activeTokenPnl[sym] || 0) + curRealized + unrealized;
+        }
+        for (const sym of Object.keys(realized)) {
+          if (holdings[sym] === undefined || holdings[sym] <= 1e-9) {
+            activeTokenPnl[sym] = (activeTokenPnl[sym] || 0) + realized[sym];
+          }
+        }
+      }
+
+      for (const sym of Object.keys(activeTokenPnl)) {
+        cRecent[sym] = cRecent[sym] || { n: 0, pnl: 0 };
+        cRecent[sym].n += (tokenCallCount[sym] || 0);
+        cRecent[sym].pnl += activeTokenPnl[sym];
+
+        cAll[sym] = cAll[sym] || { n: 0, pnl: 0 };
+        cAll[sym].n += (tokenCallCount[sym] || 0);
+        cAll[sym].pnl += activeTokenPnl[sym];
       }
     }
     
@@ -1640,7 +1747,7 @@ async function loadGlobals(){
       const tRecent = Object.entries(cRecent).sort((a,b)=>b[1].pnl-a[1].pnl);
       if(tRecent.length && tRecent[0]){
         const [topSym, topVal] = tRecent[0];
-        setHL('hlTopToken', `<span class="aname" style="color:${topVal.pnl>=0?'var(--good)':'var(--bad)'};font-weight:600">$${topSym}</span> <span class="${topVal.pnl>=0?'up':'down'}">(${(topVal.pnl>=0?'+':'-')+money(Math.abs(topVal.pnl))})</span>`);
+        setHL('hlTopToken', `<span class="dim">Top Token:</span> <span class="aname" style="color:${topVal.pnl>0?'var(--good)':topVal.pnl<0?'var(--bad)':'inherit'};font-weight:600">$${topSym}</span> <span class="${topVal.pnl>0?'up':topVal.pnl<0?'down':''}">(${(topVal.pnl>0?'+':topVal.pnl<0?'-':'')+money(Math.abs(topVal.pnl))})</span>`);
       }
       
       window.topTokensData = { recent: tRecent, winners: Object.entries(cAll).sort((a,b)=>b[1].pnl-a[1].pnl), losers: Object.entries(cAll).sort((a,b)=>a[1].pnl-b[1].pnl) };
@@ -1675,7 +1782,7 @@ async function loadGlobals(){
           [...toktabs.children].forEach(c => c.classList.toggle('active', c.dataset.t === tab));
         }
 
-        $('#gTokens').innerHTML = t.map(([s,v],i)=>`<tr><td class="rank tnum">${i+1}</td><td><span class="aname">${s}</span><div class="bar"><i style="width:${(Math.abs(v.pnl)/mx*100).toFixed(0)}%;background:${v.pnl>=0?cssv('--good'):cssv('--bad')}"></i></div></td><td class="r tnum dim">${v.n}</td><td class="r tnum ${v.pnl>=0?'up':'down'}">${(v.pnl>=0?'+':'-')+money(Math.abs(v.pnl))}</td></tr>`).join('')||'<tr><td class="empty" colspan="4">—</td></tr>';
+        $('#gTokens').innerHTML = t.map(([s,v],i)=>`<tr><td class="rank tnum">${i+1}</td><td><span class="aname">${s}</span><div class="bar"><i style="width:${(Math.abs(v.pnl)/mx*100).toFixed(0)}%;background:${v.pnl>0?cssv('--good'):v.pnl<0?cssv('--bad'):'transparent'}"></i></div></td><td class="r tnum dim">${v.n}</td><td class="r tnum ${v.pnl>0?'up':v.pnl<0?'down':''}">${(v.pnl>0?'+':v.pnl<0?'-':'')+money(Math.abs(v.pnl))}</td></tr>`).join('')||'<tr><td class="empty" colspan="4">—</td></tr>';
       };
       
       paintTokens();

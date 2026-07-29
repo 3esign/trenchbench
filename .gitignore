@@ -17,6 +17,7 @@ node_modules/
 sessions/
 worker/sessions/
 worker/.stop
+worker/.running
 
 # ---- noise -------------------------------------------------------
 *.log
@@ -35,3 +36,6 @@ config*.txt
 sessions_archive/
 worker/pools_cache.json
 worker/logs/
+
+# ---- generated runtime memory (regenerated each session) ----
+logs/

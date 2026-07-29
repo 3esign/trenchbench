@@ -41,6 +41,7 @@ const MENU_ACTIVE_MS = +(ENV.MENU_ACTIVITY_MINUTES || 20) * 60000;
 const MIN_MENU_POOL = +(ENV.MIN_MENU_POOL || 15);                  // never starve the menu
 const CAREER_START = +(ENV.CAREER_START || 100000);               // the notional bankroll the career ledger compounds
 const MAX_MODEL_CALLS = +(ENV.MAX_MODEL_CALLS || 1200);           // HARD ceiling on paid model calls per session
+const SESSION_ROUNDS = +(ENV.SESSION_ROUNDS || 0);                 // Limit session by number of rounds (0 = unlimited)
 const RUNLOCK = new URL('worker/.running', ROOT);
 const OLLAMA = (ENV.OLLAMA_URL || 'http://localhost:11434').replace(/\/$/, '');
 const PINNED = (ENV.OLLAMA_MODELS || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -326,8 +327,11 @@ function calcRSI(hist) {
 
 function buildMenu(ag, obs) {
   const menu = [{ k: 'HOLD', sym: null, label: 'HOLD - do nothing this round' }];
-  for (const p of [...obs.positions].sort((a, b) => b.pnl - a.pnl).slice(0, 4))
-    menu.push({ k: 'SELL', sym: p.sym, label: `SELL ${p.sym} - you hold ${p.qty < 1 ? p.qty.toPrecision(3) : Math.round(p.qty)}, ${p.pnl >= 0 ? '+' : ''}${p.pnl.toFixed(1)}% since you bought` });
+  for (const p of [...obs.positions].sort((a, b) => b.pnl - a.pnl).slice(0, 4)) {
+    menu.push({ k: 'SELL_ALL', sym: p.sym, label: `SELL ALL ${p.sym} - you hold ${p.qty < 1 ? p.qty.toPrecision(3) : Math.round(p.qty)}, ${p.pnl >= 0 ? '+' : ''}${p.pnl.toFixed(1)}% since you bought` });
+    menu.push({ k: 'SELL_HALF', sym: p.sym, label: `SELL HALF ${p.sym} - take 50% profit/loss on your position` });
+    menu.push({ k: 'SELL_THIRD', sym: p.sym, label: `SELL THIRD ${p.sym} - take 33% profit/loss on your position` });
+  }
   const held = new Set(obs.positions.map(p => p.sym));
   const afford = a => Math.floor((ag.risk * obs.cash) / (a.price * 1.001)) > 0;
   const nMove = 3 + Math.floor(Math.random() * 3);          // 3-5 movers
@@ -387,15 +391,17 @@ function calculateBondingCurveImpact(action, tradeValUsd, spotPx, liquidityPoolU
   if (!spotPx || spotPx <= 0 || tradeValUsd <= 0) return { execPx: spotPx, priceImpactPct: 0, slippageFeeUsd: 0 };
   const gamma = tradeValUsd / Math.max(1000, liquidityPoolUsd);
   const impactSign = action === 'BUY' ? 1 : -1;
-  const execPx = Math.max(0.001 * spotPx, spotPx * (1 + impactSign * (gamma / 2)));
-  const priceImpactPct = impactSign * gamma * 100;
-  const slippageFeeUsd = tradeValUsd * (gamma / 2);
+  const execPx = Math.max(0.001 * spotPx, spotPx * (1 + impactSign * 2 * gamma));
+  const priceImpactPct = impactSign * 4 * gamma * 100;
+  const slippageFeeUsd = tradeValUsd * (2 * gamma);
   return { execPx, priceImpactPct, slippageFeeUsd };
 }
 
 function menuToOrder(opt, ag, obs) {
   if (!opt || opt.k === 'HOLD') return { action: 'HOLD', symbol: null, qty: 0 };
-  if (opt.k === 'SELL') return { action: 'SELL', symbol: opt.sym, qty: obs.hold[opt.sym] || 0 };
+  if (opt.k === 'SELL_ALL') return { action: 'SELL', symbol: opt.sym, qty: obs.hold[opt.sym] || 0 };
+  if (opt.k === 'SELL_HALF') return { action: 'SELL', symbol: opt.sym, qty: (obs.hold[opt.sym] || 0) / 2 };
+  if (opt.k === 'SELL_THIRD') return { action: 'SELL', symbol: opt.sym, qty: (obs.hold[opt.sym] || 0) / 3 };
   if (opt.k === 'SWAP') return { action: 'SWAP', symbol: opt.sym, sellSymbol: opt.sellSym, qty: 0 };
   if (opt.k === 'REBALANCE') return { action: 'REBALANCE', symbol: null, qty: 0 };
   const px = obs.M[opt.sym] ? obs.M[opt.sym].price : 0;
@@ -405,17 +411,17 @@ function menuToOrder(opt, ag, obs) {
   let tradeSizeUsd = dynRisk * obs.cash;
   if (['s2b', 's2c', 's2d', 's2e'].includes(EXPERIMENTAL_ARM)) {
     const momVol = Math.abs(obs.M[opt.sym] ? obs.M[opt.sym].mom : 0);
-    const volScale = Math.max(0.2, 1 - (momVol / 10)); // max 80% scale down
+    const volScale = Math.max(0.6, 1 - (momVol / 20)); // softer scale down
     tradeSizeUsd *= volScale;
     
-    // Cap trade size at 5% of pool liquidity to prevent massive slippage (min $100 safeguard)
-    const maxTradeSize = Math.max(100, liq * 0.05);
+    // Cap trade size at 25% of pool liquidity to prevent massive slippage (min $5000 safeguard)
+    const maxTradeSize = Math.max(5000, liq * 0.25);
     tradeSizeUsd = Math.min(tradeSizeUsd, maxTradeSize);
   }
   
   const impact = calculateBondingCurveImpact('BUY', tradeSizeUsd, px, liq);
   const execPx = impact.execPx;
-  return { action: 'BUY', symbol: opt.sym, qty: execPx > 0 ? Math.floor(tradeSizeUsd / (execPx * 1.001)) : 0, impactPct: impact.priceImpactPct };
+  return { action: 'BUY', symbol: opt.sym, usd: tradeSizeUsd, qty: execPx > 0 ? Math.floor(tradeSizeUsd / (execPx * 1.01)) : 0, impactPct: impact.priceImpactPct };
 }
 function parseChoice(text, menu) {
   if (!text) return null;
@@ -445,9 +451,15 @@ function parseChoice(text, menu) {
     const h = menu.findIndex(o => o.k === 'HOLD');
     return h >= 0 ? h : null;
   }
-  const act = (w.match(/\b(BUY|SELL)\b/) || [])[1];
+  const act = (w.match(/\b(BUY|SELL_ALL|SELL_HALF|SELL_THIRD|SELL)\b/) || [])[1];
   if (act) {
-    const hit = menu.findIndex(o => o.k === act && o.sym && new RegExp(`\\b${o.sym.toUpperCase()}\\b`).test(w));
+    let searchAct = act;
+    if (act === 'SELL') {
+      if (/\b(THIRD|33%)\b/.test(w)) searchAct = 'SELL_THIRD';
+      else if (/\b(HALF|50%)\b/.test(w)) searchAct = 'SELL_HALF';
+      else searchAct = 'SELL_ALL';
+    }
+    const hit = menu.findIndex(o => o.k === searchAct && o.sym && new RegExp(`\\b${o.sym.toUpperCase()}\\b`).test(w));
     if (hit >= 0) return hit;
   }
 
@@ -471,8 +483,9 @@ const DECISION_SCHEMA = { type: 'object', properties: { action: { type: 'string'
 // immediately, rather than letting a round finish paying out after you quit.
 const INFLIGHT = new Set();
 let SHUTTING = false, CALLS = 0;
+let feed = null, poller = null;
 function abortAll(){ for (const c of INFLIGHT) { try { c.abort(); } catch {} } INFLIGHT.clear(); }
-function cleanup(){ try { fs.rmSync(RUNLOCK); } catch {} try { if (typeof feed !== 'undefined' && feed && feed.close) feed.close(); } catch {} }
+function cleanup(){ try { fs.rmSync(RUNLOCK); } catch {} try { if (poller) clearInterval(poller); } catch {} try { if (typeof feed !== 'undefined' && feed && feed.close) feed.close(); } catch {} }
 function panic(why){
   if (SHUTTING) return; SHUTTING = true;
   console.log(`\n  [stop] ${why} — cancelling ${INFLIGHT.size} in-flight model call(s) and shutting down.`);
@@ -553,7 +566,7 @@ ${ag.desc || ''}
 CRITICAL DIRECTIVE: You are an active fund manager mandated to generate alpha.
 Idle cash (>50%) incurs a mandatory CASH DRAG PENALTY (-0.05%/tick). SITTING STILL DECAYS CAPITAL.
 You MUST actively evaluate tokens, buy dips, ride momentum, and rotate capital.
-${['s2d', 's2e'].includes(EXPERIMENTAL_ARM) ? 'Menu Legend: LQ = Pool Liquidity (USD), V5 = 5m Volume (USD), MC = Market Cap (USD), M1/M15/M60 = 1m/15m/60m price change. PNL = your position\'s profit/loss percentage.\nNote: Trades incur slippage (~1%). Only trade if expected edge > 1%.\n' : ''}Choose exactly ONE option from the menu. Reply with its integer number and NOTHING else.`;
+${['s2d', 's2e'].includes(EXPERIMENTAL_ARM) ? 'Menu Legend: LQ = Pool Liquidity (USD), V5 = 5m Volume (USD), MC = Market Cap (USD), M1/M15/M60 = 1m/15m/60m price change. PNL = your position\'s profit/loss percentage.\nNote: Trades incur slippage (~1%). Only trade if expected edge > 1%.\n' : ''}Before answering, write a 1-3 sentence monologue from the perspective of your persona reacting to the market and explaining your reasoning. Then, output your final decision on a new line in the exact format: CHOICE: <integer>.`;
 
   const marketDesc = obs.realMode ? 'Live Solana (Dexscreener aligned)' : 'Mathematical Simulation';
   const sessionContext = ['s2d', 's2e'].includes(EXPERIMENTAL_ARM) ? `[SESSION CONTEXT]\nRound: ${obs.tick || 1} | Market: ${marketDesc} | Mode: V2 Profit Maximization\n\n` : '';
@@ -565,7 +578,7 @@ RECENT:${hist}${idle}${learned}
 [MENU]
 ${menu.map((o, i) => `${i}) ${o.label}`).join('\n')}
 
-> REPLY_INTEGER_ONLY:`;
+> YOUR MONOLOGUE AND CHOICE:`;
   // one slow cloud model must not hold up all eight agents — cut it off and
   // let the rule brain answer for that round instead.
   if (SHUTTING || CALLS >= MAX_MODEL_CALLS) return { ...ruleFallback(ag, obs), comment: 'call ceiling', brain: 'rules' };
@@ -645,11 +658,23 @@ function buildSimAssets() {
 function tickSim(A) {
   for (const a of A) {
     if (a.cat === 'memecoin') {
-      if (Math.random() < .05) a.price *= (1 + rnd(-.35, .45));
-      // Hype/momentum feedback loop: past price change influences drift (trend-following simulation)
-      const momBias = (a.mom || 0) * 0.005;
-      const nextDrift = a.drift + Math.max(-0.015, Math.min(0.015, momBias));
-      a.price = Math.max(a.seed * .02, a.price * (1 + (nextDrift + a.vol * randn())));
+      if (!a.mc_seed) a.mc_seed = a.cap || 100000;
+      if (!a.liq_seed) a.liq_seed = a.liq || 10000;
+      
+      if (Math.random() < 0.003) { // 0.3% chance of dev dump per tick
+        a.price *= rnd(0.05, 0.15); // Drop 85% to 95%
+        a.liq_seed *= 0.20; // Structural damage to liquidity
+      } else {
+        if (Math.random() < .05) a.price *= (1 + rnd(-.35, .45));
+        // Hype/momentum feedback loop: past price change influences drift (trend-following simulation)
+        const momBias = (a.mom || 0) * 0.005;
+        const nextDrift = a.drift + Math.max(-0.015, Math.min(0.015, momBias));
+        a.price = Math.max(a.seed * .02, a.price * (1 + (nextDrift + a.vol * randn())));
+      }
+      
+      a.cap = a.mc_seed * (a.price / a.seed);
+      a.liq = a.liq_seed * Math.sqrt(a.price / a.seed);
+      
       a.hist.push(a.price);
       if (a.hist.length > 60) a.hist.shift();
       recompute(a);
@@ -782,26 +807,28 @@ function execute(ag, d, M, tick) {
   if (d.symbol && M[d.symbol] && M[d.symbol].quarantined) return { executed: false, quarantined: true };
   if (d.action === 'BUY' && d.symbol && M[d.symbol]) {
     const px = M[d.symbol].price;
-    if (!(px > 0) || !(d.qty > 0)) return { executed: false };
-    
-    // Simulate bonding curve impact at execution
     const liq = M[d.symbol].liq || 10000;
-    const tradeSizeUsd = d.qty * px;
+    const tradeSizeUsd = d.usd || (d.qty * px);
+    if (!(px > 0) || !(tradeSizeUsd > 0)) return { executed: false };
+    if (tradeSizeUsd < 5) return { executed: false, comment: 'Trade below $5 minimum' };
+    
     const impact = calculateBondingCurveImpact('BUY', tradeSizeUsd, px, liq);
     const execPx = impact.execPx;
+    if (!(execPx > 0)) return { executed: false };
     
-    // Scale order size down based on execPx rather than spot px
-    const afford = Math.floor((ag.cash * 0.98) / (execPx * 1.001));
-    const qty = Math.min(d.qty, afford);
+    // Scale order size down based on execPx rather than spot px, accounting for 1% fee and $1.50 flat fee
+    const cost = Math.min(ag.cash, tradeSizeUsd * 1.01 + 1.50);
+    const spendUsd = cost - 1.50;
+    const qty = spendUsd > 0 ? spendUsd / (execPx * 1.01) : 0;
+    
     if (qty > 0) {
-      const cost = qty * execPx * 1.001;
       ag.cash -= cost;
       ag.hold[d.symbol] = (ag.hold[d.symbol] || 0) + qty;
       (ag.lots[d.symbol] = ag.lots[d.symbol] || []).push({ qty, px: execPx, tick });
       if (M[d.symbol].src === 'simulation' || !M[d.symbol].live) {
         M[d.symbol].price = execPx;
       }
-      return { executed: true, qty, trimmed: qty < d.qty, execPx };
+      return { executed: true, qty, trimmed: cost < (tradeSizeUsd * 1.01 + 1.50), execPx };
     }
     return { executed: false };
   } else if (d.action === 'SELL' && d.symbol && M[d.symbol]) {
@@ -814,7 +841,7 @@ function execute(ag, d, M, tick) {
       const oldestLot = lots[0];
       const pnlPct = oldestLot.px > 0 ? ((px / oldestLot.px) - 1) * 100 : 0;
       const holdTime = tick - oldestLot.tick;
-      if (holdTime < 5 && pnlPct > -50) {
+      if (holdTime < 2 && pnlPct > -25) {
         ag.note = `hold timer blocked panic sell of ${d.symbol}`;
         return { executed: false, blocked: true };
       }
@@ -825,10 +852,12 @@ function execute(ag, d, M, tick) {
       const px = M[d.symbol].price;
       const liq = M[d.symbol].liq || 10000;
       const tradeSizeUsd = q * px;
+      if (q < h && tradeSizeUsd < 5) return { executed: false, blocked: true, comment: 'Trade below $5 minimum' };
       const impact = calculateBondingCurveImpact('SELL', tradeSizeUsd, px, liq);
       const execPx = impact.execPx;
       
-      const proceeds = q * execPx * .999;
+      const proceeds = q * execPx * 0.99 - 1.50;
+      if (proceeds < 0) return { executed: false, blocked: true, comment: 'Proceeds negative after $1.50 priority fee' };
       ag.cash += proceeds;
       ag.hold[d.symbol] = h - q;
       if (ag.hold[d.symbol] <= 1e-9) delete ag.hold[d.symbol];
@@ -905,7 +934,7 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
   console.log(usingOllama ? `Ollama connected — benchmarking ${models.length} model(s): ${models.join(', ')}` : 'Ollama not detected → built-in fallback brains.');
 
   // build the market — REAL first, sim fallback
-  let assets = null, REALMODE = false, feed = null;
+  let assets = null, REALMODE = false;
   if (PRICE_MODE !== 'sim') {
     feed = new LiveFeed({ log: console.log });
     await feed.seed();
@@ -953,7 +982,7 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
   // Prices come from the chain and ONLY from the chain. Previously a random
   // walk was layered on top in 'live' mode, so everything after the opening
   // snapshot was synthetic while the console claimed "REAL prices". Gone.
-  let poller = null, refreshes = 0, priceMoves = 0, suspectPrices = 0;
+  let refreshes = 0, priceMoves = 0, suspectPrices = 0;
   const quarantined = new Set();   // symbols delisted mid-session as untrustworthy
   if (feed) {
     poller = setInterval(async () => {
@@ -1131,10 +1160,10 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
     sess = await sb('sessions', 'POST', basic, 'return=representation');
     if (sess) console.log('  [db] saved without tokens or season column (run supabase/007_season_management.sql to enable V2 season scoping).');
   }
-  console.log(`\nSession ${session_id}\ncapital ${CAP_MODE === 'equal' ? `$${START_CAP.toLocaleString('en-US')} each (equal)` : `$${CMIN}-$${CMAX} per agent (random)`} · ${REALMODE ? 'REAL Pump.fun memecoin prices' : 'simulated prices'} · roster ${MODE} · runs until you press Stop (safety cap ${SECONDS >= 60 ? Math.round(SECONDS / 60) + ' min' : SECONDS + ' s'})\n`);
+  console.log(`\nSession ${session_id}\ncapital ${CAP_MODE === 'equal' ? `$${START_CAP.toLocaleString('en-US')} each (equal)` : `$${CMIN}-$${CMAX} per agent (random)`} · ${REALMODE ? 'REAL Pump.fun memecoin prices' : 'simulated prices'} · roster ${MODE} · runs until you press Stop\n`);
 
   const decisions = [], equity = [], roundMs = []; let round = 0, flushedD = 0, flushedE = 0; const t0 = Date.now();
-  while ((Date.now() - t0) / 1000 < SECONDS && !fs.existsSync(STOPFLAG) && !SHUTTING && CALLS < MAX_MODEL_CALLS) {
+  while (!fs.existsSync(STOPFLAG) && !SHUTTING && CALLS < MAX_MODEL_CALLS && (SESSION_ROUNDS === 0 || round < SESSION_ROUNDS)) {
     round++; const rt0 = Date.now();
     if (!REALMODE) tickSim(assets);
     priceLog[round] = Object.fromEntries(assets.map(a => [a.sym, a.price]));
@@ -1142,7 +1171,7 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
     // all read this, so the price a trade filled at is exactly the price it is
     // scored against — and the async price poller cannot move the goalposts
     // between the first agent's answer and the last one's.
-    const OPEN = Object.fromEntries(assets.map(a => [a.sym, { price: a.price, quarantined: !!a.quarantined, cat: a.cat }]));
+    const OPEN = Object.fromEntries(assets.map(a => [a.sym, a]));
     const alive = agents.filter(a => !a.bust);
     if (!alive.length) { console.log('  all agents eliminated.'); break; }
     // THE MENU ONLY OFFERS WHAT IS ACTUALLY TRADING.
@@ -1201,7 +1230,7 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
       const sym = d.symbol && OPEN[d.symbol] ? d.symbol : null; d.symbol = sym;
       const fill = execute(ag, d, OPEN, round); const executed = fill.executed;
       if (fill.qty != null) d.qty = fill.qty;   // log what actually filled, not what was asked for
-      fills.set(`${round}|${ag.id}`, fill);
+      fills.set(`${round}|${ag.id}|${sym || ''}`, fill);
       if (executed) ag.trades++; ag.thinks++;
       if (d.brain === 'model') ag.modelCalls = (ag.modelCalls || 0) + 1; else ag.fallbackCalls = (ag.fallbackCalls || 0) + 1;
       ag.holdStreak = executed ? 0 : (ag.holdStreak || 0) + 1;
@@ -1284,6 +1313,7 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
       }
     }
     if (usingOllama && CALLS >= MAX_MODEL_CALLS) console.log(`\n  [budget] hit the ${MAX_MODEL_CALLS}-call ceiling — finishing the session now. Raise MAX_MODEL_CALLS in config.txt if you want longer runs.`);
+    if (SESSION_ROUNDS > 0 && round >= SESSION_ROUNDS) console.log(`\n  [rounds] hit the ${SESSION_ROUNDS}-round ceiling — finishing the session now.`);
     if (round % 10 === 0 && usingOllama) console.log(`  [budget] ${CALLS}/${MAX_MODEL_CALLS} model calls used`);
     if (round === MIN_BENCH_ROUNDS && SUPA && ANON) {
       sb(`sessions?id=eq.${session_id}`, 'PATCH', { counted: true });
@@ -1301,6 +1331,9 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
     await sleep(ROUND_MS);
   }
   if (poller) clearInterval(poller);
+  if (typeof feed !== 'undefined' && feed && feed.close) {
+    try { feed.close(); } catch {}
+  }
 
   // ============================================================
   //  OUTCOME LABELS — did each decision actually work?
@@ -1326,6 +1359,25 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
   // token's return at exactly 0%, so every real token that dipped scored as
   // "worse than the market" and hit rate collapsed to single digits. The
   // agents were being measured against something that cannot move.
+  // --- FORCED END-OF-SESSION LIQUIDATION ---
+  // Any open positions are forcefully sold at the final market price to realize their P&L
+  // so the tokens get credit for their unrealized gains/losses in the Token Leaderboard.
+  console.log(`  [bench] forcing liquidation of all open positions to realize token P&L...`);
+  const finalMktPrice = snapAt(lastRound);
+  const finalMkt = Object.fromEntries(Object.entries(finalMktPrice).map(([sym, price]) => [sym, { price, cat: 'memecoin' }]));
+  for (const ag of agents) {
+    for (const [sym, qty] of Object.entries(ag.hold)) {
+      if (qty > 1e-9 && finalMkt[sym]) {
+        const fill = execute(ag, { action: 'SELL', symbol: sym, qty }, finalMkt, lastRound);
+        if (fill.executed) {
+          decisions.push({ session_id, tick: lastRound, ts: nowISO(), agent_id: ag.id, agent_name: ag.name, role: ag.role, model: ag.model, start_cash: ag.start_cash, action: 'SELL', sym: sym, qty: r2(fill.qty), price: px6(fill.execPx), executed: true, comment: 'forced liquidation at end of session', brain: 'rules', choice: null, reply: null, menu_size: 0, token_class: classLabel(finalMkt[sym].cat), equity: r2(ag.lastEq) });
+          fills.set(`${lastRound}|${ag.id}|${sym}`, fill);
+        }
+      }
+    }
+    ag.lastEq = equityOf(ag, finalMkt);
+  }
+
   // Quarantined tokens are not part of "the market" either. A token that got
   // delisted for an untrustworthy price must not set the bar the agents are
   // measured against.
@@ -1359,7 +1411,7 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
     const mh = mktRet(d.tick, th) * 100;
     const eq0 = +d.equity, eq1 = eqLookup(d.agent_id, th);
     const agent_edge = (eq0 > 0 && eq1 != null) ? r2(((eq1 / eq0 - 1) * 100) - mh) : null;
-    const fill = fills.get(`${d.tick}|${d.agent_id}`) || {};
+    const fill = fills.get(`${d.tick}|${d.agent_id}|${d.sym || ''}`) || {};
     const sign = d.action === 'BUY' ? 1 : d.action === 'SELL' ? -1 : 0;
     let fwd_ret = null, fwd_ret_end = null, edge = null, outcome = 'na';
     // A call on a token that was later delisted is unscoreable, not right and
@@ -1401,7 +1453,7 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
       const spread = usable.length > 1 ? Math.max(...usable) - Math.min(...usable) : 0;
       if (usable.length > 1 && spread > 1e-9) {
         const best = Math.max(...usable);
-        const takenIdx = d.choice == null ? mn.findIndex(o => (o.k === d.action) && (o.sym || null) === (d.sym || null)) : d.choice;
+        const takenIdx = d.choice == null ? mn.findIndex(o => (o.k === d.action || (d.action === 'SELL' && o.k.startsWith('SELL_'))) && (o.sym || null) === (d.sym || null)) : d.choice;
         const taken = takenIdx >= 0 ? scored[takenIdx] : null;
         if (taken != null) { regret = r2(Math.max(0, best - taken)); was_best = regret <= 0.0001; }
       }
@@ -1545,8 +1597,7 @@ function metrics(ag) { const h = ag.bars; if (h.length < 3) return { ret: (ag.la
       ? `  benchmark: NOT COUNTED — a return of ${wildest.toFixed(0)}% is not a trade, it is a bad price. This session is saved for inspection but excluded from the rankings.`
       : `  benchmark: NOT COUNTED — only ${round} round${round === 1 ? '' : 's'} (needs ${MIN_BENCH_ROUNDS}). Saved and viewable, but it will not move the all-time rankings.`);
   console.log(`  [db] verify: ${Array.isArray(check) ? check.length + ' decision rows are now in Supabase for this session.' : 'could not read back (check schema).'}`);
-  // Close feed discovery immediately when trading loop completes so no websocket logs fire during reflection
-  if (typeof feed !== 'undefined' && feed && feed.close) feed.close();
+
 
   // ---------- each agent writes itself one lesson ----------
   // Eight extra calls, once per session. This is the only thing that makes an
@@ -1613,18 +1664,18 @@ Write ONE sentence, under 20 words, for your next session. No preamble, just the
   if (usingOllama && models.length && !SHUTTING) {
     console.log('\n  running observer agent (performance analysis)...');
     const obsModel = models[0];
-    const standings = ranked.map((r, i) => `${i + 1}. ${r.agent_name} (${r.model}) - Final Equity: $${Math.round(r.end_value)} (${r.ret >= 0 ? '+' : ''}${r.ret}%)`).join('\n');
-    const winner = ranked[0];
+    const nonBaselineRanked = ranked.filter(r => !String(r.model || '').startsWith('baseline:'));
+    const standings = nonBaselineRanked.map((r, i) => `${i + 1}. ${r.agent_name} (${r.model}) - Final Equity: $${Math.round(r.end_value)} (${r.ret >= 0 ? '+' : ''}${r.ret}%)`).join('\n');
+    const winner = nonBaselineRanked[0] || ranked[0];
     const topFact = `WINNING STRATEGY THIS SESSION: ${winner.agent_name} playing ${winner.model} (+${winner.ret}%).`;
-    const sys3 = `You are a quantitative trading analyst observing a benchmark session. You provide realistic, objective observation and performance analysis. Keep it strictly to 2-3 paragraphs.`;
+    const sys3 = `You are "The Knower", a wise, experienced, and provocative trading veteran observing an AI hedge fund simulation. You have massive system knowledge. Your job is to output exactly ONE sharp, funny, and insightful sentence evaluating the session's winning or losing strategies.`;
     const usr3 = `The trading session has ended after ${round} rounds.
 Starting Capital: $${session_cash}
-Market condition: ${priceMoves} price moves observed.
 
 Final Standings:
 ${standings}
 
-Write an objective performance analysis of the strategies used. Identify which strategy worked best under these market conditions and why the losers failed. Do not mention specific token names. Focus on the personas and risk management.`;
+Write ONE highly provocative, sharp, and concise sentence (UNDER 15 WORDS) analyzing why the winner won or why the losers failed. No fluff. No emojis. Just raw, experienced market wisdom.`;
 
     try {
       const ctl = new AbortController(); INFLIGHT.add(ctl);
